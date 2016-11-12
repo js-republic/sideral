@@ -1,0 +1,34 @@
+{
+  "name": "sideral",
+  "version": "1.0.0",
+  "description": "A lightweight javascript game engine framework",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "./node_modules/.bin/babel src --out-dir lib",
+    "build-dev": "./node_modules/.bin/babel src --watch --out-dir lib",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/js-republic/sideral.git"
+  },
+  "keywords": [
+    "sideral",
+    "game",
+    "framework",
+    "js",
+    "javascript"
+  ],
+  "author": "JS-Republic",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/js-republic/sideral/issues"
+  },
+  "homepage": "https://github.com/js-republic/sideral#readme",
+  "devDependencies": {
+    "babel-cli": "^6.18.0",
+    "babel-preset-es2015": "^6.18.0",
+    "chokidar": "^1.6.1"
+  },
+  "dependencies": {}
+}
