@@ -9,7 +9,7 @@ Pull requests
 -------------
 
 
-All pull requests are welcome. You should create a new branch, based on the master branch, and submit the PR against the master branch.
+All pull requests are welcome. You should create a new branch, based on the **master branch**, and submit the PR against the **dev branch**.
 
 Your branch name must be explicit like this : feature/componentWeather. All development branch must starts with feature/yourFeature and must be a reference to an issue.
 
