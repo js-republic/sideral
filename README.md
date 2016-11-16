@@ -1,4 +1,8 @@
-# Sideral JS 
+# Sideral JS
+
+[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badge/) [![License: GPL v3](https://img.shields.io/badge/license-GPL--V3-blue.svg)](https://www.gnu.org/licenses/quick-guide-gplv3.fr.html)
+
+:rocket::construction: Project in construction :construction::rocket:
 
 Sideral JS is the next generation of video-game framework with JavaScript. This framework is made to create a more complexe 2D game with all features needed like HUD, Event Manager, Map Editor, Quest manager, etc.
 It also provide complete library to make your game online.
@@ -12,4 +16,8 @@ It also provide complete library to make your game online.
  
 ## Contributing
  
-See CONTRIBUTING.md to contribute to this project.
+See [CONTRIBUTING.md](./CONTRIBUTING.md) to contribute to this project.
+
+## License
+
+SGR project is a licensed under [GNU General Public License v3](https://www.gnu.org/licenses/gpl-3.0.en.html).
