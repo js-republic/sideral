@@ -22,6 +22,11 @@
   ],
   "author": "JS-Republic",
   "license": "GPL-3.0",
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
   "bugs": {
     "url": "https://github.com/js-republic/sideral/issues"
   },
