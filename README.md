@@ -1,6 +1,6 @@
 # Sideral JS
 
-[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badge/) [![License: GPL v3](https://img.shields.io/badge/license-GPL--V3-blue.svg)](https://www.gnu.org/licenses/quick-guide-gplv3.fr.html)
+[![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badge/) [![License: GPL v3](https://img.shields.io/badge/license-GPL--V3-blue.svg)](https://www.gnu.org/licenses/quick-guide-gplv3.fr.html) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 :rocket::construction: Project in construction :construction::rocket:
 

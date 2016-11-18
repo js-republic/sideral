@@ -1,3 +1,8 @@
-/**
- * Created by christophebrochard on 12/11/2016.
- */
+import Element from "./Element";
+
+
+const Sideral = {
+    Element: Element
+};
+
+export default Sideral;

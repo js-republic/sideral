@@ -8,6 +8,7 @@ To be able to contribute on SGR project, you will need :
 
 - NodeJS (v6.0)
 - ESLint
+- Commitizen
 
 ## How the project view works
 
