@@ -1,79 +1,70 @@
-module.exports = function configurate (config) {
+var karmaConf = {
+    basePath: "./../",
+    browsers: ["PhantomJS"],
+    exclude: ["/node_modules/"],
+    frameworks: ["jasmine", "source-map-support"],
 
-    config.set({
-        basePath: "./../",
-        browsers: ["PhantomJS"],
-        exclude: ["/node_modules/"],
-        frameworks: ["jasmine"],
+    files: [
+        "node_modules/babel-polyfill/dist/polyfill.js",
+        "test/**/*.js"
+    ],
 
-        files: [
-            "test/**/*.js"
-        ],
+    phantomjsLauncher: {
+        exitOnResourceError: true
+    },
 
-        phantomjsLauncher: {
-            exitOnResourceError: true
+    plugins: [
+        require("karma-jasmine"),
+        require("karma-coverage"),
+        require("karma-phantomjs-launcher"),
+        require("karma-webpack"),
+        require("karma-source-map-support")
+    ],
+
+    preprocessors: {
+        "src/**/*.js": ["webpack"],
+        "test/**/*.js": ["webpack"]
+    },
+
+    // Webpack
+    webpack: {
+        resolve: {
+            extensions: ["", ".js"]
         },
 
-        plugins: [
-            require("karma-jasmine"),
-            require("karma-coverage"),
-            require("karma-phantomjs-launcher"),
-            require("karma-webpack"),
-            require("karma-sourcemap-loader")
-        ],
-
-        preprocessors: {
-            "src/**/*.js": ["webpack"],
-            "test/**/*.js": ["webpack"]
-        },
-
-        // Webpack
-        webpack: {
-            resolve: {
-                extensions: ["", ".js"]
-            },
-
-            module: {
-                loaders: [
-                    {
-                        test: /\.js$/,
-                        loader: "babel-loader",
-                        exclude: /node_modules/,
-                        query: {
-                            presets: ["es2015"]
-                        }
+        module: {
+            loaders: [
+                {
+                    test: /\.js$/,
+                    loader: "babel-loader",
+                    exclude: /node_modules/,
+                    query: {
+                        presets: ["es2015"]
                     }
-                ],
+                }
+            ],
 
-                postLoaders: [
-                    {
-                        test: /\.js$/,
-                        loader: "istanbul-instrumenter-loader",
-                        exclude: ["node_modules", /\.(test|spec)\.js$/]
-                    }
-                ]
-            },
-
-            devtool: "inline-source-map"
+            postLoaders: [
+                {
+                    test: /\.js$/,
+                    loader: "istanbul-instrumenter-loader",
+                    exclude: [/node_modules/, /\.(test|spec)\.js$/]
+                }
+            ]
         },
 
-        // Reporters
-        reporters: ["progress", "coverage"],
-        coverageReporter: {
-            dir: "coverage",
-            instrumenterOptions: {
-                istanbul: {noCompact: true}
-            },
-            type: "html"
-        },
+        devtool: "inline-source-map"
+    },
 
-        // debug
-        colors: true,
-        autoWatch: false,
-        logLevel: config.LOG_INFO,
-        singleRun: true,
+    // Reporters
+    reporters: ["progress", "coverage"],
+    coverageReporter: {
+        sbudir: ".",
+        type: "html"
+    },
 
-        port: 9876
-    });
-
+    colors: true,
+    port: 9876
 };
+
+module.export = module.exports = karmaConf;
