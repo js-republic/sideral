@@ -48,7 +48,7 @@ var karmaConf = {
                 {
                     test: /\.js$/,
                     loader: "istanbul-instrumenter-loader",
-                    exclude: [/node_modules/, /\.(test|spec)\.js$/]
+                    exclude: [/node_modules/, /\.(test|spec)\.js$/, /lib/]
                 }
             ]
         },

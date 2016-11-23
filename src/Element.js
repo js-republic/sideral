@@ -13,12 +13,6 @@ export default class Element {
         this.id = Element.generateId();
 
         /**
-         * Name of the element
-         * @type {string}
-         */
-        this.name = "Element";
-
-        /**
          * List of components added to this element by their names
          * @type {Array<string>}
          */
@@ -36,6 +30,12 @@ export default class Element {
          * @private
          */
         this.destroyed = false;
+
+        /**
+         * Size of the element
+         * @type {{width: number, height: number}}
+         */
+        this.size = { width: 0, height: 0 };
     }
 
     /**
@@ -43,6 +43,22 @@ export default class Element {
      * @returns {void}
      */
     initialize () { }
+
+    /**
+     * Update the element
+     * @returns {void}
+     */
+    update () {
+        this.callComponentFunction("update");
+    }
+
+    /**
+     * Render the element
+     * @returns {void}
+     */
+    render () {
+        this.callComponentFunction("render");
+    }
 
 
     /* METHODS */
@@ -150,5 +166,47 @@ export default class Element {
         if (this.componentFunctions[functionName]) {
             this.componentFunctions[functionName].map((name) => this[name][functionName](...Array.prototype.slice.call(arguments, 1)));
         }
+    }
+
+    /* GETTERS & SETTERS */
+
+    /**
+     * The name of the element
+     * @returns {string} the name
+     */
+    get name () {
+        return "element";
+    }
+
+    /**
+     * Get size width
+     * @returns {number} width
+     */
+    get width () {
+        return this.size.width;
+    }
+
+    /**
+     * Get size height
+     * @returns {number} height
+     */
+    get height () {
+        return this.size.height;
+    }
+
+    /**
+     * set only width from size
+     * @param {number} width: the new width of the engine
+     */
+    set width (width) {
+        this.size.width = width;
+    }
+
+    /**
+     * Set only height from size
+     * @param {number} height: the new height of the engine
+     */
+    set height (height) {
+        this.size.height = height;
     }
 }

@@ -14,18 +14,6 @@ export default class Canvas extends Component {
         super();
 
         /**
-         * Name of the canvas
-         * @type {string}
-         */
-        this.name = "canvas";
-
-        /**
-         * Size of canvas
-         * @type {{width: number, height: number}}
-         */
-        this.size = {width: width, height: height};
-
-        /**
          * DOM parent of the canvas
          */
         this.parentDOM = parentDOM;
@@ -47,6 +35,12 @@ export default class Canvas extends Component {
          * @type {string}
          */
         this.clearColor = "whitesmoke";
+
+        /**
+         * Size of the canvas
+         * @type {{width: number, height: number}}
+         */
+        this.size = { width: width || 0, height: height || 0 };
     }
 
     initialize () {
@@ -54,8 +48,8 @@ export default class Canvas extends Component {
 
         this.dom        = document.createElement("canvas");
         this.dom.id     = this.id;
-        this.dom.width  = this.size.width;
-        this.dom.height = this.size.height;
+        this.dom.width  = this.width;
+        this.dom.height = this.height;
         this.context    = this.dom.getContext("2d");
 
         this.setParentDOM();
@@ -79,17 +73,30 @@ export default class Canvas extends Component {
         this.parentDOM.appendChild(this.dom);
     }
 
+    /* GETTERS & SETTERS */
+
     /**
-     * Set a new size for the canvas
-     * @param {number=} width: width of the canvas
-     * @param {number=} height: height of the canvas
-     * @returns {void}
+     * The name of the component
+     * @returns {string} name
      */
-    setSize (width, height) {
-        if (this.dom) {
-            this.setWidth(width);
-            this.setHeight(height);
-        }
+    get name () {
+        return "canvas";
+    }
+
+    /**
+     * Get size width
+     * @returns {number} width
+     */
+    get width () {
+        return this.size.width;
+    }
+
+    /**
+     * Get size height
+     * @returns {number} height
+     */
+    get height () {
+        return this.size.height;
     }
 
     /**
@@ -97,10 +104,11 @@ export default class Canvas extends Component {
      * @param {number} width: width of the canvas
      * @returns {void}
      */
-    setWidth (width) {
-        if (width) {
-            this.size.width = width;
-            this.dom.width  = width;
+    set width (width) {
+        this.size.width = width;
+
+        if (this.dom) {
+            this.dom.width = width;
         }
     }
 
@@ -109,10 +117,11 @@ export default class Canvas extends Component {
      * @param {number} height: height of the canvas
      * @returns {void}
      */
-    setHeight (height) {
-        if (height) {
-            this.size.height    = height;
-            this.dom.height     = height;
+    set height (height) {
+        this.size.height = height;
+
+        if (this.dom) {
+            this.dom.height = height;
         }
     }
 
@@ -125,7 +134,7 @@ export default class Canvas extends Component {
         const ctx = this.context;
 
         ctx.fillStyle = clearColor || this.clearColor;
-        ctx.clearRect(0, 0, this.size.width, this.size.height);
-        ctx.fillRect(0, 0, this.size.width, this.size.height);
+        ctx.clearRect(0, 0, this.width, this.height);
+        ctx.fillRect(0, 0, this.width, this.height);
     }
 }

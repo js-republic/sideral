@@ -13,12 +13,6 @@ export default class Component {
         this.id = Element.generateId();
 
         /**
-         * Name of the component
-         * @type {string}
-         */
-        this.name = "component";
-
-        /**
          * Element which using this component
          * @type {Element}
          */
@@ -57,4 +51,13 @@ export default class Component {
 
     /* METHODS */
 
+    /* GETTERS & SETTERS */
+
+    /**
+     * Name of the component
+     * @returns {string} the name
+     */
+    get name () {
+        return "component";
+    }
 }
