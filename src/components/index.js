@@ -1,4 +1,6 @@
 import Canvas from "./Canvas";
+import Timer from "./Timer";
 
 
-export default Canvas;
+export { Canvas };
+export { Timer };

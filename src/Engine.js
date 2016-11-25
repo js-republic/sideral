@@ -42,7 +42,7 @@ class Engine extends Element {
          * Current latence between each frame (in second)
          * @type {number}
          */
-        this.tick = 0;
+        this.tick = 1;
 
         /**
          * DOM of the engine
@@ -53,8 +53,30 @@ class Engine extends Element {
         /**
          * Stop the run
          * @type {boolean}
+         * @readonly
          */
         this.stopped = false;
+    }
+
+    /**
+     * Update
+     * @returns {void}
+     */
+    update () {
+        super.update();
+
+        this.scenes.map(scene => scene.update());
+    }
+
+    /**
+     * Render
+     * @param {*=} context: canvas render (Engine has no context, it's only for overriding)
+     * @returns {void}
+     */
+    render (context) {
+        super.render(context);
+
+        this.scenes.map(scene => scene.render(context));
     }
 
     /**
@@ -75,8 +97,8 @@ class Engine extends Element {
         this.fps        = Math.floor(1000 / this.latence);
         this.tick       = 1000 / (this.fps * 1000);
 
-        this.scenes.map(scene => scene.update());
-        this.scenes.map(scene => scene.render());
+        this.update();
+        this.render(null);
 
         this.lastUpdate = window.performance.now();
     }
@@ -108,6 +130,9 @@ class Engine extends Element {
         if (!scene || (scene && !(scene instanceof Scene))) {
             throw new Error("Engine.attachScene : scene must be an instance of Scene.");
         }
+
+        scene.width(this.width());
+        scene.height(this.height());
 
         this.scenes.push(scene);
         scene.initialize();
@@ -149,55 +174,41 @@ class Engine extends Element {
     }
 
     /**
-     * get only width from size
-     * @returns {number} width of engine
+     * Get or set the width
+     * @param {number=} width: if exist, width will be setted
+     * @returns {number} the current width
      */
-    get width () {
-        return this.size.width;
-    }
+    width (width) {
+        if (typeof width !== "undefined") {
+            if (this.dom) {
+                this.dom.width = width;
+            }
 
-    /**
-     * Get only height from size
-     * @returns {number} height of engine
-     */
-    get height () {
-        return this.size.height;
-    }
-
-    /**
-     * set only width from size
-     * @param {number} width: the new width of the engine
-     */
-    set width (width) {
-        super.width     = width;
-
-        if (this.dom) {
-            this.dom.width  = width;
+            this.scenes.forEach((scene) => {
+                scene.width(width);
+            });
         }
 
-        this.scenes.map((scene) => {
-            scene.width = width;
-
-            return null;
-        });
+        return super.width(width);
     }
 
     /**
-     * Set only height from size
-     * @param {number} height: the new height of the engine
+     * Get or set the height
+     * @param {number=} height: if exist, height will be setted
+     * @returns {number} the current height
      */
-    set height (height) {
-        super.height     = height;
+    height (height) {
+        if (typeof height !== "undefined") {
+            if (this.dom) {
+                this.dom.height = height;
+            }
 
-        if (this.dom) {
-            this.dom.height = height;
+            this.scenes.forEach((scene) => {
+                scene.height(height);
+            });
         }
 
-        this.scenes.map((scene) => {
-            scene.height = height;
-
-            return null;
-        });
+        return super.height(height);
     }
 }
 

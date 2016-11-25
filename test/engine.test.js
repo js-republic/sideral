@@ -13,13 +13,13 @@ describe("engine testing", () => {
     });
 
     it("should resize scene width", () => {
-        Engine.width = 50;
-        expect(Engine.scenes[0].width).toBe(50);
+        Engine.width(50);
+        expect(Engine.scenes[0].width()).toBe(50);
     });
 
     it("should resize scene height", () => {
-        Engine.height = 150;
-        expect(Engine.scenes[0].height).toBe(150);
+        Engine.height(150);
+        expect(Engine.scenes[0].height()).toBe(150);
     });
 
     it("should throw an error when you attach an empty dom", () => {
@@ -36,14 +36,14 @@ describe("engine testing", () => {
     });
 
     it("should resize dom width", () => {
-        Engine.width = 100;
-        expect(Engine.width).toBe(100);
+        Engine.width(100);
+        expect(Engine.width()).toBe(100);
         expect(Engine.dom.width).toBe(100);
     });
 
     it("should resize dom height", () => {
-        Engine.height = 100;
-        expect(Engine.height).toBe(100);
+        Engine.height(100);
+        expect(Engine.height()).toBe(100);
         expect(Engine.dom.height).toBe(100);
     });
 

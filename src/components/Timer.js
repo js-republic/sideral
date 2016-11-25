@@ -125,7 +125,7 @@ export default class Timer extends Component {
      * @param {boolean} avoidCompleteEvent: if true, the event complete won't be fired
      * @returns {void}
      */
-    stop (avoidCompleteEvent) {
+    stop (avoidCompleteEvent = false) {
         if (this.eventComplete && !avoidCompleteEvent) {
             this.eventComplete();
         }

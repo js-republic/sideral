@@ -7,7 +7,7 @@ describe("canvas testing", () => {
 
     it("should be created with correct size", () => {
         canvas = new Canvas(100, 100);
-        expect(canvas.width).toBe(100);
+        expect(canvas.width()).toBe(100);
     });
 
     it("should be render to body when initialized", () => {
@@ -21,8 +21,8 @@ describe("canvas testing", () => {
         const element = new Element();
 
         element.compose(new Canvas(100, 100, document.body));
-        element.canvas.width = 50;
-        element.canvas.height = 150;
+        element.canvas.width(50);
+        element.canvas.height(150);
         expect(document.getElementById(element.canvas.id).width).toBe(50);
     });
 

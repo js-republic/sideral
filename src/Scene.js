@@ -1,9 +1,84 @@
 import Element from "./Element";
+import Entity from "./Entity";
+import Canvas from "./components/Canvas";
 
 
 export default class Scene extends Element {
 
     /* LIFECYCLE */
+
+    /**
+     * @constructor
+     */
+    constructor () {
+        super();
+
+        /**
+         * List of entities
+         * @type {Array<Entity>}
+         */
+        this.entities = [];
+
+        /**
+         * Gravity of the scene
+         * @type {number}
+         */
+        this.gravity = 0;
+    }
+
+    /**
+     * Initialization
+     * @returns {void}
+     */
+    initialize () {
+        super.initialize();
+
+        this.compose(new Canvas(this.width(), this.height()));
+    }
+
+    /**
+     * Update
+     * @returns {void}
+     */
+    update () {
+        super.update();
+
+        this.entities.map(entity => entity.update());
+    }
+
+    /**
+     * Render
+     * @param {*} context: context of the canvas (created inside this function)
+     * @returns {void}
+     */
+    render (context) {
+        context = this.canvas.context;
+        super.render(context);
+
+        this.entities.map(entity => entity.render(context));
+    }
+
+    /* METHODS */
+
+    /**
+     * Attach an entity to the scene
+     * @param {Entity} entity: entity to attach
+     * @param {number} x: position x of entity
+     * @param {number} y: position y of entity
+     * @returns {void}
+     */
+    attachEntity (entity, x = 0, y = 0) {
+        if (!entity || (entity && !(entity instanceof Entity))) {
+            throw new Error("Scene.attachEntity : entity must be an instance of Entity");
+        }
+
+        this.entities.push(entity);
+        entity.x(x);
+        entity.y(y);
+        entity.scene = this;
+
+        entity.initialize();
+    }
 
     /* GETTERS & SETTERS */
 
@@ -16,42 +91,32 @@ export default class Scene extends Element {
     }
 
     /**
-     * get only width from size
-     * @returns {number} width of engine
+     * Get or set the width
+     * @param {number=} width: if exist, width will be setted
+     * @returns {number} the current width
      */
-    get width () {
-        return this.size.width;
-    }
-
-    /**
-     * Get only height from size
-     * @returns {number} height of engine
-     */
-    get height () {
-        return this.size.height;
-    }
-
-    /**
-     * set only width from size
-     * @param {number} width: the new width of the engine
-     */
-    set width (width) {
-        super.width     = width;
-
-        if (this.isComposedOf("canvas")) {
-            this.canvas.width = width;
+    width (width) {
+        if (typeof width !== "undefined") {
+            if (this.isComposedOf("canvas")) {
+                this.canvas.width(width);
+            }
         }
+
+        return super.width(width);
     }
 
     /**
-     * Set only height from size
-     * @param {number} height: the new height of the engine
+     * Get or set the height
+     * @param {number} height: if exist, height will be setted
+     * @returns {number} the current height
      */
-    set height (height) {
-        super.height     = height;
-
-        if (this.isComposedOf("canvas")) {
-            this.canvas.height = height;
+    height (height) {
+        if (typeof height !== "undefined") {
+            if (this.isComposedOf("canvas")) {
+                this.canvas.height(height);
+            }
         }
+
+        return super.height(height);
     }
 }

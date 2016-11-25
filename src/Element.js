@@ -34,6 +34,7 @@ export default class Element {
         /**
          * Size of the element
          * @type {{width: number, height: number}}
+         * @readonly
          */
         this.size = { width: 0, height: 0 };
     }
@@ -54,10 +55,11 @@ export default class Element {
 
     /**
      * Render the element
+     * @param {*} context: context to render the element
      * @returns {void}
      */
-    render () {
-        this.callComponentFunction("render");
+    render (context) {
+        this.callComponentFunction("render", context);
     }
 
 
@@ -171,7 +173,7 @@ export default class Element {
     /* GETTERS & SETTERS */
 
     /**
-     * The name of the element
+     * Name of the element
      * @returns {string} the name
      */
     get name () {
@@ -179,34 +181,28 @@ export default class Element {
     }
 
     /**
-     * Get size width
-     * @returns {number} width
+     * Get or set a width
+     * @param {number=} width: if exist, width will be setted
+     * @returns {number} the current width
      */
-    get width () {
+    width (width) {
+        if (typeof width !== "undefined") {
+            this.size.width = width;
+        }
+
         return this.size.width;
     }
 
     /**
-     * Get size height
-     * @returns {number} height
+     * Get or set a height
+     * @param {number=} height: if exist, height will be setted
+     * @returns {number} the current height
      */
-    get height () {
+    height (height) {
+        if (typeof height !== "undefined") {
+            this.size.height = height;
+        }
+
         return this.size.height;
-    }
-
-    /**
-     * set only width from size
-     * @param {number} width: the new width of the engine
-     */
-    set width (width) {
-        this.size.width = width;
-    }
-
-    /**
-     * Set only height from size
-     * @param {number} height: the new height of the engine
-     */
-    set height (height) {
-        this.size.height = height;
     }
 }
