@@ -1,5 +1,5 @@
 import Element from "../src/Element";
-import Component from "../src/Component";
+import Component from "../src/components/Component";
 
 
 describe("element testing", () => {

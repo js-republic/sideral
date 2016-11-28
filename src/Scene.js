@@ -24,6 +24,12 @@ export default class Scene extends Element {
          * @type {number}
          */
         this.gravity = 0;
+
+        /**
+         * Position of the camera
+         * @type {{x: number, y: number}}
+         */
+        this.camera = {x: 0, y: 0};
     }
 
     /**
@@ -65,7 +71,7 @@ export default class Scene extends Element {
      * @param {Entity} entity: entity to attach
      * @param {number} x: position x of entity
      * @param {number} y: position y of entity
-     * @returns {void}
+     * @returns {Scene} current instance
      */
     attachEntity (entity, x = 0, y = 0) {
         if (!entity || (entity && !(entity instanceof Entity))) {
@@ -78,6 +84,8 @@ export default class Scene extends Element {
         entity.scene = this;
 
         entity.initialize();
+
+        return this;
     }
 
     /* GETTERS & SETTERS */
