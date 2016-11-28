@@ -1,11 +1,13 @@
 import React from "react";
-import Hexagon from "react-hexagon";
+
+import Games from "./Games";
 
 
 export default class App extends React.Component {
     render () {
         return (
-            <div className="pt-dark">
+            <div>
+                <Games />
             </div>
         );
     }

@@ -1,27 +1,4 @@
-/*.hex {
-    position: relative;
-    width: 300px;
-    height: 173.21px;
-    background-color: #64C7CC;
-    margin: 86.60px 0;
+html,
+body {
+    font-family: 'Roboto', sans-serif;
 }
-
-.hex:before,
-.hex:after {
-    content: "";
-    position: absolute;
-    width: 0;
-    border-left: 150px solid transparent;
-    border-right: 150px solid transparent;
-}
-
-.hex:before {
-    bottom: 100%;
-    border-bottom: 86.60px solid #64C7CC;
-}
-
-.hex:after {
-    top: 100%;
-    width: 0;
-    border-top: 86.60px solid #64C7CC;
-}*/
