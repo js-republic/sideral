@@ -18,12 +18,20 @@ router.get("/", (req, res) => {
  */
 router.get("/hub/games", (req, res) => {
     try {
-        fs.readdir(path.join(__dirname, "../../../public/games"), (err, files) => {
-            if (files) {
-                res.json({
-                    games: files
-                });
+        const dir = path.join(__dirname, "../../../public/games");
+
+        fs.exists(dir, (exist) => {
+            if (!exist) {
+                fs.mkdirSync(dir);
             }
+
+            fs.readdir(path.join(__dirname, "../../../public/games"), (err, files) => {
+                if (files) {
+                    res.json({
+                        games: files
+                    });
+                }
+            });
         });
 
     } catch (e) {
