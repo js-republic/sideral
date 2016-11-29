@@ -57,7 +57,23 @@ const hubReducer = (state, action) => {
  * @type {*}
  */
 const defaultStore = {
-    modal: null
+    // Current modal
+    modal   : null,
+
+    // Drawer Game opened
+    drawerGames: false,
+
+    // Drawer menu opened
+    drawerMenu: false,
+
+    // Current snackbar
+    snackbar: null,
+
+    // List of games
+    games   : [],
+
+    // Current game selected
+    game    : null
 };
 
 

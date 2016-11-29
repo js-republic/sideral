@@ -4,7 +4,9 @@ import MuiThemeProvider from "material-ui/styles/MuiThemeProvider";
 import getMuiTheme from "material-ui/styles/getMuiTheme";
 import lightBaseTheme from "material-ui/styles/baseThemes/lightBaseTheme";
 import injectTapEventPlugin from "react-tap-event-plugin";
+import { Provider } from "react-redux";
 
+import store from "./redux/reducer";
 import App from "./App";
 
 
@@ -16,7 +18,9 @@ injectTapEventPlugin();
 
 ReactDOM.render(
     <MuiThemeProvider muiTheme={getMuiTheme(AppTheme)}>
-        <App />
+        <Provider store={store}>
+            <App />
+        </Provider>
     </MuiThemeProvider>,
 
     document.getElementById("app")
