@@ -18,6 +18,12 @@ describe("element testing", () => {
         expect(element.destroyed).toBeTruthy();
     });
 
+    it("should be reset", () => {
+        element.destroy();
+        element.reset();
+        expect(element.destroyed).toBeFalsy();
+    });
+
     it("should add the component", () => {
         element.compose(new Component());
         expect(element.components.length).toBe(1);

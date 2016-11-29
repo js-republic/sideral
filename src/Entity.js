@@ -81,10 +81,28 @@ export default class Entity extends Element {
          * Factor of scene gravity
          * @type {number}
          */
-        this.gravityFactor = 0;
+        this.gravityFactor = 1;
+
+        /**
+         * If true, this entity will pass into "pooling mode" (for memory sake)
+         * @type {boolean}
+         */
+        this.pooling = false;
 
         this.width(10);
         this.height(10);
+    }
+
+    /**
+     * Destroy the element
+     * @returns {void}
+     */
+    destroy () {
+        if (!this.pooling) {
+            super.destroy();
+        }
+
+        this.destroyed = true;
     }
 
     /**
@@ -99,7 +117,7 @@ export default class Entity extends Element {
             this.x(this.x() + this.velocity.x);
         }
 
-        this.velocity.y += (this.direction.y ? this.speed.y * this.direction.y * Engine.tick : 0) + (this.scene ? this.scene.gravity * Engine.tick : 0);
+        this.velocity.y += (this.direction.y ? this.speed.y * this.direction.y * Engine.tick : 0) + (this.scene ? this.scene.gravity * this.gravityFactor * Engine.tick : 0);
         if (this.velocity.y) {
             this.y(this.y() + this.velocity.y);
         }
@@ -115,7 +133,7 @@ export default class Entity extends Element {
 
         if (this.debug) {
             context.strokeStyle = "rgb(255, 0, 0)";
-            context.strokeRect(this.x(), this.y(), this.width(), this.height());
+            context.strokeRect(this.x() - this.scene.camera.x, this.y() - this.scene.camera.y, this.width(), this.height());
         }
     }
 

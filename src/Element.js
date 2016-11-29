@@ -83,6 +83,14 @@ export default class Element {
         this.destroyed = true;
     }
 
+    /**
+     * Reset an element
+     * @returns {void}
+     */
+    reset () {
+        this.destroyed = false;
+    }
+
 
     /* COMPONENTS */
 

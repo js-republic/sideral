@@ -100,11 +100,10 @@ export default class Sprite extends Component {
      * @returns {void|null} void
      */
     render (context) {
-        if (!this.picture.loaded || !this.composedBy || (this.composedBy && !this.composedBy.scene)) {
+        if (!this.picture.loaded || !this.composedBy || (this.composedBy && !this.composedBy.scene)) {
             return null;
         }
 
-        const scene = this.composedBy.scene;
         let offset  = {x: 0, y: 0};
 
         if (this.animation && this.animation.offset) {
@@ -117,7 +116,7 @@ export default class Sprite extends Component {
         this.picture.flip       = this.flip;
         this.picture.opacity    = this.opacity;
         this.picture.rotation   = this.rotation;
-        this.picture.render(context, this.composedBy.x() - offset.x - scene.camera.x, this.composedBy.y() - offset.y - scene.camera.y, this.animation ? this.animation.frames[this.animation.frame] : 0);
+        this.picture.render(context, this.composedBy.x() - offset.x - this.composedBy.scene.camera.x, this.composedBy.y() - offset.y - this.composedBy.scene.camera.y, this.animation ? this.animation.frames[this.animation.frame] : 0);
     }
 
     /* METHODS */
