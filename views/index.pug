@@ -1,5 +1,16 @@
 extends layout
 
+append css
+    link(rel="stylesheet", href="https://fonts.googleapis.com/css?family=Roboto")
+
+    style.
+        html,
+        body {
+            font-family: 'Roboto', sans-serif;
+        }
+
 append content
-    h1= title
-    p welcome to #{title}
+    #app
+
+append js
+    script(src="src/hub.js")
