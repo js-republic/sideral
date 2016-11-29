@@ -1,4 +1,4 @@
-import Component from "./Component";
+import Component from "./components/Component";
 
 
 export default class Element {
@@ -81,6 +81,14 @@ export default class Element {
     destroy () {
         this.components.map(name => this.decompose(name));
         this.destroyed = true;
+    }
+
+    /**
+     * Reset an element
+     * @returns {void}
+     */
+    reset () {
+        this.destroyed = false;
     }
 
 

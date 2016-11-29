@@ -1,5 +1,5 @@
 import Engine from "./../../src/Engine";
-import Component from "./../../src/Component";
+import Component from "./Component";
 
 
 export default class Timer extends Component {

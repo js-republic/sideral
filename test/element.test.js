@@ -1,5 +1,5 @@
 import Element from "../src/Element";
-import Component from "../src/Component";
+import Component from "../src/components/Component";
 
 
 describe("element testing", () => {
@@ -16,6 +16,12 @@ describe("element testing", () => {
     it("should be destroyed", () => {
         element.destroy();
         expect(element.destroyed).toBeTruthy();
+    });
+
+    it("should be reset", () => {
+        element.destroy();
+        element.reset();
+        expect(element.destroyed).toBeFalsy();
     });
 
     it("should add the component", () => {

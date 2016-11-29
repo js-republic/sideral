@@ -48,6 +48,36 @@ describe("Scene testing", () => {
         expect(scene.entities[0].y()).toBe(150);
     });
 
+    it("should follow the eneity", () => {
+        const entity = new Entity();
+
+        scene.attachEntity(entity, 10, 10);
+        scene.camera.follow = entity;
+        scene.width(100);
+        scene.update();
+        expect(scene.camera.x).toBe(-35);
+    });
+
+    it("should reset an entity with pooling", () => {
+        const entity = new Entity(),
+            target = new Entity();
+
+        entity.pooling  = true;
+        entity.key      = "entity";
+        target.key      = "target";
+        target.pooling  = true;
+
+        scene.attachEntity(entity, 10, 10);
+        entity.destroy();
+        expect(scene.entities.length).toBe(1);
+
+        scene.attachEntity(target, 50, 50);
+        expect(scene.entities.length).toBe(1);
+        expect(scene.entities[0].x()).toBe(50);
+        expect(scene.entities[0].destroyed).toBeFalsy();
+        expect(scene.entities[0].key).toBe("entity");
+    });
+
     it("should update and render entity when scene respectively update and render", () => {
         class EntityExtended extends Entity {
             update () {

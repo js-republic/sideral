@@ -24,6 +24,18 @@ export default class Scene extends Element {
          * @type {number}
          */
         this.gravity = 0;
+
+        /**
+         * Scale of all entities behind this scene
+         * @type {number}
+         */
+        this.scale = 1;
+
+        /**
+         * Position of the camera
+         * @type {{x: number, y: number, follow: Entity|null}}
+         */
+        this.camera = {x: 0, y: 0, following: null};
     }
 
     /**
@@ -42,6 +54,11 @@ export default class Scene extends Element {
      */
     update () {
         super.update();
+
+        if (this.camera.follow) {
+            this.camera.x = this.camera.follow.x() + (this.camera.follow.width() * this.scale / 2) - (this.width() / 2 / this.scale);
+            this.camera.y = this.camera.follow.y() + (this.camera.follow.height() * this.scale / 2) - (this.height() / 2 / this.scale);
+        }
 
         this.entities.map(entity => entity.update());
     }
@@ -65,11 +82,24 @@ export default class Scene extends Element {
      * @param {Entity} entity: entity to attach
      * @param {number} x: position x of entity
      * @param {number} y: position y of entity
-     * @returns {void}
+     * @returns {Scene} current instance
      */
     attachEntity (entity, x = 0, y = 0) {
         if (!entity || (entity && !(entity instanceof Entity))) {
             throw new Error("Scene.attachEntity : entity must be an instance of Entity");
+        }
+
+        // Entity pooling mode
+        if (entity.pooling) {
+            const entityPooling = this.entities.find(x => x.pooling && x.destroyed);
+
+            if (entityPooling) {
+                entityPooling.x(x);
+                entityPooling.y(y);
+                entityPooling.reset();
+
+                return this;
+            }
         }
 
         this.entities.push(entity);
@@ -78,6 +108,8 @@ export default class Scene extends Element {
         entity.scene = this;
 
         entity.initialize();
+
+        return this;
     }
 
     /* GETTERS & SETTERS */
@@ -107,7 +139,7 @@ export default class Scene extends Element {
 
     /**
      * Get or set the height
-     * @param {number} height: if exist, height will be setted
+     * @param {number=} height: if exist, height will be setted
      * @returns {number} the current height
      */
     height (height) {
