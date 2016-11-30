@@ -55,7 +55,6 @@ a **Component** is a class which is not inherited from **Element** class because
 
 The **HUB** will be your best friend to develop your game. To run it, go into your workspace project and run :
 ```
-yarn run build-features
 yarn start
 ```
 Now you can access to your main hub page at *http://localhost:3000*
