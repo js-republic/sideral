@@ -60,7 +60,7 @@ const port = ((value) => {
     }
 
     return false;
-})(process.env.PORT || "3000");
+})(process.env.PORT || "3332");
 
 // Get port from environment and store in Express.
 app.set("port", port);

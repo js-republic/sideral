@@ -1,7 +1,8 @@
-const express   = require("express");
-const path      = require("path");
-const ncp       = require("ncp").ncp;
-const fs        = require("fs");
+const express   = require("express"),
+  services      = require("./services"),
+  path          = require("path"),
+  ncp           = require("ncp").ncp,
+  fs            = require("fs");
 
 
 const router = express.Router();
@@ -43,9 +44,13 @@ router.get("/hub/games", (req, res) => {
  * Create a new game folder
  */
 router.post("/hub/create", (req, res) => {
-    const name = req.body.name;
+    const name      = req.body.name,
+        nextPath    = path.join(__dirname, `../../../public/games/${name}`);
 
-    ncp(path.join(__dirname, "../../default_game"), path.join(__dirname, `../../../public/games/${name}`), (err) => {
+    ncp(path.join(__dirname, "../../default_game"), nextPath, (err) => {
+        if (!err) {
+            services.addWebpackEntry(name);
+        }
         res.redirect("/hub/games");
     });
 });

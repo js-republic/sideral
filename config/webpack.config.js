@@ -1,19 +1,22 @@
 require("webpack");
-const path = require("path");
+
+const entries = require("./webpack.entries.json"),
+  path = require("path");
 
 
 module.exports = {
     output: {
-        path: path.join(__dirname, "../public/src"),
+        path: path.join(__dirname, "../public/"),
         filename: "[name].js"
     },
 
-    entry: {
-        hub: path.join(__dirname, "../features/hub/client")
-    },
+    entry: entries,
 
     resolve: {
-        extensions: ["", ".js", ".jsx"]
+        extensions: ["", ".js", ".jsx"],
+        root: [
+            path.resolve("./")
+        ]
     },
 
     devtool: "source-map",
