@@ -1,5 +1,5 @@
 import Element from "./../../src/Element";
-import Timer from "./../../src/components/Timer";
+import Timer from "./../../src/Component/Timer";
 
 
 describe("Timer testing", () => {

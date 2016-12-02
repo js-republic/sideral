@@ -1,5 +1,5 @@
-import Element from "../../src/Element";
-import Canvas from "../../src/components/Canvas";
+import Element from "./../../src/Element";
+import Canvas from "./../../src/Component/Canvas";
 
 
 describe("canvas testing", () => {

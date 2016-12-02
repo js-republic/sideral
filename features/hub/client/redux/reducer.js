@@ -60,8 +60,8 @@ const defaultStore = {
     // Current modal
     modal   : null,
 
-    // Drawer Game opened
-    drawerGames: false,
+    // Drawer Project opened
+    drawerProjects: false,
 
     // Drawer menu opened
     drawerMenu: false,
@@ -69,11 +69,11 @@ const defaultStore = {
     // Current snackbar
     snackbar: null,
 
-    // List of games
-    games   : [],
+    // List of projects
+    projects: [],
 
-    // Current game selected
-    game    : null
+    // Current project selected
+    project: null
 };
 
 

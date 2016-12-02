@@ -137,7 +137,15 @@ class Engine extends Element {
         this.scenes.push(scene);
         scene.initialize();
 
+        if (this.dom && scene.isComposedOf("canvas")) {
+            scene.canvas.setParentDOM(this.dom);
+        }
+
         return this;
+    }
+
+    reorganizeCanvas () {
+
     }
 
     /**
@@ -158,6 +166,12 @@ class Engine extends Element {
         }
 
         parentDOM.appendChild(this.dom);
+
+        this.scenes.forEach((scene) => {
+            if (scene.isComposedOf("canvas")) {
+                scene.canvas.setParentDOM(this.dom);
+            }
+        });
 
         return this;
     }

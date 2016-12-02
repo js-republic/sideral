@@ -1,5 +1,5 @@
-import Component from "./Component";
-import Picture from "./../Picture";
+import Component from "./index";
+import Picture from "../Picture";
 
 
 export default class Sprite extends Component {
@@ -63,7 +63,7 @@ export default class Sprite extends Component {
         this.opacity = 1;
 
         if (frameWidth || frameHeight) {
-            this.picture.tilesize = {width: frameWidth || 0, height: frameHeight || 0};
+            this.picture.tilesize = {width: frameWidth || 0, height: frameHeight || 0};
         }
 
         this.picture.onImageLoaded = onPictureLoaded;

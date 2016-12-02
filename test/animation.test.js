@@ -1,4 +1,4 @@
-import Animation from "./../src/Animation";
+import Animation from "./../src/Entity/Animation";
 import Scene from "./../src/Scene";
 import Entity from "./../src/Entity";
 

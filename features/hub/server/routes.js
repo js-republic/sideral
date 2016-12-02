@@ -1,8 +1,8 @@
 const express   = require("express"),
-  services      = require("./services"),
-  path          = require("path"),
-  ncp           = require("ncp").ncp,
-  fs            = require("fs");
+    services    = require("./services"),
+    path        = require("path"),
+    ncp         = require("ncp").ncp,
+    fs          = require("fs");
 
 
 const router = express.Router();
@@ -17,19 +17,19 @@ router.get("/", (req, res) => {
 /**
  * List all games list
  */
-router.get("/hub/games", (req, res) => {
+router.get("/hub/projects", (req, res) => {
     try {
-        const dir = path.join(__dirname, "../../../public/games");
+        const dir = path.join(__dirname, "../../../public/projects");
 
         fs.exists(dir, (exist) => {
             if (!exist) {
                 fs.mkdirSync(dir);
             }
 
-            fs.readdir(path.join(__dirname, "../../../public/games"), (err, files) => {
+            fs.readdir(path.join(__dirname, "../../../public/projects"), (err, files) => {
                 if (files) {
                     res.json({
-                        games: files
+                        projects: files
                     });
                 }
             });
@@ -45,13 +45,13 @@ router.get("/hub/games", (req, res) => {
  */
 router.post("/hub/create", (req, res) => {
     const name      = req.body.name,
-        nextPath    = path.join(__dirname, `../../../public/games/${name}`);
+        nextPath    = path.join(__dirname, `../../../public/projects/${name}`);
 
-    ncp(path.join(__dirname, "../../default_game"), nextPath, (err) => {
+    ncp(path.join(__dirname, "../../default_project"), nextPath, (err) => {
         if (!err) {
             services.addWebpackEntry(name);
         }
-        res.redirect("/hub/games");
+        res.redirect("/hub/project");
     });
 });
 

@@ -1,4 +1,4 @@
-import Sprite from "./../../src/components/Sprite";
+import Sprite from "./../../src/Component/Sprite";
 
 
 describe("Sprite component ", () => {

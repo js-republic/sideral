@@ -1,5 +1,5 @@
-import Element from "./Element";
-import Engine from "./Engine";
+import Element from "./../Element";
+import Engine from "./../Engine";
 
 
 export default class Entity extends Element {
@@ -37,6 +37,12 @@ export default class Entity extends Element {
          * @readonly
          */
         this.lastPosition = {x: 0, y: 0};
+
+        /**
+         * If true, the position of this entity will be compared to the camera position
+         * @type {boolean}
+         */
+        this.relativePosition = false;
 
         /**
          * Mass of the entity (used for collision)
@@ -220,7 +226,7 @@ export default class Entity extends Element {
             this.position.x     = Math.round(x);
         }
 
-        return this.position.x;
+        return this.relativePosition && this.scene ? this.position.x - this.scene.camera.x : this.position.x;
     }
 
     /**
@@ -234,7 +240,7 @@ export default class Entity extends Element {
             this.position.y     = Math.round(y);
         }
 
-        return this.position.y;
+        return this.relativePosition && this.scene ? this.position.y - this.scene.camera.y : this.position.y;
     }
 }
 

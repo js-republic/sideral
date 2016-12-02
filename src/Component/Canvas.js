@@ -1,4 +1,4 @@
-import Component from "./Component";
+import Component from "./index";
 
 
 export default class Canvas extends Component {

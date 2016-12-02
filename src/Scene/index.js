@@ -1,6 +1,6 @@
-import Element from "./Element";
-import Entity from "./Entity";
-import Canvas from "./components/Canvas";
+import Element from "../Element";
+import Entity from "../Entity";
+import Canvas from "../Component/Canvas";
 
 
 export default class Scene extends Element {
@@ -91,7 +91,7 @@ export default class Scene extends Element {
 
         // Entity pooling mode
         if (entity.pooling) {
-            const entityPooling = this.entities.find(x => x.pooling && x.destroyed);
+            const entityPooling = this.entities.find(poolX => poolX.pooling && poolX.destroyed);
 
             if (entityPooling) {
                 entityPooling.x(x);

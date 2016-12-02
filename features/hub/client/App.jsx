@@ -6,7 +6,7 @@ import IconStop from "material-ui/svg-icons/av/stop";
 import { connect } from "react-redux";
 import * as actions from "./redux/actions";
 
-import Games from "./Games";
+import Projects from "./Projects";
 import Frame from "./Frame";
 import Menu from "./Menu";
 
@@ -18,8 +18,8 @@ class App extends React.Component {
     constructor (props) {
         super(props);
 
-        this.handleClickDrawerGames = this.handleClickDrawerGames.bind(this);
-        this.handleClickDrawerMenu  = this.handleClickDrawerMenu.bind(this);
+        this.handleClickDrawerProjects  = this.handleClickDrawerProjects.bind(this);
+        this.handleClickDrawerMenu      = this.handleClickDrawerMenu.bind(this);
     }
 
     /**
@@ -30,9 +30,9 @@ class App extends React.Component {
         return (
             <div>
                 <AppBar title={`Slime - ${this.props.game || "HUB"}`} onLeftIconButtonTouchTap={this.handleClickDrawerMenu}
-                    iconElementRight={<FlatButton label={this.props.game ? "Change game" : "Play games"} icon={this.props.game ? <IconStop /> : <IconPlay />} onTouchTap={this.handleClickDrawerGames} />} />
+                    iconElementRight={<FlatButton label={this.props.project ? "Change project" : "Play projects"} icon={this.props.game ? <IconStop /> : <IconPlay />} onTouchTap={this.handleClickDrawerProjects} />} />
                 <Frame />
-                <Games />
+                <Projects />
                 <Menu />
                 {this.props.modal}
                 {this.props.snackbar}
@@ -43,13 +43,13 @@ class App extends React.Component {
     /* METHODS */
 
     /**
-     * Open the drawer Games
+     * Open the drawer Projects
      * @event click
      * @returns {void}
      */
-    handleClickDrawerGames () {
-        this.props.setGame(null);
-        this.props.setDrawerGames(true);
+    handleClickDrawerProjects () {
+        this.props.setProject(null);
+        this.props.setDrawerProjects(true);
     }
 
     /**
@@ -65,18 +65,18 @@ class App extends React.Component {
 
 const mapStateToProps = (state) => {
     return {
-        game        : state.game,
-        drawerGames : state.drawerGames,
-        modal       : state.modal,
-        snackbar    : state.snackbar
+        project         : state.project,
+        drawerProjects  : state.drawerProjects,
+        modal           : state.modal,
+        snackbar        : state.snackbar
     };
 };
 
 const mapDispatchToProps = (dispatch) => {
     return {
-        setDrawerGames  : (open) => dispatch(actions.actionDrawerGames(open)),
-        setDrawerMenu   : (open) => dispatch(actions.actionDrawerMenu(open)),
-        setGame         : (game) => dispatch(actions.actionGame(game))
+        setDrawerProjects   : (open) => dispatch(actions.actionDrawerProjects(open)),
+        setDrawerMenu       : (open) => dispatch(actions.actionDrawerMenu(open)),
+        setProject          : (project) => dispatch(actions.actionProject(project))
     };
 };
 

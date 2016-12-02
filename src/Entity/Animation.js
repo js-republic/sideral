@@ -1,6 +1,6 @@
-import Entity from "./Entity";
-import Sprite from "./components/Sprite";
-import Timer from "./components/Timer";
+import Entity from "./index";
+import Sprite from "../Component/Sprite";
+import Timer from "../Component/Timer";
 
 
 export default class Animation extends Entity {

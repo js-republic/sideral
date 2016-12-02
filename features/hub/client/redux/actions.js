@@ -32,29 +32,29 @@ export const actionSnackbar = (snackbar) => {
 
 /**
  * Action for games list
- * @param {Array<string>} games: list of games
+ * @param {Array<string>} projects: list of games
  * @returns {{type: *}} action
  */
-export const actionGames = (games) => {
-    return createAction(games, "games");
+export const actionProjects = (projects) => {
+    return createAction(projects, "projects");
 };
 
 /**
- * Select a current game
- * @param {string} game: the name of the folder
+ * Select a current project
+ * @param {string} project: the name of the folder
  * @returns {{type: *}} action
  */
-export const actionGame = (game) => {
-    return createAction(game, "game");
+export const actionProject = (project) => {
+    return createAction(project, "project");
 };
 
 /**
- * Toggle drawer for games
+ * Toggle drawer for projects
  * @param {boolean} open: drawer open
  * @returns {{type: *}} action
  */
-export const actionDrawerGames = (open) => {
-    return createAction(open, "drawerGames");
+export const actionDrawerProjects = (open) => {
+    return createAction(open, "drawerProjects");
 };
 
 /**
