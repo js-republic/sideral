@@ -1,16 +1,15 @@
-import Element from "../Element";
+import Class from "./../Class";
 
 
-export default class Component {
+export default class Component extends Class {
 
     /* LIFECYCLE */
-    constructor () {
 
-        /**
-         * Id of the component
-         * @type {string}
-         */
-        this.id = Element.generateId();
+    /**
+     * @constructor
+     */
+    constructor () {
+        super();
 
         /**
          * Element which using this component

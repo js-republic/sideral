@@ -1,16 +1,16 @@
+import Class from "./Class";
 import Component from "./Component";
 
 
-export default class Element {
+export default class Element extends Class {
 
     /* LIFECYCLE */
-    constructor () {
 
-        /**
-         * Unique id of element
-         * @type {string}
-         */
-        this.id = Element.generateId();
+    /**
+     * @constructor
+     */
+    constructor () {
+        super();
 
         /**
          * List of components added to this element by their names
@@ -40,12 +40,6 @@ export default class Element {
     }
 
     /**
-     * Initialization of the element after it is created into the engine
-     * @returns {void}
-     */
-    initialize () { }
-
-    /**
      * Update the element
      * @returns {void}
      */
@@ -64,15 +58,6 @@ export default class Element {
 
 
     /* METHODS */
-
-    /**
-     * Generate an unique id
-     * @returns {string} return the unique id
-     */
-    static generateId () {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).
-            substring(1);
-    }
 
     /**
      * Destroy the element

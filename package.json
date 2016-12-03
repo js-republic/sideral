@@ -6,12 +6,13 @@
   "scripts": {
     "start": "node --harmony ./app.js",
     "build": "yarn install && yarn run build-src && yarn run build-webpack",
-    "build-src": "./node_modules/.bin/eslint src && yarn test && ./node_modules/.bin/babel src --out-dir lib",
+    "build-src": "yarn run eslint && yarn test && ./node_modules/.bin/babel src --out-dir lib",
     "build-src-dev": "./node_modules/.bin/babel src --watch --out-dir lib",
     "build-webpack": "./node_modules/.bin/webpack -d --config config/webpack.config.js",
     "build-webpack-dev": "./node_modules/.bin/webpack -d --config config/webpack.config.js --watch --progress --profile --colors",
     "test": "node_modules/.bin/karma start config/karma.conf.prod.js",
-    "test-dev": "node_modules/.bin/karma start config/karma.conf.dev.js"
+    "test-dev": "node_modules/.bin/karma start config/karma.conf.dev.js",
+    "eslint": "./node_modules/.bin/eslint src"
   },
   "repository": {
     "type": "git",
