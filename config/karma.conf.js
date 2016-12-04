@@ -2,7 +2,7 @@ var karmaConf = {
     basePath: "./../",
     browsers: ["PhantomJS"],
     exclude: ["/node_modules/"],
-    frameworks: ["jasmine", "source-map-support"],
+    frameworks: ["jasmine-jquery", "jasmine", "source-map-support"],
 
     files: [
         "node_modules/babel-polyfill/dist/polyfill.js",
@@ -14,6 +14,7 @@ var karmaConf = {
     },
 
     plugins: [
+        require("karma-jasmine-jquery"),
         require("karma-jasmine"),
         require("karma-coverage"),
         require("karma-phantomjs-launcher"),

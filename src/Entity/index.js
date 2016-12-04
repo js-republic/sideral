@@ -123,8 +123,9 @@ export default class Entity extends Element {
             this.x(this.x() + this.velocity.x);
         }
 
-        this.velocity.y += (this.direction.y ? this.speed.y * this.direction.y * Engine.tick : 0) + (this.scene ? this.scene.gravity * this.gravityFactor * Engine.tick : 0);
-        if (this.velocity.y) {
+        this.velocity.y = this.scene && this.scene.gravity && this.gravityFactor ? this.scene.gravity * this.gravityFactor * Engine.tick : 0;
+        if (this.velocity.y || this.direction.y) {
+            this.velocity.y += this.speed.y * this.direction.y * Engine.tick;
             this.y(this.y() + this.velocity.y);
         }
     }
@@ -213,6 +214,10 @@ export default class Entity extends Element {
      */
     get name () {
         return "entity";
+    }
+
+    get moving () {
+        return this.direction.x || this.direction.y;
     }
 
     /**

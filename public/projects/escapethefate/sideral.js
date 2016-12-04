@@ -43,9 +43,9 @@
 /******/ ({
 
 /***/ 0:
-/*!*******************************************!*\
-  !*** ./public/games/default/src/index.js ***!
-  \*******************************************/
+/*!****************************************************!*\
+  !*** ./public/projects/escapethefate/src/index.js ***!
+  \****************************************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -54,31 +54,22 @@
 	
 	var _Engine2 = _interopRequireDefault(_Engine);
 	
-	var _Scene = __webpack_require__(/*! src/Scene */ 510);
+	var _Keyboard = __webpack_require__(/*! src/Component/Keyboard */ 516);
 	
-	var _Scene2 = _interopRequireDefault(_Scene);
+	var _Keyboard2 = _interopRequireDefault(_Keyboard);
 	
-	var _Entity = __webpack_require__(/*! src/Entity */ 511);
+	var _SceneWorld = __webpack_require__(/*! ./scenes/SceneWorld */ 514);
 	
-	var _Entity2 = _interopRequireDefault(_Entity);
+	var _SceneWorld2 = _interopRequireDefault(_SceneWorld);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
-	var scene = new _Scene2.default(),
-	    entity = new _Entity2.default();
-	
 	// Define the size of the engine
 	_Engine2.default.width(500);
-	_Engine2.default.height(500);
-	
-	// Define entity properties
-	entity.width(20);
-	entity.height(20);
-	entity.debug = true;
+	_Engine2.default.height(200);
 	
 	// Let's start the engine
-	_Engine2.default.attachScene(scene);
-	scene.attachEntity(entity, 10, 10);
+	_Engine2.default.compose(new _Keyboard2.default()).attachScene(new _SceneWorld2.default());
 	
 	// Render the engine into a dom
 	_Engine2.default.attachDOM(document.getElementById("sideral-app"));
@@ -108,7 +99,7 @@
 	
 	var _Element3 = _interopRequireDefault(_Element2);
 	
-	var _Scene = __webpack_require__(/*! ./Scene */ 510);
+	var _Scene = __webpack_require__(/*! ./Scene */ 511);
 	
 	var _Scene2 = _interopRequireDefault(_Scene);
 	
@@ -288,6 +279,9 @@
 	
 	            return this;
 	        }
+	    }, {
+	        key: "reorganizeCanvas",
+	        value: function reorganizeCanvas() {}
 	
 	        /**
 	         * Attach a dom to the parent dom passed by parameter
@@ -401,7 +395,11 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Component = __webpack_require__(/*! ./components/Component */ 509);
+	var _Class2 = __webpack_require__(/*! ./Class */ 509);
+	
+	var _Class3 = _interopRequireDefault(_Class2);
+	
+	var _Component = __webpack_require__(/*! ./Component */ 510);
 	
 	var _Component2 = _interopRequireDefault(_Component);
 	
@@ -411,61 +409,58 @@
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var Element = function () {
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Element = function (_Class) {
+	    _inherits(Element, _Class);
 	
 	    /* LIFECYCLE */
+	
+	    /**
+	     * @constructor
+	     */
 	    function Element() {
 	        _classCallCheck(this, Element);
-	
-	        /**
-	         * Unique id of element
-	         * @type {string}
-	         */
-	        this.id = Element.generateId();
 	
 	        /**
 	         * List of components added to this element by their names
 	         * @type {Array<string>}
 	         */
-	        this.components = [];
+	        var _this = _possibleConstructorReturn(this, (Element.__proto__ || Object.getPrototypeOf(Element)).call(this));
+	
+	        _this.components = [];
 	
 	        /**
 	         * List of all component functions to be called
 	         * @type {Array<Array<string>>}
 	         */
-	        this.componentFunctions = {};
+	        _this.componentFunctions = {};
 	
 	        /**
 	         * Know if this component is detroyed or not
 	         * @type {boolean}
 	         * @private
 	         */
-	        this.destroyed = false;
+	        _this.destroyed = false;
 	
 	        /**
 	         * Size of the element
 	         * @type {{width: number, height: number}}
 	         * @readonly
 	         */
-	        this.size = { width: 0, height: 0 };
+	        _this.size = { width: 0, height: 0 };
+	        return _this;
 	    }
 	
 	    /**
-	     * Initialization of the element after it is created into the engine
+	     * Update the element
 	     * @returns {void}
 	     */
 	
 	
 	    _createClass(Element, [{
-	        key: "initialize",
-	        value: function initialize() {}
-	
-	        /**
-	         * Update the element
-	         * @returns {void}
-	         */
-	
-	    }, {
 	        key: "update",
 	        value: function update() {
 	            this.callComponentFunction("update");
@@ -486,23 +481,17 @@
 	        /* METHODS */
 	
 	        /**
-	         * Generate an unique id
-	         * @returns {string} return the unique id
+	         * Destroy the element
+	         * @returns {void}
 	         */
 	
 	    }, {
 	        key: "destroy",
-	
-	
-	        /**
-	         * Destroy the element
-	         * @returns {void}
-	         */
 	        value: function destroy() {
-	            var _this = this;
+	            var _this2 = this;
 	
 	            this.components.map(function (name) {
-	                return _this.decompose(name);
+	                return _this2.decompose(name);
 	            });
 	            this.destroyed = true;
 	        }
@@ -550,13 +539,13 @@
 	    }, {
 	        key: "decompose",
 	        value: function decompose(componentName) {
-	            var _this2 = this;
+	            var _this3 = this;
 	
 	            this.components.map(function (name, index) {
 	                if (name === componentName) {
-	                    _this2[name].pluggedFunctions.map(function (pluggedFunction) {
-	                        if (_this2.componentFunctions[pluggedFunction]) {
-	                            _this2.componentFunctions[pluggedFunction] = _this2.componentFunctions[pluggedFunction].filter(function (compName) {
+	                    _this3[name].pluggedFunctions.map(function (pluggedFunction) {
+	                        if (_this3.componentFunctions[pluggedFunction]) {
+	                            _this3.componentFunctions[pluggedFunction] = _this3.componentFunctions[pluggedFunction].filter(function (compName) {
 	                                return compName !== name;
 	                            });
 	                        }
@@ -564,7 +553,7 @@
 	                        return null;
 	                    });
 	
-	                    _this2.components.splice(index, 1);
+	                    _this3.components.splice(index, 1);
 	                }
 	
 	                return null;
@@ -620,14 +609,14 @@
 	    }, {
 	        key: "callComponentFunction",
 	        value: function callComponentFunction(functionName) {
-	            var _this3 = this,
+	            var _this4 = this,
 	                _arguments = arguments;
 	
 	            if (this.componentFunctions[functionName]) {
 	                this.componentFunctions[functionName].map(function (name) {
 	                    var _name;
 	
-	                    return (_name = _this3[name])[functionName].apply(_name, _toConsumableArray(Array.prototype.slice.call(_arguments, 1)));
+	                    return (_name = _this4[name])[functionName].apply(_name, _toConsumableArray(Array.prototype.slice.call(_arguments, 1)));
 	                });
 	            }
 	        }
@@ -676,6 +665,100 @@
 	        get: function get() {
 	            return "element";
 	        }
+	    }]);
+	
+	    return Element;
+	}(_Class3.default);
+	
+	exports.default = Element;
+
+/***/ },
+
+/***/ 509:
+/*!**********************!*\
+  !*** ./src/Class.js ***!
+  \**********************/
+/***/ function(module, exports) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	var Class = function () {
+	
+	    /* LIFECYCLE */
+	
+	    /**
+	     * @constructor
+	     */
+	    function Class() {
+	        _classCallCheck(this, Class);
+	
+	        /**
+	         * Unique id of element
+	         * @type {string}
+	         */
+	        this.id = Class.generateId();
+	    }
+	
+	    /**
+	     * Set attributes to current instance
+	     * @param {*} props: properties to merge
+	     * @returns {*} SideralClass: current instance
+	     */
+	
+	
+	    _createClass(Class, [{
+	        key: "props",
+	        value: function props() {
+	            var _props = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	
+	            for (var key in _props) {
+	                if (_props.hasOwnProperty(key)) {
+	                    this[key] = _props[key];
+	                }
+	            }
+	
+	            return this;
+	        }
+	
+	        /**
+	         * Initialization of the element after it is created into the engine
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "initialize",
+	        value: function initialize() {}
+	
+	        /* METHODS */
+	
+	        /* GETTERS & SETTERS */
+	
+	        /**
+	         * String identifier
+	         * @returns {string} the name of the class
+	         */
+	
+	    }, {
+	        key: "name",
+	        get: function get() {
+	            return "Class";
+	        }
+	
+	        /* STATICS */
+	
+	        /**
+	         * Generate an unique id
+	         * @returns {string} return the unique id
+	         */
+	
 	    }], [{
 	        key: "generateId",
 	        value: function generateId() {
@@ -683,17 +766,17 @@
 	        }
 	    }]);
 	
-	    return Element;
+	    return Class;
 	}();
 	
-	exports.default = Element;
+	exports.default = Class;
 
 /***/ },
 
-/***/ 509:
-/*!*************************************!*\
-  !*** ./src/components/Component.js ***!
-  \*************************************/
+/***/ 510:
+/*!********************************!*\
+  !*** ./src/Component/index.js ***!
+  \********************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -704,37 +787,43 @@
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 	
-	var _Element = __webpack_require__(/*! ../Element */ 508);
+	var _Class2 = __webpack_require__(/*! ./../Class */ 509);
 	
-	var _Element2 = _interopRequireDefault(_Element);
+	var _Class3 = _interopRequireDefault(_Class2);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 	
-	var Component = function () {
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Component = function (_Class) {
+	    _inherits(Component, _Class);
 	
 	    /* LIFECYCLE */
+	
+	    /**
+	     * @constructor
+	     */
 	    function Component() {
 	        _classCallCheck(this, Component);
-	
-	        /**
-	         * Id of the component
-	         * @type {string}
-	         */
-	        this.id = _Element2.default.generateId();
 	
 	        /**
 	         * Element which using this component
 	         * @type {Element}
 	         */
-	        this.composedBy = null;
+	        var _this = _possibleConstructorReturn(this, (Component.__proto__ || Object.getPrototypeOf(Component)).call(this));
+	
+	        _this.composedBy = null;
 	
 	        /**
 	         * List of all functions plugged to the parent
 	         * @type {Array}
 	         */
-	        this.pluggedFunctions = [];
+	        _this.pluggedFunctions = [];
+	        return _this;
 	    }
 	
 	    /**
@@ -746,7 +835,7 @@
 	    _createClass(Component, [{
 	        key: "initialize",
 	        value: function initialize() {
-	            var _this = this;
+	            var _this2 = this;
 	
 	            if (!this.composedBy) {
 	                throw new Error("Component.initialize : A Component must be composed by an element before calling Initiliaze.");
@@ -759,9 +848,9 @@
 	            this.pluggedFunctions = [];
 	
 	            functions.map(function (key) {
-	                if (_this.composedBy[key]) {
-	                    _this.composedBy.addComponentFunction(_this.name, key);
-	                    _this.pluggedFunctions.push(key);
+	                if (_this2.composedBy[key]) {
+	                    _this2.composedBy.addComponentFunction(_this2.name, key);
+	                    _this2.pluggedFunctions.push(key);
 	                }
 	
 	                return null;
@@ -785,16 +874,16 @@
 	    }]);
 	
 	    return Component;
-	}();
+	}(_Class3.default);
 	
 	exports.default = Component;
 
 /***/ },
 
-/***/ 510:
-/*!**********************!*\
-  !*** ./src/Scene.js ***!
-  \**********************/
+/***/ 511:
+/*!****************************!*\
+  !*** ./src/Scene/index.js ***!
+  \****************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -807,15 +896,15 @@
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _Element2 = __webpack_require__(/*! ./Element */ 508);
+	var _Element2 = __webpack_require__(/*! ../Element */ 508);
 	
 	var _Element3 = _interopRequireDefault(_Element2);
 	
-	var _Entity = __webpack_require__(/*! ./Entity */ 511);
+	var _Entity = __webpack_require__(/*! ../Entity */ 512);
 	
 	var _Entity2 = _interopRequireDefault(_Entity);
 	
-	var _Canvas = __webpack_require__(/*! ./components/Canvas */ 512);
+	var _Canvas = __webpack_require__(/*! ../Component/Canvas */ 513);
 	
 	var _Canvas2 = _interopRequireDefault(_Canvas);
 	
@@ -1019,10 +1108,10 @@
 
 /***/ },
 
-/***/ 511:
-/*!***********************!*\
-  !*** ./src/Entity.js ***!
-  \***********************/
+/***/ 512:
+/*!*****************************!*\
+  !*** ./src/Entity/index.js ***!
+  \*****************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1035,11 +1124,11 @@
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _Element2 = __webpack_require__(/*! ./Element */ 508);
+	var _Element2 = __webpack_require__(/*! ./../Element */ 508);
 	
 	var _Element3 = _interopRequireDefault(_Element2);
 	
-	var _Engine = __webpack_require__(/*! ./Engine */ 507);
+	var _Engine = __webpack_require__(/*! ./../Engine */ 507);
 	
 	var _Engine2 = _interopRequireDefault(_Engine);
 	
@@ -1089,6 +1178,12 @@
 	         * @readonly
 	         */
 	        _this.lastPosition = { x: 0, y: 0 };
+	
+	        /**
+	         * If true, the position of this entity will be compared to the camera position
+	         * @type {boolean}
+	         */
+	        _this.relativePosition = false;
 	
 	        /**
 	         * Mass of the entity (used for collision)
@@ -1177,8 +1272,9 @@
 	                this.x(this.x() + this.velocity.x);
 	            }
 	
-	            this.velocity.y += (this.direction.y ? this.speed.y * this.direction.y * _Engine2.default.tick : 0) + (this.scene ? this.scene.gravity * this.gravityFactor * _Engine2.default.tick : 0);
-	            if (this.velocity.y) {
+	            this.velocity.y = this.scene && this.scene.gravity && this.gravityFactor ? this.scene.gravity * this.gravityFactor * _Engine2.default.tick : 0;
+	            if (this.velocity.y || this.direction.y) {
+	                this.velocity.y += this.speed.y * this.direction.y * _Engine2.default.tick;
 	                this.y(this.y() + this.velocity.y);
 	            }
 	        }
@@ -1286,7 +1382,7 @@
 	                this.position.x = Math.round(_x);
 	            }
 	
-	            return this.position.x;
+	            return this.relativePosition && this.scene ? this.position.x - this.scene.camera.x : this.position.x;
 	        }
 	
 	        /**
@@ -1303,12 +1399,17 @@
 	                this.position.y = Math.round(_y);
 	            }
 	
-	            return this.position.y;
+	            return this.relativePosition && this.scene ? this.position.y - this.scene.camera.y : this.position.y;
 	        }
 	    }, {
 	        key: "name",
 	        get: function get() {
 	            return "entity";
+	        }
+	    }, {
+	        key: "moving",
+	        get: function get() {
+	            return this.direction.x || this.direction.y;
 	        }
 	    }]);
 	
@@ -1326,10 +1427,10 @@
 
 /***/ },
 
-/***/ 512:
-/*!**********************************!*\
-  !*** ./src/components/Canvas.js ***!
-  \**********************************/
+/***/ 513:
+/*!*********************************!*\
+  !*** ./src/Component/Canvas.js ***!
+  \*********************************/
 /***/ function(module, exports, __webpack_require__) {
 
 	"use strict";
@@ -1342,9 +1443,9 @@
 	
 	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
-	var _Component2 = __webpack_require__(/*! ./Component */ 509);
+	var _index = __webpack_require__(/*! ./index */ 510);
 	
-	var _Component3 = _interopRequireDefault(_Component2);
+	var _index2 = _interopRequireDefault(_index);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
@@ -1515,9 +1616,510 @@
 	    }]);
 	
 	    return Canvas;
-	}(_Component3.default);
+	}(_index2.default);
 	
 	exports.default = Canvas;
+
+/***/ },
+
+/***/ 514:
+/*!****************************************************************!*\
+  !*** ./public/projects/escapethefate/src/scenes/SceneWorld.js ***!
+  \****************************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	
+	var _Engine = __webpack_require__(/*! src/Engine */ 507);
+	
+	var _Engine2 = _interopRequireDefault(_Engine);
+	
+	var _Scene2 = __webpack_require__(/*! src/Scene */ 511);
+	
+	var _Scene3 = _interopRequireDefault(_Scene2);
+	
+	var _EntityPlayer = __webpack_require__(/*! ./../entities/EntityPlayer */ 515);
+	
+	var _EntityPlayer2 = _interopRequireDefault(_EntityPlayer);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var SceneWorld = function (_Scene) {
+	    _inherits(SceneWorld, _Scene);
+	
+	    function SceneWorld() {
+	        _classCallCheck(this, SceneWorld);
+	
+	        return _possibleConstructorReturn(this, (SceneWorld.__proto__ || Object.getPrototypeOf(SceneWorld)).apply(this, arguments));
+	    }
+	
+	    _createClass(SceneWorld, [{
+	        key: "initialize",
+	
+	
+	        /* LIFECYCLE */
+	
+	        /**
+	         * @initialize
+	         * @returns {void}
+	         */
+	        value: function initialize() {
+	            _get(SceneWorld.prototype.__proto__ || Object.getPrototypeOf(SceneWorld.prototype), "initialize", this).call(this);
+	
+	            this.canvas.clearColor = "black";
+	            this.player = new _EntityPlayer2.default();
+	
+	            this.attachEntity(this.player, 10, 10);
+	        }
+	
+	        /**
+	         * @update
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "update",
+	        value: function update() {
+	            _get(SceneWorld.prototype.__proto__ || Object.getPrototypeOf(SceneWorld.prototype), "update", this).call(this);
+	
+	            if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_RIGHT)) {
+	                this.player.right();
+	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_LEFT)) {
+	                this.player.left();
+	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_UP)) {
+	                this.player.top();
+	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_DOWN)) {
+	                this.player.bottom();
+	            } else if (this.player.moving) {
+	                this.player.idle();
+	            }
+	        }
+	    }]);
+	
+	    return SceneWorld;
+	}(_Scene3.default);
+	
+	exports.default = SceneWorld;
+
+/***/ },
+
+/***/ 515:
+/*!********************************************************************!*\
+  !*** ./public/projects/escapethefate/src/entities/EntityPlayer.js ***!
+  \********************************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _Entity2 = __webpack_require__(/*! src/Entity */ 512);
+	
+	var _Entity3 = _interopRequireDefault(_Entity2);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var EntityPlayer = function (_Entity) {
+	    _inherits(EntityPlayer, _Entity);
+	
+	    /* LIFECYCLE */
+	
+	    /**
+	     * @constructor
+	     */
+	    function EntityPlayer() {
+	        _classCallCheck(this, EntityPlayer);
+	
+	        // Set properties
+	        var _this = _possibleConstructorReturn(this, (EntityPlayer.__proto__ || Object.getPrototypeOf(EntityPlayer)).call(this));
+	
+	        _this.props({
+	            size: { width: 20, height: 20 },
+	            debug: true
+	        });
+	        return _this;
+	    }
+	
+	    /* METHODS */
+	
+	    _createClass(EntityPlayer, [{
+	        key: "right",
+	        value: function right() {
+	            this.direction = { x: 1, y: 0 };
+	        }
+	    }, {
+	        key: "idle",
+	        value: function idle() {
+	            this.direction = { x: 0, y: 0 };
+	        }
+	    }, {
+	        key: "left",
+	        value: function left() {
+	            this.direction = { x: -1, y: 0 };
+	        }
+	    }, {
+	        key: "top",
+	        value: function top() {
+	            this.direction = { x: 0, y: -1 };
+	        }
+	    }, {
+	        key: "bottom",
+	        value: function bottom() {
+	            this.direction = { x: 0, y: 1 };
+	        }
+	    }]);
+	
+	    return EntityPlayer;
+	}(_Entity3.default);
+	
+	exports.default = EntityPlayer;
+
+/***/ },
+
+/***/ 516:
+/*!***********************************!*\
+  !*** ./src/Component/Keyboard.js ***!
+  \***********************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+	
+	var _index = __webpack_require__(/*! ./index */ 510);
+	
+	var _index2 = _interopRequireDefault(_index);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	
+	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+	
+	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+	
+	var Keyboard = function (_Component) {
+	    _inherits(Keyboard, _Component);
+	
+	    /* LIFECYCLE */
+	
+	    function Keyboard() {
+	        _classCallCheck(this, Keyboard);
+	
+	        /**
+	         * Public input attributes
+	         * @type {{}}
+	         */
+	        var _this = _possibleConstructorReturn(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).call(this));
+	
+	        _this.input = {};
+	
+	        /**
+	         * Private input attributes, do not use it
+	         * @type {{}}
+	         * @private
+	         */
+	        _this._input = {};
+	        return _this;
+	    }
+	
+	    /**
+	     * @initialize
+	     * @returns {void}
+	     */
+	
+	
+	    _createClass(Keyboard, [{
+	        key: 'initialize',
+	        value: function initialize() {
+	            _get(Keyboard.prototype.__proto__ || Object.getPrototypeOf(Keyboard.prototype), 'initialize', this).call(this);
+	
+	            window.addEventListener('keydown', this.onKeydown.bind(this));
+	            window.addEventListener('keyup', this.onKeyup.bind(this));
+	        }
+	
+	        /**
+	         * @update
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: 'update',
+	        value: function update() {
+	            for (var key in this._input) {
+	                var input = this.input[key],
+	                    _input = this._input[key];
+	
+	                // Pressed
+	                if (_input == this.STATE.PRESSED) {
+	                    if (input == _input) {
+	                        this.input[key] = this.STATE.HOLD;
+	                    } else if (input != this.STATE.HOLD) {
+	                        this.input[key] = this.STATE.PRESSED;
+	                    }
+	
+	                    // Released
+	                } else if (_input == this.STATE.RELEASED) {
+	                    if (!input) {
+	                        this.input[key] = this.STATE.PRESSED;
+	                    } else if (input == _input) {
+	                        delete this.input[key];
+	                        delete this._input[key];
+	                    } else {
+	                        this.input[key] = this.STATE.RELEASED;
+	                    }
+	                }
+	            }
+	        }
+	
+	        /* METHODS */
+	
+	        /**
+	         * event on keydown
+	         * @event keydown
+	         * @param {*} e: event
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: 'onKeydown',
+	        value: function onKeydown(e) {
+	            this._input[e.keyCode] = this.STATE.PRESSED;
+	        }
+	
+	        /**
+	         * event on keyup
+	         * @event keyup
+	         * @param {*} e: event
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: 'onKeyup',
+	        value: function onKeyup(e) {
+	            this._input[e.keyCode] = this.STATE.RELEASED;
+	        }
+	
+	        /**
+	         * Get current state of a key
+	         * @param key
+	         * @param state
+	         * @param optionalState
+	         * @returns {boolean}
+	         */
+	
+	    }, {
+	        key: 'getKeyState',
+	        value: function getKeyState(key, state) {
+	            var optionalState = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+	
+	            var input = this.input[typeof key === 'string' ? this.KEY[key] : key];
+	
+	            if (input && optionalState) {
+	                return input === this.STATE[state] || input === this.STATE[optionalState];
+	            }
+	
+	            return input ? input === this.STATE[state] : false;
+	        }
+	
+	        /**
+	         * Know if a key is pressed
+	         * @param key
+	         * @returns {boolean}
+	         */
+	
+	    }, {
+	        key: 'isPressed',
+	        value: function isPressed(key) {
+	            return this.getKeyState(key, 'PRESSED');
+	        }
+	
+	        /**
+	         * Know if a key is held
+	         * @param key
+	         * @returns {boolean}
+	         */
+	
+	    }, {
+	        key: 'isHeld',
+	        value: function isHeld(key) {
+	            return this.getKeyState(key, 'PRESSED', 'HOLD');
+	        }
+	
+	        /**
+	         * Know if a key is released
+	         * @param key
+	         * @returns {boolean}
+	         */
+	
+	    }, {
+	        key: 'isReleased',
+	        value: function isReleased(key) {
+	            return this.getKeyState(key, 'RELEASED');
+	        }
+	
+	        /* GETTERS & SETTERS */
+	
+	        /**
+	         * Get name of the component
+	         * @returns {string} the name of the component
+	         */
+	
+	    }, {
+	        key: 'name',
+	        get: function get() {
+	            return "keyboard";
+	        }
+	
+	        /**
+	         * List of all key usable
+	         * @type {*}
+	         */
+	
+	    }, {
+	        key: 'KEY',
+	        get: function get() {
+	            return {
+	                'BACKSPACE': 8,
+	                'TAB': 9,
+	                'ENTER': 13,
+	                'PAUSE': 19,
+	                'CAPS': 20,
+	                'ESC': 27,
+	                'SPACE': 32,
+	                'PAGE_UP': 33,
+	                'PAGE_DOWN': 34,
+	                'END': 35,
+	                'HOME': 36,
+	                'ARROW_LEFT': 37,
+	                'ARROW_UP': 38,
+	                'ARROW_RIGHT': 39,
+	                'ARROW_DOWN': 40,
+	                'INSERT': 45,
+	                'DELETE': 46,
+	                'NUM_0': 48,
+	                'NUM_1': 49,
+	                'NUM_2': 50,
+	                'NUM_3': 51,
+	                'NUM_4': 52,
+	                'NUM_5': 53,
+	                'NUM_6': 54,
+	                'NUM_7': 55,
+	                'NUM_8': 56,
+	                'NUM_9': 57,
+	                'A': 65,
+	                'B': 66,
+	                'C': 67,
+	                'D': 68,
+	                'E': 69,
+	                'F': 70,
+	                'G': 71,
+	                'H': 72,
+	                'I': 73,
+	                'J': 74,
+	                'K': 75,
+	                'L': 76,
+	                'M': 77,
+	                'N': 78,
+	                'O': 79,
+	                'P': 80,
+	                'Q': 81,
+	                'R': 82,
+	                'S': 83,
+	                'T': 84,
+	                'U': 85,
+	                'V': 86,
+	                'W': 87,
+	                'X': 88,
+	                'Y': 89,
+	                'Z': 90,
+	                'NUMPAD_0': 96,
+	                'NUMPAD_1': 97,
+	                'NUMPAD_2': 98,
+	                'NUMPAD_3': 99,
+	                'NUMPAD_4': 100,
+	                'NUMPAD_5': 101,
+	                'NUMPAD_6': 102,
+	                'NUMPAD_7': 103,
+	                'NUMPAD_8': 104,
+	                'NUMPAD_9': 105,
+	                'MULTIPLY': 106,
+	                'ADD': 107,
+	                'SUBSTRACT': 109,
+	                'DECIMAL': 110,
+	                'DIVIDE': 111,
+	                'F1': 112,
+	                'F2': 113,
+	                'F3': 114,
+	                'F4': 115,
+	                'F5': 116,
+	                'F6': 117,
+	                'F7': 118,
+	                'F8': 119,
+	                'F9': 120,
+	                'F10': 121,
+	                'F11': 122,
+	                'F12': 123,
+	                'SHIFT': 16,
+	                'CTRL': 17,
+	                'ALT': 18,
+	                'PLUS': 187,
+	                'COMMA': 188,
+	                'MINUS': 189,
+	                'PERIOD': 190
+	            };
+	        }
+	
+	        /**
+	         * List of key state
+	         * @type {{}}
+	         */
+	
+	    }, {
+	        key: 'STATE',
+	        get: function get() {
+	            return {
+	                PRESSED: 'pressed',
+	                RELEASED: 'released',
+	                HOLD: 'hold'
+	            };
+	        }
+	    }]);
+	
+	    return Keyboard;
+	}(_index2.default);
+	
+	exports.default = Keyboard;
 
 /***/ }
 

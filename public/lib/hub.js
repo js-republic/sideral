@@ -43630,8 +43630,8 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
-	var ModalCreateGame = function (_React$Component) {
-	    _inherits(ModalCreateGame, _React$Component);
+	var ModalCreateProject = function (_React$Component) {
+	    _inherits(ModalCreateProject, _React$Component);
 	
 	    /* LIFECYCLE */
 	
@@ -43639,10 +43639,10 @@
 	     * @constructor
 	     * @param {*} props: properties
 	     */
-	    function ModalCreateGame(props) {
-	        _classCallCheck(this, ModalCreateGame);
+	    function ModalCreateProject(props) {
+	        _classCallCheck(this, ModalCreateProject);
 	
-	        var _this = _possibleConstructorReturn(this, (ModalCreateGame.__proto__ || Object.getPrototypeOf(ModalCreateGame)).call(this, props));
+	        var _this = _possibleConstructorReturn(this, (ModalCreateProject.__proto__ || Object.getPrototypeOf(ModalCreateProject)).call(this, props));
 	
 	        _this.state = { open: false, errorText: false };
 	
@@ -43658,7 +43658,7 @@
 	     */
 	
 	
-	    _createClass(ModalCreateGame, [{
+	    _createClass(ModalCreateProject, [{
 	        key: "componentDidMount",
 	        value: function componentDidMount() {
 	            this.handleOpen();
@@ -43678,7 +43678,7 @@
 	
 	            return _react2.default.createElement(
 	                _Modal2.default,
-	                { title: "Create a new game", actions: actions, open: this.state.open, onRequestClose: this.handleClose, onRequestOpen: this.handleOpen },
+	                { title: "Create a new project", actions: actions, open: this.state.open, onRequestClose: this.handleClose, onRequestOpen: this.handleOpen },
 	                _react2.default.createElement(_TextField2.default, { ref: function ref(textField) {
 	                        _this2.textField = textField;
 	                    }, errorText: this.state.errorText, fullWidth: true, hintText: "Enter the name of the folder (3 characters min.)" })
@@ -43729,17 +43729,17 @@
 	                }).then(function (response) {
 	                    var data = response.data;
 	
-	                    if (data.games) {
+	                    if (data.projects) {
 	                        _this3.handleClose();
-	                        _this3.props.setGames(data.games);
-	                        _this3.props.setSnackbar(_react2.default.createElement(_Snackbar2.default, { open: true, message: "Game folder created !", autoHideDuration: 2000 }));
+	                        _this3.props.setProjects(data.projects);
+	                        _this3.props.setSnackbar(_react2.default.createElement(_Snackbar2.default, { open: true, message: "Project folder created !", autoHideDuration: 2000 }));
 	                    }
 	                });
 	            }
 	        }
 	    }]);
 	
-	    return ModalCreateGame;
+	    return ModalCreateProject;
 	}(_react2.default.Component);
 	
 	var mapDispatchToProps = function mapDispatchToProps(dispatch) {
@@ -43747,13 +43747,13 @@
 	        setSnackbar: function setSnackbar(snackbar) {
 	            return dispatch(actions.actionSnackbar(snackbar));
 	        },
-	        setGames: function setGames(games) {
-	            return dispatch(actions.actionGames(games));
+	        setProjects: function setProjects(projects) {
+	            return dispatch(actions.actionProjects(projects));
 	        }
 	    };
 	};
 	
-	exports.default = (0, _reactRedux.connect)(null, mapDispatchToProps)(ModalCreateGame);
+	exports.default = (0, _reactRedux.connect)(null, mapDispatchToProps)(ModalCreateProject);
 
 /***/ },
 /* 478 */

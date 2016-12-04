@@ -51,8 +51,17 @@ router.post("/hub/create", (req, res) => {
         if (!err) {
             services.addWebpackEntry(name);
         }
-        res.redirect("/hub/project");
+        res.redirect("/hub/projects");
     });
+});
+
+/**
+ * Run a project
+ */
+router.get("/projects/:name", (req, res) => {
+    const name = req.params.name;
+
+    res.sendFile(path.join(__dirname, `../../../public/projects/${name}/index.html`));
 });
 
 

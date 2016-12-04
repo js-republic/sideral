@@ -9,7 +9,7 @@ import * as actions from "./../redux/actions";
 import Modal from "./Modal";
 
 
-class ModalCreateGame extends React.Component {
+class ModalCreateProject extends React.Component {
 
     /* LIFECYCLE */
 
@@ -46,7 +46,7 @@ class ModalCreateGame extends React.Component {
         ];
 
         return (
-            <Modal title="Create a new game" actions={actions} open={this.state.open} onRequestClose={this.handleClose} onRequestOpen={this.handleOpen}>
+            <Modal title="Create a new project" actions={actions} open={this.state.open} onRequestClose={this.handleClose} onRequestOpen={this.handleOpen}>
                 <TextField ref={(textField) => { this.textField = textField; }} errorText={this.state.errorText} fullWidth={true} hintText="Enter the name of the folder (3 characters min.)" />
             </Modal>
         );
@@ -85,10 +85,10 @@ class ModalCreateGame extends React.Component {
             }).then((response) => {
                 const data = response.data;
 
-                if (data.games) {
+                if (data.projects) {
                     this.handleClose();
-                    this.props.setGames(data.games);
-                    this.props.setSnackbar(<Snackbar open={true} message="Game folder created !" autoHideDuration={2000} />);
+                    this.props.setProjects(data.projects);
+                    this.props.setSnackbar(<Snackbar open={true} message="Project folder created !" autoHideDuration={2000} />);
                 }
             });
         }
@@ -99,9 +99,9 @@ class ModalCreateGame extends React.Component {
 const mapDispatchToProps = (dispatch) => {
     return {
         setSnackbar : (snackbar) => dispatch(actions.actionSnackbar(snackbar)),
-        setGames    : (games) => dispatch(actions.actionGames(games))
+        setProjects : (projects) => dispatch(actions.actionProjects(projects))
     };
 };
 
 
-export default connect(null, mapDispatchToProps)(ModalCreateGame);
+export default connect(null, mapDispatchToProps)(ModalCreateProject);

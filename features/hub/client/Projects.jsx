@@ -36,7 +36,7 @@ class Projects extends React.Component {
             const data = response.data;
 
             if (response.data && data.projects) {
-                this.props.setProjects(data.projects|| []);
+                this.props.setProjects(data.projects || []);
             }
         });
     }
