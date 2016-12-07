@@ -8,15 +8,12 @@ export default class Sprite extends Component {
 
     /**
      * @constructor
-     * @param {string} path: path of the picture
-     * @param {number=} frameWidth: width of a tile
-     * @param {number=} frameHeight: height of a tile
-     * @param {function=} onPictureLoaded: callback when picture is loaded
+     * @param {*} options: options
      */
-    constructor (path, frameWidth, frameHeight, onPictureLoaded) {
-        super();
+    constructor (options = {}) {
+        super(options);
 
-        if (!path) {
+        if (!options.path) {
             throw new Error("Sprite.constructor : a path must be provided");
         }
 
@@ -42,32 +39,43 @@ export default class Sprite extends Component {
          * Flip deleguation of picture
          * @type {{x: boolean, y: boolean}}
          */
-        this.flip = {x: false, y: false};
+        this.flip = options.flip || {x: false, y: false};
 
         /**
          * Offset of the picture compared to the position of the Entity
          * @type {{x: number, y: number}}
          */
-        this.offset = {x: 0, y: 0};
+        this.offset = options.offset || {x: 0, y: 0};
 
         /**
          * Rotation of picture
          * @type {number}
          */
-        this.rotation = 0;
+        this.rotation = options.rotation || 0;
 
         /**
          * Opacity of the picture
          * @type {number}
          */
-        this.opacity = 1;
+        this.opacity = options.opacity || 1;
 
-        if (frameWidth || frameHeight) {
-            this.picture.tilesize = {width: frameWidth || 0, height: frameHeight || 0};
+        if (options.tilewidth || options.tileheight) {
+            this.picture.tilesize = {width: options.tilewidth || 0, height: options.tileheight || 0};
         }
 
-        this.picture.onImageLoaded = onPictureLoaded;
-        this.picture.load(path);
+        // Add animations from options
+        if (options.animations) {
+            for (const key in options.animations) {
+                if (options.animations.hasOwnProperty(key)) {
+                    const animation = options.animations[key];
+
+                    this.addAnimation(animation.name, animation.duration, animation.frames, animation.offset);
+                }
+            }
+        }
+
+        this.picture.onImageLoaded = options.onPictureLoaded;
+        this.picture.load(options.path);
     }
 
     /**
@@ -75,6 +83,8 @@ export default class Sprite extends Component {
      * @returns {void|null} void
      */
     update () {
+        super.update();
+
         if (!this.animation || (this.animation && !this.animation.duration)) {
             return null;
         }
@@ -82,6 +92,7 @@ export default class Sprite extends Component {
         this.animation.time++;
 
         if (this.animation.time >= this.animation.fraction) {
+            this.composedBy.requestRender = true;
             this.animation.time = 0;
 
             if (this.animation.frame >= (this.animation.frames.length - 1)) {

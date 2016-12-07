@@ -8,64 +8,130 @@ export default class Element extends Class {
 
     /**
      * @constructor
+     * @param {{ name: string, components: [], props: {} }} options: options for the element
      */
-    constructor () {
-        super();
+    constructor (options = {}) {
+        super(options);
 
         /**
-         * List of components added to this element by their names
-         * @type {Array<string>}
+         * Name of the component
+         * @readonly
+         * @type {string}
          */
-        this.components = [];
+        this.name = "element";
 
         /**
-         * List of all component functions to be called
-         * @type {Array<Array<string>>}
+         * Lifecycle functions enhancement
+         * @type {{}}
          */
-        this.componentFunctions = {};
+        this.lifecycle = options;
 
         /**
-         * Know if this component is detroyed or not
+         * Know if the element is destroyed and it is not usable
+         * @readonly
          * @type {boolean}
-         * @private
          */
         this.destroyed = false;
 
-        /**
-         * Size of the element
-         * @type {{width: number, height: number}}
-         * @readonly
-         */
-        this.size = { width: 0, height: 0 };
+        // Include all components
+        if (options.components && options.components.length) {
+            options.components.forEach(component => this.compose(component));
+        }
+
+        delete this.lifecycle.name;
+        delete this.lifecycle.props;
+        delete this.lifecycle.components;
     }
 
     /**
-     * Update the element
+     * Called when attached to a parent
+     * @initialize
+     * @returns {void}
+     */
+    initialize () {
+        if (this.lifecycle.initialize) {
+            this.lifecycle.initialize.bind(this)();
+        }
+    }
+
+    /**
+     * Remove the element
+     * @destroy
+     * @returns {void}
+     */
+    destroy () {
+        this.destroyed = true;
+        this.components.map(name => this.decompose(name));
+
+        if (this.lifecycle.destroy) {
+            this.lifecycle.destroy.bind(this)();
+        }
+    }
+
+    /**
+     * Actions before update
+     * @beforeUpdate
+     * @returns {void}
+     */
+    beforeUpdate () {
+        if (this.lifecycle.beforeUpdate) {
+            this.lifecycle.beforeUpdate.bind(this)();
+        }
+    }
+
+    /**
+     * Update the element and these components
+     * @update
      * @returns {void}
      */
     update () {
+        this.beforeUpdate();
+        super.update();
         this.callComponentFunction("update");
+
+        if (this.lifecycle.update) {
+            this.lifecycle.update.bind(this)();
+        }
     }
 
     /**
-     * Render the element
-     * @param {*} context: context to render the element
+     * Event fire when properties has changed
+     * @param {*} changedProps: properties that has changed
+     * @returns {void}
+     */
+    onPropsChanged (changedProps) {
+        if (this.lifecycle.onPropsChanged) {
+            this.lifecycle.onPropsChanged.bind(this)(changedProps);
+        }
+    }
+
+    /**
+     * Called only when requestRender is true
+     * @render
+     * @param {*} context: canvas context
      * @returns {void}
      */
     render (context) {
         this.callComponentFunction("render", context);
+
+        if (this.lifecycle.render) {
+            this.lifecycle.render.bind(this)(context);
+        }
     }
 
-
-    /* METHODS */
-
     /**
-     * Destroy the element
+     * Called after every cycle
+     * @nextCycle
      * @returns {void}
      */
-    destroy () {
-        this.components.map(name => this.decompose(name));
-        this.destroyed = true;
+    nextCycle () {
+        for (const key in this.previousProps) {
+            if (this.previousProps.hasOwnProperty(key)) {
+                this.previousProps[key] = this[key];
+            }
+        }
+
+        this.requestRender = false;
     }
 
     /**
@@ -161,41 +227,5 @@ export default class Element extends Class {
         if (this.componentFunctions[functionName]) {
             this.componentFunctions[functionName].map((name) => this[name][functionName](...Array.prototype.slice.call(arguments, 1)));
         }
-    }
-
-    /* GETTERS & SETTERS */
-
-    /**
-     * Name of the element
-     * @returns {string} the name
-     */
-    get name () {
-        return "element";
-    }
-
-    /**
-     * Get or set a width
-     * @param {number=} width: if exist, width will be setted
-     * @returns {number} the current width
-     */
-    width (width) {
-        if (typeof width !== "undefined") {
-            this.size.width = width;
-        }
-
-        return this.size.width;
-    }
-
-    /**
-     * Get or set a height
-     * @param {number=} height: if exist, height will be setted
-     * @returns {number} the current height
-     */
-    height (height) {
-        if (typeof height !== "undefined") {
-            this.size.height = height;
-        }
-
-        return this.size.height;
     }
 }

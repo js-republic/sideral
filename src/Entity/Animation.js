@@ -9,21 +9,23 @@ export default class Animation extends Entity {
 
     /**
      * @constructor
-     * @param {string} path: Path of the sprite
-     * @param {number} frameWidth: framewidth of the sprite
-     * @param {number} frameHeight: frameheight of the sprite
-     * @param {number=} duration: duration of the animation
-     * @param {Array<number>=} frames: frames of animation
-     * @param {{}} options: Other options for the animation
+     * @param {*} options: options
      */
-    constructor (path, frameWidth, frameHeight, duration = 1, frames = [0], options = {}) {
-        super();
+    constructor (options = {}) {
+        super(options);
+
+        /**
+         * Name of the element
+         * @readonly
+         * @type {string}
+         */
+        this.name = "animation";
 
         /**
          * Duration of the animation
          * @type {number}
          */
-        this.duration = duration;
+        this.duration = options.duration || 0;
 
         /**
          * Other options of animation
@@ -41,16 +43,13 @@ export default class Animation extends Entity {
          * Path of the picture
          * @type {string}
          */
-        this.path = path;
+        this.path = options.path;
 
         /**
          * Frames of the animation
          * @type {Array<number>}
          */
-        this.frames = frames;
-
-        this.width(frameWidth);
-        this.height(frameHeight);
+        this.frames = options.frames;
     }
 
     /**
@@ -60,7 +59,7 @@ export default class Animation extends Entity {
     initialize () {
         super.initialize();
 
-        this.compose(new Sprite(this.path, this.width(), this.height())).sprite.addAnimation("idle", this.duration, this.frames);
+        this.compose(new Sprite(this.path, this.width, this.height)).sprite.addAnimation("idle", this.duration, this.frames);
         this.compose(new Timer(this.sprite.getAnimationDuration("idle", this.loop > 0 ? this.loop : 0), () => this.destroy()));
 
         this.sprite.currentAnimation("idle");
@@ -74,18 +73,8 @@ export default class Animation extends Entity {
         super.update();
 
         if (this.follow) {
-            this.x(this.follow.x() + (this.follow.width() / 2) - (this.width() / 2));
-            this.y(this.follow.y() + (this.follow.height() / 2) - (this.height() / 2));
+            this.x = this.follow.x + (this.follow.width / 2) - (this.width / 2);
+            this.y = this.follow.y + (this.follow.height / 2) - (this.height / 2);
         }
-    }
-
-    /* GETTERS & SETTERS */
-
-    /**
-     * Name of the element
-     * @returns {string} the name
-     */
-    get name () {
-        return "animation";
     }
 }

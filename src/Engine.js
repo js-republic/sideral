@@ -5,8 +5,20 @@ import Scene from "./Scene";
 class Engine extends Element {
 
     /* LIFECYCLE */
-    constructor () {
-        super();
+
+    /**
+     * @constructor
+     * @param {*} options: options
+     */
+    constructor (options) {
+        super(options);
+
+        /**
+         * Name of the element
+         * @readonly
+         * @type {string}
+         */
+        this.name = "engine";
 
         /**
          * Global data to store
@@ -80,6 +92,43 @@ class Engine extends Element {
     }
 
     /**
+     * @nextCycle
+     * @returns {void}
+     */
+    nextCycle () {
+        this.scenes.forEach(scene => scene.nextCycle());
+    }
+
+    /**
+     * @onPropsChanged
+     * @param {*} changedProps: changed properties
+     * @returns {void}
+     */
+    onPropsChanged (changedProps) {
+        super.onPropsChanged(changedProps);
+
+        if (changedProps.width) {
+            if (this.dom) {
+                this.dom.width = changedProps.width;
+            }
+
+            this.scenes.forEach(scene => {
+                scene.width = changedProps.width;
+            });
+        }
+
+        if (changedProps.height) {
+            if (this.dom) {
+                this.dom.height = changedProps.height;
+            }
+
+            this.scenes.forEach(scene => {
+                scene.height = changedProps.height;
+            });
+        }
+    }
+
+    /**
      * Run the engine
      * @param {number=} timeStart: time sended by requestAnimationFrame
      * @returns {void|null} null
@@ -99,6 +148,7 @@ class Engine extends Element {
 
         this.update();
         this.render(null);
+        this.nextCycle();
 
         this.lastUpdate = window.performance.now();
     }
@@ -175,56 +225,10 @@ class Engine extends Element {
 
         return this;
     }
-
-
-    /* GETTERS & SETTERS */
-
-    /**
-     * The name of the engine
-     * @returns {string} the name
-     */
-    get name () {
-        return "engine";
-    }
-
-    /**
-     * Get or set the width
-     * @param {number=} width: if exist, width will be setted
-     * @returns {number} the current width
-     */
-    width (width) {
-        if (typeof width !== "undefined") {
-            if (this.dom) {
-                this.dom.width = width;
-            }
-
-            this.scenes.forEach((scene) => {
-                scene.width(width);
-            });
-        }
-
-        return super.width(width);
-    }
-
-    /**
-     * Get or set the height
-     * @param {number=} height: if exist, height will be setted
-     * @returns {number} the current height
-     */
-    height (height) {
-        if (typeof height !== "undefined") {
-            if (this.dom) {
-                this.dom.height = height;
-            }
-
-            this.scenes.forEach((scene) => {
-                scene.height(height);
-            });
-        }
-
-        return super.height(height);
-    }
 }
 
 
-export default new Engine();
+export default new Engine({
+    width : 50,
+    height: 50
+});

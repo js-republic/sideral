@@ -9,9 +9,17 @@ export default class Scene extends Element {
 
     /**
      * @constructor
+     * @param {*} options: options
      */
-    constructor () {
-        super();
+    constructor (options = {}) {
+        super(options);
+
+        /**
+         * Name of the element
+         * @readonly
+         * @type {string}
+         */
+        this.name = "scene";
 
         /**
          * List of entities
@@ -23,13 +31,13 @@ export default class Scene extends Element {
          * Gravity of the scene
          * @type {number}
          */
-        this.gravity = 0;
+        this.gravity = options.gravity || 0;
 
         /**
          * Scale of all entities behind this scene
          * @type {number}
          */
-        this.scale = 1;
+        this.scale = options.scale || 1;
 
         /**
          * Position of the camera
@@ -64,6 +72,25 @@ export default class Scene extends Element {
     }
 
     /**
+     * @onPropsChanged
+     * @param {*} changedProps: changed properties
+     * @returns {void}
+     */
+    onPropsChanged (changedProps) {
+        super.onPropsChanged(changedProps);
+
+        if (this.isComposedOf("canvas")) {
+            if (changedProps.width) {
+                this.canvas.width = changedProps.width;
+            }
+
+            if (changedProps.height) {
+                this.canvas.height = changedProps.height;
+            }
+        }
+    }
+
+    /**
      * Render
      * @param {*} context: context of the canvas (created inside this function)
      * @returns {void}
@@ -72,7 +99,17 @@ export default class Scene extends Element {
         context = this.canvas.context;
         super.render(context);
 
-        this.entities.map(entity => entity.render(context));
+        this.entities.filter(x => x.requestRender).map(entity => entity.render(context));
+    }
+
+    /**
+     * @nextCycle
+     * @returns {void}
+     */
+    nextCycle () {
+        super.nextCycle();
+
+        this.entities.forEach(entity => entity.nextCycle());
     }
 
     /* METHODS */
@@ -80,47 +117,21 @@ export default class Scene extends Element {
     /**
      * Attach an entity to the scene
      * @param {Entity} entity: entity to attach
-     * @param {number} x: position x of entity
-     * @param {number} y: position y of entity
      * @returns {Scene} current instance
      */
-    attachEntity (entity, x = 0, y = 0) {
+    attachEntity (entity) {
         if (!entity || (entity && !(entity instanceof Entity))) {
             throw new Error("Scene.attachEntity : entity must be an instance of Entity");
         }
 
-        // Entity pooling mode
-        if (entity.pooling) {
-            const entityPooling = this.entities.find(poolX => poolX.pooling && poolX.destroyed);
-
-            if (entityPooling) {
-                entityPooling.x(x);
-                entityPooling.y(y);
-                entityPooling.reset();
-
-                return this;
-            }
-        }
-
         this.entities.push(entity);
-        entity.x(x);
-        entity.y(y);
         entity.scene = this;
-
         entity.initialize();
 
         return this;
     }
 
     /* GETTERS & SETTERS */
-
-    /**
-     * The name of the scene
-     * @returns {string} the name
-     */
-    get name () {
-        return "scene";
-    }
 
     /**
      * Get or set the width

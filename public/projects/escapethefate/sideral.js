@@ -54,28 +54,59 @@
 	
 	var _Engine2 = _interopRequireDefault(_Engine);
 	
-	var _Keyboard = __webpack_require__(/*! src/Component/Keyboard */ 516);
+	var _Scene = __webpack_require__(/*! src/Scene */ 511);
+	
+	var _Scene2 = _interopRequireDefault(_Scene);
+	
+	var _Keyboard = __webpack_require__(/*! src/Component/Keyboard */ 514);
 	
 	var _Keyboard2 = _interopRequireDefault(_Keyboard);
 	
-	var _SceneWorld = __webpack_require__(/*! ./scenes/SceneWorld */ 514);
+	var _EntityPlayer = __webpack_require__(/*! ./entities/EntityPlayer */ 515);
 	
-	var _SceneWorld2 = _interopRequireDefault(_SceneWorld);
+	var _EntityPlayer2 = _interopRequireDefault(_EntityPlayer);
 	
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 	
+	/*
+	import Engine from "src/Engine";
+	import Keyboard from "src/Component/Keyboard";
+	
+	import SceneWorld from "./scenes/SceneWorld";
+	
+	
 	// Define the size of the engine
-	_Engine2.default.width(500);
-	_Engine2.default.height(200);
+	Engine.width(500);
+	Engine.height(200);
 	
 	// Let's start the engine
-	_Engine2.default.compose(new _Keyboard2.default()).attachScene(new _SceneWorld2.default());
+	Engine.compose(new Keyboard())
+	    .attachScene(new SceneWorld());
 	
 	// Render the engine into a dom
-	_Engine2.default.attachDOM(document.getElementById("sideral-app"));
+	Engine.attachDOM(document.getElementById("sideral-app"));
 	
 	// Start the loop
+	Engine.run();
+	*/
+	
+	var scene = new _Scene2.default(),
+	    entity = (0, _EntityPlayer2.default)({ x: 10, y: 10 });
+	
+	_Engine2.default.width = 500;
+	_Engine2.default.height = 200;
+	
+	_Engine2.default.compose(new _Keyboard2.default()).attachScene(scene);
+	
+	_Engine2.default.attachDOM(document.getElementById("sideral-app"));
+	
 	_Engine2.default.run();
+	
+	scene.attachEntity(entity);
+	
+	window.setTimeout(function () {
+	    entity.x = 20;
+	}, 2000);
 
 /***/ },
 
@@ -115,15 +146,27 @@
 	    _inherits(Engine, _Element);
 	
 	    /* LIFECYCLE */
-	    function Engine() {
+	
+	    /**
+	     * @constructor
+	     * @param {*} options: options
+	     */
+	    function Engine(options) {
 	        _classCallCheck(this, Engine);
+	
+	        /**
+	         * Name of the element
+	         * @readonly
+	         * @type {string}
+	         */
+	        var _this = _possibleConstructorReturn(this, (Engine.__proto__ || Object.getPrototypeOf(Engine)).call(this, options));
+	
+	        _this.name = "engine";
 	
 	        /**
 	         * Global data to store
 	         * @type {{}}
 	         */
-	        var _this = _possibleConstructorReturn(this, (Engine.__proto__ || Object.getPrototypeOf(Engine)).call(this));
-	
 	        _this.storage = {};
 	
 	        /**
@@ -204,6 +247,51 @@
 	        }
 	
 	        /**
+	         * @nextCycle
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "nextCycle",
+	        value: function nextCycle() {
+	            this.scenes.forEach(function (scene) {
+	                return scene.nextCycle();
+	            });
+	        }
+	
+	        /**
+	         * @onPropsChanged
+	         * @param {*} changedProps: changed properties
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "onPropsChanged",
+	        value: function onPropsChanged(changedProps) {
+	            _get(Engine.prototype.__proto__ || Object.getPrototypeOf(Engine.prototype), "onPropsChanged", this).call(this, changedProps);
+	
+	            if (changedProps.width) {
+	                if (this.dom) {
+	                    this.dom.width = changedProps.width;
+	                }
+	
+	                this.scenes.forEach(function (scene) {
+	                    scene.width = changedProps.width;
+	                });
+	            }
+	
+	            if (changedProps.height) {
+	                if (this.dom) {
+	                    this.dom.height = changedProps.height;
+	                }
+	
+	                this.scenes.forEach(function (scene) {
+	                    scene.height = changedProps.height;
+	                });
+	            }
+	        }
+	
+	        /**
 	         * Run the engine
 	         * @param {number=} timeStart: time sended by requestAnimationFrame
 	         * @returns {void|null} null
@@ -226,6 +314,7 @@
 	
 	            this.update();
 	            this.render(null);
+	            this.nextCycle();
 	
 	            this.lastUpdate = window.performance.now();
 	        }
@@ -315,69 +404,15 @@
 	
 	            return this;
 	        }
-	
-	        /* GETTERS & SETTERS */
-	
-	        /**
-	         * The name of the engine
-	         * @returns {string} the name
-	         */
-	
-	    }, {
-	        key: "width",
-	
-	
-	        /**
-	         * Get or set the width
-	         * @param {number=} width: if exist, width will be setted
-	         * @returns {number} the current width
-	         */
-	        value: function width(_width) {
-	            if (typeof _width !== "undefined") {
-	                if (this.dom) {
-	                    this.dom.width = _width;
-	                }
-	
-	                this.scenes.forEach(function (scene) {
-	                    scene.width(_width);
-	                });
-	            }
-	
-	            return _get(Engine.prototype.__proto__ || Object.getPrototypeOf(Engine.prototype), "width", this).call(this, _width);
-	        }
-	
-	        /**
-	         * Get or set the height
-	         * @param {number=} height: if exist, height will be setted
-	         * @returns {number} the current height
-	         */
-	
-	    }, {
-	        key: "height",
-	        value: function height(_height) {
-	            if (typeof _height !== "undefined") {
-	                if (this.dom) {
-	                    this.dom.height = _height;
-	                }
-	
-	                this.scenes.forEach(function (scene) {
-	                    scene.height(_height);
-	                });
-	            }
-	
-	            return _get(Engine.prototype.__proto__ || Object.getPrototypeOf(Engine.prototype), "height", this).call(this, _height);
-	        }
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "engine";
-	        }
 	    }]);
 	
 	    return Engine;
 	}(_Element3.default);
 	
-	exports.default = new Engine();
+	exports.default = new Engine({
+	    width: 50,
+	    height: 50
+	});
 
 /***/ },
 
@@ -394,6 +429,8 @@
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+	
+	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 	
 	var _Class2 = __webpack_require__(/*! ./Class */ 509);
 	
@@ -420,68 +457,66 @@
 	
 	    /**
 	     * @constructor
+	     * @param {{ name: string, components: [], props: {} }} options: options for the element
 	     */
 	    function Element() {
+	        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	
 	        _classCallCheck(this, Element);
 	
 	        /**
-	         * List of components added to this element by their names
-	         * @type {Array<string>}
+	         * Name of the component
+	         * @readonly
+	         * @type {string}
 	         */
-	        var _this = _possibleConstructorReturn(this, (Element.__proto__ || Object.getPrototypeOf(Element)).call(this));
+	        var _this = _possibleConstructorReturn(this, (Element.__proto__ || Object.getPrototypeOf(Element)).call(this, options));
 	
-	        _this.components = [];
+	        _this.name = "element";
 	
 	        /**
-	         * List of all component functions to be called
-	         * @type {Array<Array<string>>}
+	         * Lifecycle functions enhancement
+	         * @type {{}}
 	         */
-	        _this.componentFunctions = {};
+	        _this.lifecycle = options;
 	
 	        /**
-	         * Know if this component is detroyed or not
+	         * Know if the element is destroyed and it is not usable
+	         * @readonly
 	         * @type {boolean}
-	         * @private
 	         */
 	        _this.destroyed = false;
 	
-	        /**
-	         * Size of the element
-	         * @type {{width: number, height: number}}
-	         * @readonly
-	         */
-	        _this.size = { width: 0, height: 0 };
+	        // Include all components
+	        if (options.components && options.components.length) {
+	            options.components.forEach(function (component) {
+	                return _this.compose(component);
+	            });
+	        }
+	
+	        delete _this.lifecycle.name;
+	        delete _this.lifecycle.props;
+	        delete _this.lifecycle.components;
 	        return _this;
 	    }
 	
 	    /**
-	     * Update the element
+	     * Called when attached to a parent
+	     * @initialize
 	     * @returns {void}
 	     */
 	
 	
 	    _createClass(Element, [{
-	        key: "update",
-	        value: function update() {
-	            this.callComponentFunction("update");
+	        key: "initialize",
+	        value: function initialize() {
+	            if (this.lifecycle.initialize) {
+	                this.lifecycle.initialize.bind(this)();
+	            }
 	        }
 	
 	        /**
-	         * Render the element
-	         * @param {*} context: context to render the element
-	         * @returns {void}
-	         */
-	
-	    }, {
-	        key: "render",
-	        value: function render(context) {
-	            this.callComponentFunction("render", context);
-	        }
-	
-	        /* METHODS */
-	
-	        /**
-	         * Destroy the element
+	         * Remove the element
+	         * @destroy
 	         * @returns {void}
 	         */
 	
@@ -490,10 +525,95 @@
 	        value: function destroy() {
 	            var _this2 = this;
 	
+	            this.destroyed = true;
 	            this.components.map(function (name) {
 	                return _this2.decompose(name);
 	            });
-	            this.destroyed = true;
+	
+	            if (this.lifecycle.destroy) {
+	                this.lifecycle.destroy.bind(this)();
+	            }
+	        }
+	
+	        /**
+	         * Actions before update
+	         * @beforeUpdate
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "beforeUpdate",
+	        value: function beforeUpdate() {
+	            if (this.lifecycle.beforeUpdate) {
+	                this.lifecycle.beforeUpdate.bind(this)();
+	            }
+	        }
+	
+	        /**
+	         * Update the element and these components
+	         * @update
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "update",
+	        value: function update() {
+	            this.beforeUpdate();
+	            _get(Element.prototype.__proto__ || Object.getPrototypeOf(Element.prototype), "update", this).call(this);
+	            this.callComponentFunction("update");
+	
+	            if (this.lifecycle.update) {
+	                this.lifecycle.update.bind(this)();
+	            }
+	        }
+	
+	        /**
+	         * Event fire when properties has changed
+	         * @param {*} changedProps: properties that has changed
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "onPropsChanged",
+	        value: function onPropsChanged(changedProps) {
+	            if (this.lifecycle.onPropsChanged) {
+	                this.lifecycle.onPropsChanged.bind(this)(changedProps);
+	            }
+	        }
+	
+	        /**
+	         * Called only when requestRender is true
+	         * @render
+	         * @param {*} context: canvas context
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "render",
+	        value: function render(context) {
+	            this.callComponentFunction("render", context);
+	
+	            if (this.lifecycle.render) {
+	                this.lifecycle.render.bind(this)(context);
+	            }
+	        }
+	
+	        /**
+	         * Called after every cycle
+	         * @nextCycle
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "nextCycle",
+	        value: function nextCycle() {
+	            for (var key in this.previousProps) {
+	                if (this.previousProps.hasOwnProperty(key)) {
+	                    this.previousProps[key] = this[key];
+	                }
+	            }
+	
+	            this.requestRender = false;
 	        }
 	
 	        /**
@@ -620,51 +740,6 @@
 	                });
 	            }
 	        }
-	
-	        /* GETTERS & SETTERS */
-	
-	        /**
-	         * Name of the element
-	         * @returns {string} the name
-	         */
-	
-	    }, {
-	        key: "width",
-	
-	
-	        /**
-	         * Get or set a width
-	         * @param {number=} width: if exist, width will be setted
-	         * @returns {number} the current width
-	         */
-	        value: function width(_width) {
-	            if (typeof _width !== "undefined") {
-	                this.size.width = _width;
-	            }
-	
-	            return this.size.width;
-	        }
-	
-	        /**
-	         * Get or set a height
-	         * @param {number=} height: if exist, height will be setted
-	         * @returns {number} the current height
-	         */
-	
-	    }, {
-	        key: "height",
-	        value: function height(_height) {
-	            if (typeof _height !== "undefined") {
-	                this.size.height = _height;
-	            }
-	
-	            return this.size.height;
-	        }
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "element";
-	        }
 	    }]);
 	
 	    return Element;
@@ -696,8 +771,11 @@
 	
 	    /**
 	     * @constructor
+	     * @param {{ name: string, components: [], props: {} }} options: options for the element
 	     */
 	    function Class() {
+	        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	
 	        _classCallCheck(this, Class);
 	
 	        /**
@@ -705,16 +783,78 @@
 	         * @type {string}
 	         */
 	        this.id = Class.generateId();
+	
+	        /**
+	         * Name of the class to be recognized
+	         * @type {string}
+	         */
+	        this.name = "class";
+	
+	        /**
+	         * Props before update
+	         * @type {{}} properties
+	         */
+	        this.previousProps = Object.assign({}, options.props);
+	
+	        // Add default props
+	        this.props(this.previousProps);
 	    }
 	
 	    /**
-	     * Set attributes to current instance
-	     * @param {*} props: properties to merge
-	     * @returns {*} SideralClass: current instance
+	     * Initialization of the element after it is created into the engine
+	     * @initialize
+	     * @returns {void}
 	     */
 	
 	
 	    _createClass(Class, [{
+	        key: "initialize",
+	        value: function initialize() {}
+	
+	        /**
+	         * Update lifecycle
+	         * @update
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "update",
+	        value: function update() {
+	            var changedProps = {};
+	
+	            for (var key in this.previousProps) {
+	                if (this.previousProps.hasOwnProperty(key) && this[key] !== this[key]) {
+	                    changedProps[key] = this[key];
+	                    this.requestRender = true;
+	                }
+	            }
+	
+	            if (this.requestRender) {
+	                this.onPropsChanged(changedProps);
+	            }
+	        }
+	
+	        /*eslint-disable*/
+	        /**
+	         * called when props has changed
+	         * @param {*} changedProps: changed properties
+	         * @return {void}
+	         */
+	
+	    }, {
+	        key: "onPropsChanged",
+	        value: function onPropsChanged(changedProps) {}
+	        /*eslint-enable*/
+	
+	        /* METHODS */
+	
+	        /**
+	         * Set attributes to current instance
+	         * @param {*} props: properties to merge
+	         * @returns {*} SideralClass: current instance
+	         */
+	
+	    }, {
 	        key: "props",
 	        value: function props() {
 	            var _props = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
@@ -726,30 +866,6 @@
 	            }
 	
 	            return this;
-	        }
-	
-	        /**
-	         * Initialization of the element after it is created into the engine
-	         * @returns {void}
-	         */
-	
-	    }, {
-	        key: "initialize",
-	        value: function initialize() {}
-	
-	        /* METHODS */
-	
-	        /* GETTERS & SETTERS */
-	
-	        /**
-	         * String identifier
-	         * @returns {string} the name of the class
-	         */
-	
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "Class";
 	        }
 	
 	        /* STATICS */
@@ -811,11 +927,18 @@
 	        _classCallCheck(this, Component);
 	
 	        /**
-	         * Element which using this component
-	         * @type {Element}
+	         * Name of the component
+	         * @readonly
+	         * @type {string}
 	         */
 	        var _this = _possibleConstructorReturn(this, (Component.__proto__ || Object.getPrototypeOf(Component)).call(this));
 	
+	        _this.name = "component";
+	
+	        /**
+	         * Element which using this component
+	         * @type {Element}
+	         */
 	        _this.composedBy = null;
 	
 	        /**
@@ -855,21 +978,6 @@
 	
 	                return null;
 	            });
-	        }
-	
-	        /* METHODS */
-	
-	        /* GETTERS & SETTERS */
-	
-	        /**
-	         * Name of the component
-	         * @returns {string} the name
-	         */
-	
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "component";
 	        }
 	    }]);
 	
@@ -923,29 +1031,39 @@
 	
 	    /**
 	     * @constructor
+	     * @param {*} options: options
 	     */
 	    function Scene() {
+	        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	
 	        _classCallCheck(this, Scene);
+	
+	        /**
+	         * Name of the element
+	         * @readonly
+	         * @type {string}
+	         */
+	        var _this = _possibleConstructorReturn(this, (Scene.__proto__ || Object.getPrototypeOf(Scene)).call(this, options));
+	
+	        _this.name = "scene";
 	
 	        /**
 	         * List of entities
 	         * @type {Array<Entity>}
 	         */
-	        var _this = _possibleConstructorReturn(this, (Scene.__proto__ || Object.getPrototypeOf(Scene)).call(this));
-	
 	        _this.entities = [];
 	
 	        /**
 	         * Gravity of the scene
 	         * @type {number}
 	         */
-	        _this.gravity = 0;
+	        _this.gravity = options.gravity || 0;
 	
 	        /**
 	         * Scale of all entities behind this scene
 	         * @type {number}
 	         */
-	        _this.scale = 1;
+	        _this.scale = options.scale || 1;
 	
 	        /**
 	         * Position of the camera
@@ -990,6 +1108,28 @@
 	        }
 	
 	        /**
+	         * @onPropsChanged
+	         * @param {*} changedProps: changed properties
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "onPropsChanged",
+	        value: function onPropsChanged(changedProps) {
+	            _get(Scene.prototype.__proto__ || Object.getPrototypeOf(Scene.prototype), "onPropsChanged", this).call(this, changedProps);
+	
+	            if (this.isComposedOf("canvas")) {
+	                if (changedProps.width) {
+	                    this.canvas.width = changedProps.width;
+	                }
+	
+	                if (changedProps.height) {
+	                    this.canvas.height = changedProps.height;
+	                }
+	            }
+	        }
+	
+	        /**
 	         * Render
 	         * @param {*} context: context of the canvas (created inside this function)
 	         * @returns {void}
@@ -1001,8 +1141,25 @@
 	            context = this.canvas.context;
 	            _get(Scene.prototype.__proto__ || Object.getPrototypeOf(Scene.prototype), "render", this).call(this, context);
 	
-	            this.entities.map(function (entity) {
+	            this.entities.filter(function (x) {
+	                return x.requestRender;
+	            }).map(function (entity) {
 	                return entity.render(context);
+	            });
+	        }
+	
+	        /**
+	         * @nextCycle
+	         * @returns {void}
+	         */
+	
+	    }, {
+	        key: "nextCycle",
+	        value: function nextCycle() {
+	            _get(Scene.prototype.__proto__ || Object.getPrototypeOf(Scene.prototype), "nextCycle", this).call(this);
+	
+	            this.entities.forEach(function (entity) {
+	                return entity.nextCycle();
 	            });
 	        }
 	
@@ -1011,41 +1168,18 @@
 	        /**
 	         * Attach an entity to the scene
 	         * @param {Entity} entity: entity to attach
-	         * @param {number} x: position x of entity
-	         * @param {number} y: position y of entity
 	         * @returns {Scene} current instance
 	         */
 	
 	    }, {
 	        key: "attachEntity",
 	        value: function attachEntity(entity) {
-	            var x = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0;
-	            var y = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
-	
 	            if (!entity || entity && !(entity instanceof _Entity2.default)) {
 	                throw new Error("Scene.attachEntity : entity must be an instance of Entity");
 	            }
 	
-	            // Entity pooling mode
-	            if (entity.pooling) {
-	                var entityPooling = this.entities.find(function (poolX) {
-	                    return poolX.pooling && poolX.destroyed;
-	                });
-	
-	                if (entityPooling) {
-	                    entityPooling.x(x);
-	                    entityPooling.y(y);
-	                    entityPooling.reset();
-	
-	                    return this;
-	                }
-	            }
-	
 	            this.entities.push(entity);
-	            entity.x(x);
-	            entity.y(y);
 	            entity.scene = this;
-	
 	            entity.initialize();
 	
 	            return this;
@@ -1054,19 +1188,13 @@
 	        /* GETTERS & SETTERS */
 	
 	        /**
-	         * The name of the scene
-	         * @returns {string} the name
-	         */
-	
-	    }, {
-	        key: "width",
-	
-	
-	        /**
 	         * Get or set the width
 	         * @param {number=} width: if exist, width will be setted
 	         * @returns {number} the current width
 	         */
+	
+	    }, {
+	        key: "width",
 	        value: function width(_width) {
 	            if (typeof _width !== "undefined") {
 	                if (this.isComposedOf("canvas")) {
@@ -1094,11 +1222,6 @@
 	
 	            return _get(Scene.prototype.__proto__ || Object.getPrototypeOf(Scene.prototype), "height", this).call(this, _height);
 	        }
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "scene";
-	        }
 	    }]);
 	
 	    return Scene;
@@ -1117,7 +1240,7 @@
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1141,288 +1264,255 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var Entity = function (_Element) {
-	    _inherits(Entity, _Element);
+	  _inherits(Entity, _Element);
 	
-	    /* LIFECYCLE */
+	  /* LIFECYCLE */
+	
+	  /**
+	   * @constructor
+	   * @param {*} options: options
+	   */
+	  function Entity(options) {
+	    _classCallCheck(this, Entity);
 	
 	    /**
-	     * @constructor
+	     * Name of the element
+	     * @readonly
+	     * @type {string}
 	     */
-	    function Entity() {
-	        _classCallCheck(this, Entity);
+	    var _this = _possibleConstructorReturn(this, (Entity.__proto__ || Object.getPrototypeOf(Entity)).call(this, options));
 	
-	        /**
-	         * Show more information about entity on screen
-	         * @type {boolean}
-	         */
-	        var _this = _possibleConstructorReturn(this, (Entity.__proto__ || Object.getPrototypeOf(Entity)).call(this));
+	    _this.name = "entity";
 	
-	        _this.debug = false;
+	    /**
+	     * Show more information about entity on screen
+	     * @type {boolean}
+	     */
+	    _this.debug = options.debug;
 	
-	        /**
-	         * Reference to the current scene
-	         * @type {*}
-	         */
-	        _this.scene = null;
+	    /**
+	     * Position on x axis
+	     * @type {number}
+	     */
+	    _this.x = options.x || 0;
 	
-	        /**
-	         * Position of entity
-	         * @type {{x: number, y: number}}
-	         * @readonly
-	         */
-	        _this.position = { x: 0, y: 0 };
+	    /**
+	     * Position on y axis
+	     * @type {number}
+	     */
+	    _this.y = options.y || 0;
 	
-	        /**
-	         * Last position of entity
-	         * @type {{x: number, y: number}}
-	         * @readonly
-	         */
-	        _this.lastPosition = { x: 0, y: 0 };
+	    /**
+	     * Width of entity
+	     * @type {number}
+	     */
+	    _this.width = options.width || 10;
 	
-	        /**
-	         * If true, the position of this entity will be compared to the camera position
-	         * @type {boolean}
-	         */
-	        _this.relativePosition = false;
+	    /**
+	     * Height of entity
+	     * @type {number}
+	     */
+	    _this.height = options.height || 10;
 	
-	        /**
-	         * Mass of the entity (used for collision)
-	         * @type {string}
-	         */
-	        _this.mass = Entity.MASS.NONE;
+	    /**
+	     * Mass of the entity (used for collision)
+	     * @type {string}
+	     */
+	    _this.mass = options.mass || Entity.MASS.NONE;
 	
-	        /**
-	         * Direction movement of the entity
-	         * @type {{x: number, y: number}}
-	         */
-	        _this.direction = { x: 0, y: 0 };
+	    /**
+	     * Direction movement of the entity
+	     * @type {{x: number, y: number}}
+	     */
+	    _this.direction = options.direction || { x: 0, y: 0 };
 	
-	        /**
-	         * Speed movement of the entity
-	         * @type {{x: number, y: number}}
-	         */
-	        _this.speed = { x: 100, y: 100 };
+	    /**
+	     * Speed movement of the entity
+	     * @type {{x: number, y: number}}
+	     */
+	    _this.speed = options.speed || { x: 100, y: 100 };
 	
-	        /**
-	         * Velocity of the entity
-	         * @type {{x: number, y: number}}
-	         * @readonly
-	         */
-	        _this.velocity = { x: 0, y: 0 };
+	    /**
+	     * Velocity of the entity
+	     * @type {{x: number, y: number}}
+	     * @readonly
+	     */
+	    _this.velocity = options.velocity || { x: 0, y: 0 };
 	
-	        /**
-	         * Know if the entity is standing on a ground (or over an entity)
-	         * @type {boolean}
-	         * @readonly
-	         */
-	        _this.standing = false;
+	    /**
+	     * Factor of scene gravity
+	     * @type {number}
+	     */
+	    _this.gravityFactor = options.gravityFactor || 1;
 	
-	        /**
-	         * Know if the entity is falling (used with gravity)
-	         * @type {boolean}
-	         * @readonly
-	         */
-	        _this.falling = false;
+	    /**
+	     * Reference to the current scene
+	     * @readonly
+	     * @type {*}
+	     */
+	    _this.scene = null;
 	
-	        /**
-	         * Factor of scene gravity
-	         * @type {number}
-	         */
-	        _this.gravityFactor = 1;
+	    /**
+	     * Know if the entity is standing on a ground (or over an entity)
+	     * @type {boolean}
+	     * @readonly
+	     */
+	    _this.standing = false;
 	
-	        /**
-	         * If true, this entity will pass into "pooling mode" (for memory sake)
-	         * @type {boolean}
-	         */
-	        _this.pooling = false;
+	    /**
+	     * Know if the entity is falling (used with gravity)
+	     * @type {boolean}
+	     * @readonly
+	     */
+	    _this.falling = false;
+	    return _this;
+	  }
 	
-	        _this.width(10);
-	        _this.height(10);
-	        return _this;
+	  /**
+	   * @beforeUpdate
+	   * @returns {void}
+	   */
+	
+	
+	  _createClass(Entity, [{
+	    key: "beforeUpdate",
+	    value: function beforeUpdate() {
+	      _get(Entity.prototype.__proto__ || Object.getPrototypeOf(Entity.prototype), "beforeUpdate", this).call(this);
+	
+	      if (this.direction.x) {
+	        this.velocity.x = this.speed.x * this.direction.x * _Engine2.default.tick;
+	        this.x += this.velocity.x;
+	      }
+	
+	      this.velocity.y = this.scene && this.scene.gravity && this.gravityFactor ? this.scene.gravity * this.gravityFactor * _Engine2.default.tick : 0;
+	      if (this.velocity.y || this.direction.y) {
+	        this.velocity.y += this.speed.y * this.direction.y * _Engine2.default.tick;
+	        this.y += this.velocity.y;
+	      }
 	    }
 	
 	    /**
-	     * Destroy the element
+	     * Render
+	     * @param {*} context: canvas context
 	     * @returns {void}
 	     */
 	
+	  }, {
+	    key: "render",
+	    value: function render(context) {
+	      _get(Entity.prototype.__proto__ || Object.getPrototypeOf(Entity.prototype), "render", this).call(this, context);
 	
-	    _createClass(Entity, [{
-	        key: "destroy",
-	        value: function destroy() {
-	            if (!this.pooling) {
-	                _get(Entity.prototype.__proto__ || Object.getPrototypeOf(Entity.prototype), "destroy", this).call(this);
-	            }
+	      if (this.debug) {
+	        context.strokeStyle = "rgb(255, 0, 0)";
+	        context.strokeRect(this.x - this.scene.camera.x, this.y - this.scene.camera.y, this.width, this.height);
+	      }
+	    }
 	
-	            this.destroyed = true;
-	        }
+	    /* METHODS */
 	
-	        /**
-	         * Update
-	         * @returns {void}
-	         */
+	    /**
+	     * Get distance between this entity and an other
+	     * @param {Entity} entity: entity target
+	     * @returns {number} distance from entity target
+	     */
 	
-	    }, {
-	        key: "update",
-	        value: function update() {
-	            _get(Entity.prototype.__proto__ || Object.getPrototypeOf(Entity.prototype), "update", this).call(this);
+	  }, {
+	    key: "distanceTo",
+	    value: function distanceTo(entity) {
+	      if (!entity) {
+	        return 0;
+	      }
 	
-	            if (this.direction.x) {
-	                this.velocity.x = this.speed.x * this.direction.x * _Engine2.default.tick;
-	                this.x(this.x() + this.velocity.x);
-	            }
+	      var x = this.x + this.width / 2 - (entity.x + entity.width / 2),
+	          y = this.y + this.height / 2 - (entity.y + entity.height / 2);
 	
-	            this.velocity.y = this.scene && this.scene.gravity && this.gravityFactor ? this.scene.gravity * this.gravityFactor * _Engine2.default.tick : 0;
-	            if (this.velocity.y || this.direction.y) {
-	                this.velocity.y += this.speed.y * this.direction.y * _Engine2.default.tick;
-	                this.y(this.y() + this.velocity.y);
-	            }
-	        }
+	      return Math.sqrt(x * x + y * y);
+	    }
 	
-	        /**
-	         * Render
-	         * @param {*} context: canvas context
-	         * @returns {void}
-	         */
+	    /**
+	     * Compare coordinate to another entity to provide a coordinate direction
+	     * @param {Entity} entity: entity to compare
+	     * @returns {{x: number, y: number}} coordinate direction
+	     */
 	
-	    }, {
-	        key: "render",
-	        value: function render(context) {
-	            _get(Entity.prototype.__proto__ || Object.getPrototypeOf(Entity.prototype), "render", this).call(this, context);
+	  }, {
+	    key: "directionTo",
+	    value: function directionTo(entity) {
+	      var bottom = this.y + this.height,
+	          right = this.x + this.width,
+	          entBottom = entity.y + entity.height,
+	          entRight = entity.x + entity.width,
+	          colBottom = entBottom - this.y,
+	          colTop = bottom - entity.y,
+	          colLeft = right - entity.x,
+	          colRight = entRight - this.x;
 	
-	            if (this.debug) {
-	                context.strokeStyle = "rgb(255, 0, 0)";
-	                context.strokeRect(this.x() - this.scene.camera.x, this.y() - this.scene.camera.y, this.width(), this.height());
-	            }
-	        }
+	      if (colTop < colBottom && colTop < colLeft && colTop < colRight) {
+	        return { x: 0, y: 1 };
+	      } else if (colBottom < colTop && colBottom < colLeft && colBottom < colRight) {
+	        return { x: 0, y: -1 };
+	      } else if (colLeft < colRight && colLeft < colTop && colLeft < colBottom) {
+	        return { x: 1, y: 0 };
+	      } else if (colRight < colLeft && colRight < colTop && colRight < colBottom) {
+	        return { x: -1, y: 0 };
+	      }
 	
-	        /* METHODS */
+	      return { x: 0, y: 0 };
+	    }
 	
-	        /**
-	         * Get distance between this entity and an other
-	         * @param {Entity} entity: entity target
-	         * @returns {number} distance from entity target
-	         */
+	    /**
+	     * Know if the target entity and the current entity is intersecting
+	     * @param {Entity} entity: entity to compare
+	     * @returns {boolean} true if the entity intersect the entity target
+	     */
 	
-	    }, {
-	        key: "distanceTo",
-	        value: function distanceTo(entity) {
-	            if (!entity) {
-	                return 0;
-	            }
+	  }, {
+	    key: "intersect",
+	    value: function intersect(entity) {
+	      return !(entity.x > this.x + this.width || entity.x + entity.width < this.x || entity.y > this.y + this.height || entity.x + entity.height < this.y);
+	    }
 	
-	            var x = this.x() + this.width() / 2 - (entity.x() + entity.width() / 2),
-	                y = this.y() + this.height() / 2 - (entity.y() + entity.height() / 2);
+	    /**
+	     * Get position x relative
+	     * @returns {number} the current relative position x
+	     */
 	
-	            return Math.sqrt(x * x + y * y);
-	        }
+	  }, {
+	    key: "relativeX",
+	    value: function relativeX() {
+	      return this.scene ? this.x - this.scene.camera.x : this.x;
+	    }
 	
-	        /**
-	         * Compare coordinate to another entity to provide a coordinate direction
-	         * @param {Entity} entity: entity to compare
-	         * @returns {{x: number, y: number}} coordinate direction
-	         */
+	    /**
+	     * Get position y relative
+	     * @returns {number} the current relative position y
+	     */
 	
-	    }, {
-	        key: "directionTo",
-	        value: function directionTo(entity) {
-	            var bottom = this.y() + this.height(),
-	                right = this.x() + this.width(),
-	                entBottom = entity.y() + entity.height(),
-	                entRight = entity.x() + entity.width(),
-	                colBottom = entBottom - this.y(),
-	                colTop = bottom - entity.y(),
-	                colLeft = right - entity.x(),
-	                colRight = entRight - this.x();
+	  }, {
+	    key: "relativeY",
+	    value: function relativeY() {
+	      return this.scene ? this.y - this.scene.camera.y : this.y;
+	    }
 	
-	            if (colTop < colBottom && colTop < colLeft && colTop < colRight) {
-	                return { x: 0, y: 1 };
-	            } else if (colBottom < colTop && colBottom < colLeft && colBottom < colRight) {
-	                return { x: 0, y: -1 };
-	            } else if (colLeft < colRight && colLeft < colTop && colLeft < colBottom) {
-	                return { x: 1, y: 0 };
-	            } else if (colRight < colLeft && colRight < colTop && colRight < colBottom) {
-	                return { x: -1, y: 0 };
-	            }
+	    /* GETTERS & SETTERS */
 	
-	            return { x: 0, y: 0 };
-	        }
+	  }, {
+	    key: "moving",
+	    get: function get() {
+	      return this.direction.x || this.direction.y;
+	    }
+	  }]);
 	
-	        /**
-	         * Know if the target entity and the current entity is intersecting
-	         * @param {Entity} entity: entity to compare
-	         * @returns {boolean} true if the entity intersect the entity target
-	         */
-	
-	    }, {
-	        key: "intersect",
-	        value: function intersect(entity) {
-	            return !(entity.x() > this.x() + this.width() || entity.x() + entity.width() < this.x() || entity.y() > this.y() + this.height() || entity.x() + entity.height() < this.y());
-	        }
-	
-	        /* GETTERS & SETTERS */
-	
-	        /**
-	         * Name of the entity
-	         * @returns {string} name
-	         */
-	
-	    }, {
-	        key: "x",
-	
-	
-	        /**
-	         * Get or set x position
-	         * @param {number=} x: if exist, x will be setted
-	         * @returns {number} the current position x
-	         */
-	        value: function x(_x) {
-	            if (typeof _x !== "undefined") {
-	                this.lastPosition.x = this.position.x;
-	                this.position.x = Math.round(_x);
-	            }
-	
-	            return this.relativePosition && this.scene ? this.position.x - this.scene.camera.x : this.position.x;
-	        }
-	
-	        /**
-	         * Get or set y position
-	         * @param {number=} y: if exist, y will be setted
-	         * @returns {number} the current position y
-	         */
-	
-	    }, {
-	        key: "y",
-	        value: function y(_y) {
-	            if (typeof _y !== "undefined") {
-	                this.lastPosition.y = this.position.y;
-	                this.position.y = Math.round(_y);
-	            }
-	
-	            return this.relativePosition && this.scene ? this.position.y - this.scene.camera.y : this.position.y;
-	        }
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "entity";
-	        }
-	    }, {
-	        key: "moving",
-	        get: function get() {
-	            return this.direction.x || this.direction.y;
-	        }
-	    }]);
-	
-	    return Entity;
+	  return Entity;
 	}(_Element3.default);
 	
 	exports.default = Entity;
 	
 	
 	Entity.MASS = {
-	    SOLID: "solid",
-	    WEAK: "weak",
-	    NONE: "none"
+	  SOLID: "solid",
+	  WEAK: "weak",
+	  NONE: "none"
 	};
 
 /***/ },
@@ -1436,7 +1526,7 @@
 	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
-	    value: true
+	  value: true
 	});
 	
 	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1456,166 +1546,149 @@
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
 	var Canvas = function (_Component) {
-	    _inherits(Canvas, _Component);
+	  _inherits(Canvas, _Component);
 	
-	    /* LIFECYCLE */
+	  /* LIFECYCLE */
+	  /**
+	   * Canvas constructor
+	   * @constructor
+	   * @param {*} options: options
+	   */
+	  function Canvas() {
+	    var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	
+	    _classCallCheck(this, Canvas);
+	
 	    /**
-	     * Canvas constructor
-	     * @param {number} width: width of the canvas
-	     * @param {number} height: height of the canvas
-	     * @param {*=} parentDOM: DOM node to attach the canvas
+	     * Name of the element
+	     * @readonly
+	     * @type {string}
 	     */
-	    function Canvas(width, height, parentDOM) {
-	        _classCallCheck(this, Canvas);
+	    var _this = _possibleConstructorReturn(this, (Canvas.__proto__ || Object.getPrototypeOf(Canvas)).call(this, options));
 	
-	        /**
-	         * DOM parent of the canvas
-	         */
-	        var _this = _possibleConstructorReturn(this, (Canvas.__proto__ || Object.getPrototypeOf(Canvas)).call(this));
+	    _this.name = "canvas";
 	
-	        _this.parentDOM = parentDOM;
+	    /**
+	     * DOM parent of the canvas
+	     */
+	    _this.parentDOM = options.parentDOM;
 	
-	        /**
-	         * Dom of the canvas
-	         * @type {*}
-	         */
-	        _this.dom = null;
+	    /**
+	     * Dom of the canvas
+	     * @type {*}
+	     */
+	    _this.dom = null;
 	
-	        /**
-	         * Context of the canvas
-	         * @type {*}
-	         */
-	        _this.context = null;
+	    /**
+	     * Context of the canvas
+	     * @type {*}
+	     */
+	    _this.context = null;
 	
-	        /**
-	         * Color of canvas when it is cleared
-	         * @type {string}
-	         */
-	        _this.clearColor = null;
+	    /**
+	     * Color of canvas when it is cleared
+	     * @type {string}
+	     */
+	    _this.clearColor = null;
 	
-	        /**
-	         * Size of the canvas
-	         * @type {{width: number, height: number}}
-	         * @readonly
-	         */
-	        _this.size = { width: width || 0, height: height || 0 };
-	        return _this;
+	    /**
+	     * Width of the canvas
+	     * @type {number}
+	     */
+	    _this.width = options.width;
+	
+	    /**
+	     * Height of the canvas
+	     * @type {number}
+	     */
+	    _this.height = options.height;
+	    return _this;
+	  }
+	
+	  /**
+	   * @initialize
+	   * @returns {void}
+	   */
+	
+	
+	  _createClass(Canvas, [{
+	    key: "initialize",
+	    value: function initialize() {
+	      _get(Canvas.prototype.__proto__ || Object.getPrototypeOf(Canvas.prototype), "initialize", this).call(this);
+	
+	      this.dom = document.createElement("canvas");
+	      this.dom.id = this.id;
+	      this.dom.width = this.width;
+	      this.dom.height = this.height;
+	      this.context = this.dom.getContext("2d");
+	
+	      this.setParentDOM();
 	    }
 	
-	    _createClass(Canvas, [{
-	        key: "initialize",
-	        value: function initialize() {
-	            _get(Canvas.prototype.__proto__ || Object.getPrototypeOf(Canvas.prototype), "initialize", this).call(this);
+	    /**
+	     * @onPropsChanged
+	     * @param {*} changedProps: changed properties
+	     * @returns {void}
+	     */
 	
-	            this.dom = document.createElement("canvas");
-	            this.dom.id = this.id;
-	            this.dom.width = this.width();
-	            this.dom.height = this.height();
-	            this.context = this.dom.getContext("2d");
+	  }, {
+	    key: "onPropsChanged",
+	    value: function onPropsChanged(changedProps) {
+	      _get(Canvas.prototype.__proto__ || Object.getPrototypeOf(Canvas.prototype), "onPropsChanged", this).call(this, changedProps);
 	
-	            this.setParentDOM();
-	        }
-	    }, {
-	        key: "render",
-	        value: function render() {
-	            this.clear();
+	      if (this.dom) {
+	        if (changedProps.width) {
+	          this.dom.width = changedProps.width;
 	        }
 	
-	        /* METHODS */
-	
-	        /**
-	         * Attach the canvas to the parent DOM
-	         * @param {*=} dom: dom to attach the canvas
-	         * @returns {void|null} null
-	         */
-	
-	    }, {
-	        key: "setParentDOM",
-	        value: function setParentDOM(dom) {
-	            dom = dom || this.parentDOM;
-	
-	            if (!dom || !this.dom) {
-	                return null;
-	            }
-	
-	            this.parentDOM = dom;
-	            this.parentDOM.appendChild(this.dom);
+	        if (changedProps.height) {
+	          this.dom.height = changedProps.height;
 	        }
+	      }
+	    }
 	
-	        /**
-	         * Clear the canvas
-	         * @param {string=} clearColor: color of the canvas when it will be cleared
-	         * @returns {void}
-	         */
+	    /* METHODS */
 	
-	    }, {
-	        key: "clear",
-	        value: function clear(clearColor) {
-	            var ctx = this.context;
+	    /**
+	     * Attach the canvas to the parent DOM
+	     * @param {*=} dom: dom to attach the canvas
+	     * @returns {void|null} null
+	     */
 	
-	            ctx.clearRect(0, 0, this.width(), this.height());
+	  }, {
+	    key: "setParentDOM",
+	    value: function setParentDOM(dom) {
+	      dom = dom || this.parentDOM;
 	
-	            if (clearColor || this.clearColor) {
-	                ctx.fillStyle = clearColor || this.clearColor;
-	                ctx.fillRect(0, 0, this.width(), this.height());
-	            }
-	        }
+	      if (!dom || !this.dom) {
+	        return null;
+	      }
 	
-	        /* GETTERS & SETTERS */
+	      this.parentDOM = dom;
+	      this.parentDOM.appendChild(this.dom);
+	    }
 	
-	        /**
-	         * The name of the component
-	         * @returns {string} name
-	         */
+	    /**
+	     * Clear the canvas
+	     * @param {string=} clearColor: color of the canvas when it will be cleared
+	     * @returns {void}
+	     */
 	
-	    }, {
-	        key: "width",
+	  }, {
+	    key: "clear",
+	    value: function clear(clearColor) {
+	      var ctx = this.context;
 	
+	      ctx.clearRect(0, 0, this.width, this.height);
 	
-	        /**
-	         * Get or set the width
-	         * @param {number=} width: if exist, the width will be setted
-	         * @returns {number} the current width
-	         */
-	        value: function width(_width) {
-	            if (typeof _width !== "undefined") {
-	                this.size.width = _width;
+	      if (clearColor || this.clearColor) {
+	        ctx.fillStyle = clearColor || this.clearColor;
+	        ctx.fillRect(0, 0, this.width, this.height);
+	      }
+	    }
+	  }]);
 	
-	                if (this.dom) {
-	                    this.dom.width = _width;
-	                }
-	            }
-	
-	            return this.size.width;
-	        }
-	
-	        /**
-	         * Get or set the height
-	         * @param {number=} height: if exist, the height will be setted
-	         * @returns {number} the current height
-	         */
-	
-	    }, {
-	        key: "height",
-	        value: function height(_height) {
-	            if (typeof _height !== "undefined") {
-	                this.size.height = _height;
-	
-	                if (this.dom) {
-	                    this.dom.height = _height;
-	                }
-	            }
-	
-	            return this.size.height;
-	        }
-	    }, {
-	        key: "name",
-	        get: function get() {
-	            return "canvas";
-	        }
-	    }]);
-	
-	    return Canvas;
+	  return Canvas;
 	}(_index2.default);
 	
 	exports.default = Canvas;
@@ -1623,190 +1696,12 @@
 /***/ },
 
 /***/ 514:
-/*!****************************************************************!*\
-  !*** ./public/projects/escapethefate/src/scenes/SceneWorld.js ***!
-  \****************************************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-	
-	var _Engine = __webpack_require__(/*! src/Engine */ 507);
-	
-	var _Engine2 = _interopRequireDefault(_Engine);
-	
-	var _Scene2 = __webpack_require__(/*! src/Scene */ 511);
-	
-	var _Scene3 = _interopRequireDefault(_Scene2);
-	
-	var _EntityPlayer = __webpack_require__(/*! ./../entities/EntityPlayer */ 515);
-	
-	var _EntityPlayer2 = _interopRequireDefault(_EntityPlayer);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var SceneWorld = function (_Scene) {
-	    _inherits(SceneWorld, _Scene);
-	
-	    function SceneWorld() {
-	        _classCallCheck(this, SceneWorld);
-	
-	        return _possibleConstructorReturn(this, (SceneWorld.__proto__ || Object.getPrototypeOf(SceneWorld)).apply(this, arguments));
-	    }
-	
-	    _createClass(SceneWorld, [{
-	        key: "initialize",
-	
-	
-	        /* LIFECYCLE */
-	
-	        /**
-	         * @initialize
-	         * @returns {void}
-	         */
-	        value: function initialize() {
-	            _get(SceneWorld.prototype.__proto__ || Object.getPrototypeOf(SceneWorld.prototype), "initialize", this).call(this);
-	
-	            this.canvas.clearColor = "black";
-	            this.player = new _EntityPlayer2.default();
-	
-	            this.attachEntity(this.player, 10, 10);
-	        }
-	
-	        /**
-	         * @update
-	         * @returns {void}
-	         */
-	
-	    }, {
-	        key: "update",
-	        value: function update() {
-	            _get(SceneWorld.prototype.__proto__ || Object.getPrototypeOf(SceneWorld.prototype), "update", this).call(this);
-	
-	            if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_RIGHT)) {
-	                this.player.right();
-	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_LEFT)) {
-	                this.player.left();
-	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_UP)) {
-	                this.player.top();
-	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_DOWN)) {
-	                this.player.bottom();
-	            } else if (this.player.moving) {
-	                this.player.idle();
-	            }
-	        }
-	    }]);
-	
-	    return SceneWorld;
-	}(_Scene3.default);
-	
-	exports.default = SceneWorld;
-
-/***/ },
-
-/***/ 515:
-/*!********************************************************************!*\
-  !*** ./public/projects/escapethefate/src/entities/EntityPlayer.js ***!
-  \********************************************************************/
-/***/ function(module, exports, __webpack_require__) {
-
-	"use strict";
-	
-	Object.defineProperty(exports, "__esModule", {
-	    value: true
-	});
-	
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-	
-	var _Entity2 = __webpack_require__(/*! src/Entity */ 512);
-	
-	var _Entity3 = _interopRequireDefault(_Entity2);
-	
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-	
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-	
-	function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-	
-	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-	
-	var EntityPlayer = function (_Entity) {
-	    _inherits(EntityPlayer, _Entity);
-	
-	    /* LIFECYCLE */
-	
-	    /**
-	     * @constructor
-	     */
-	    function EntityPlayer() {
-	        _classCallCheck(this, EntityPlayer);
-	
-	        // Set properties
-	        var _this = _possibleConstructorReturn(this, (EntityPlayer.__proto__ || Object.getPrototypeOf(EntityPlayer)).call(this));
-	
-	        _this.props({
-	            size: { width: 20, height: 20 },
-	            debug: true
-	        });
-	        return _this;
-	    }
-	
-	    /* METHODS */
-	
-	    _createClass(EntityPlayer, [{
-	        key: "right",
-	        value: function right() {
-	            this.direction = { x: 1, y: 0 };
-	        }
-	    }, {
-	        key: "idle",
-	        value: function idle() {
-	            this.direction = { x: 0, y: 0 };
-	        }
-	    }, {
-	        key: "left",
-	        value: function left() {
-	            this.direction = { x: -1, y: 0 };
-	        }
-	    }, {
-	        key: "top",
-	        value: function top() {
-	            this.direction = { x: 0, y: -1 };
-	        }
-	    }, {
-	        key: "bottom",
-	        value: function bottom() {
-	            this.direction = { x: 0, y: 1 };
-	        }
-	    }]);
-	
-	    return EntityPlayer;
-	}(_Entity3.default);
-	
-	exports.default = EntityPlayer;
-
-/***/ },
-
-/***/ 516:
 /*!***********************************!*\
   !*** ./src/Component/Keyboard.js ***!
   \***********************************/
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	"use strict";
 	
 	Object.defineProperty(exports, "__esModule", {
 	    value: true
@@ -1833,15 +1728,26 @@
 	
 	    /* LIFECYCLE */
 	
-	    function Keyboard() {
+	    /**
+	     * @constructor
+	     * @param {*} options: options
+	     */
+	    function Keyboard(options) {
 	        _classCallCheck(this, Keyboard);
+	
+	        /**
+	         * The name of the component
+	         * @readonly
+	         * @type {string}
+	         */
+	        var _this = _possibleConstructorReturn(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).call(this, options));
+	
+	        _this.name = "keyboard";
 	
 	        /**
 	         * Public input attributes
 	         * @type {{}}
 	         */
-	        var _this = _possibleConstructorReturn(this, (Keyboard.__proto__ || Object.getPrototypeOf(Keyboard)).call(this));
-	
 	        _this.input = {};
 	
 	        /**
@@ -1860,12 +1766,12 @@
 	
 	
 	    _createClass(Keyboard, [{
-	        key: 'initialize',
+	        key: "initialize",
 	        value: function initialize() {
-	            _get(Keyboard.prototype.__proto__ || Object.getPrototypeOf(Keyboard.prototype), 'initialize', this).call(this);
+	            _get(Keyboard.prototype.__proto__ || Object.getPrototypeOf(Keyboard.prototype), "initialize", this).call(this);
 	
-	            window.addEventListener('keydown', this.onKeydown.bind(this));
-	            window.addEventListener('keyup', this.onKeyup.bind(this));
+	            window.addEventListener("keydown", this.onKeydown.bind(this));
+	            window.addEventListener("keyup", this.onKeyup.bind(this));
 	        }
 	
 	        /**
@@ -1874,25 +1780,31 @@
 	         */
 	
 	    }, {
-	        key: 'update',
+	        key: "update",
 	        value: function update() {
+	            _get(Keyboard.prototype.__proto__ || Object.getPrototypeOf(Keyboard.prototype), "update", this).call(this);
+	
 	            for (var key in this._input) {
+	                if (!this._input.hasOwnProperty(key)) {
+	                    continue;
+	                }
+	
 	                var input = this.input[key],
 	                    _input = this._input[key];
 	
 	                // Pressed
-	                if (_input == this.STATE.PRESSED) {
-	                    if (input == _input) {
+	                if (_input === this.STATE.PRESSED) {
+	                    if (input === _input) {
 	                        this.input[key] = this.STATE.HOLD;
-	                    } else if (input != this.STATE.HOLD) {
+	                    } else if (input !== this.STATE.HOLD) {
 	                        this.input[key] = this.STATE.PRESSED;
 	                    }
 	
 	                    // Released
-	                } else if (_input == this.STATE.RELEASED) {
+	                } else if (_input === this.STATE.RELEASED) {
 	                    if (!input) {
 	                        this.input[key] = this.STATE.PRESSED;
-	                    } else if (input == _input) {
+	                    } else if (input === _input) {
 	                        delete this.input[key];
 	                        delete this._input[key];
 	                    } else {
@@ -1912,7 +1824,7 @@
 	         */
 	
 	    }, {
-	        key: 'onKeydown',
+	        key: "onKeydown",
 	        value: function onKeydown(e) {
 	            this._input[e.keyCode] = this.STATE.PRESSED;
 	        }
@@ -1925,25 +1837,25 @@
 	         */
 	
 	    }, {
-	        key: 'onKeyup',
+	        key: "onKeyup",
 	        value: function onKeyup(e) {
 	            this._input[e.keyCode] = this.STATE.RELEASED;
 	        }
 	
 	        /**
 	         * Get current state of a key
-	         * @param key
-	         * @param state
-	         * @param optionalState
-	         * @returns {boolean}
+	         * @param {string} key: keyboard key
+	         * @param {string} state: state of input
+	         * @param {*} optionalState: other state
+	         * @returns {boolean} the state is corresponding to state param
 	         */
 	
 	    }, {
-	        key: 'getKeyState',
+	        key: "getKeyState",
 	        value: function getKeyState(key, state) {
 	            var optionalState = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
 	
-	            var input = this.input[typeof key === 'string' ? this.KEY[key] : key];
+	            var input = this.input[typeof key === "string" ? this.KEY[key] : key];
 	
 	            if (input && optionalState) {
 	                return input === this.STATE[state] || input === this.STATE[optionalState];
@@ -1954,52 +1866,41 @@
 	
 	        /**
 	         * Know if a key is pressed
-	         * @param key
-	         * @returns {boolean}
+	         * @param {string} key: keyboard key
+	         * @returns {boolean} the key is pressed
 	         */
 	
 	    }, {
-	        key: 'isPressed',
+	        key: "isPressed",
 	        value: function isPressed(key) {
-	            return this.getKeyState(key, 'PRESSED');
+	            return this.getKeyState(key, "PRESSED");
 	        }
 	
 	        /**
 	         * Know if a key is held
-	         * @param key
-	         * @returns {boolean}
+	         * @param {string} key: keyboard key
+	         * @returns {boolean} the key is held
 	         */
 	
 	    }, {
-	        key: 'isHeld',
+	        key: "isHeld",
 	        value: function isHeld(key) {
-	            return this.getKeyState(key, 'PRESSED', 'HOLD');
+	            return this.getKeyState(key, "PRESSED", "HOLD");
 	        }
 	
 	        /**
 	         * Know if a key is released
-	         * @param key
-	         * @returns {boolean}
+	         * @param {string} key: keyboard key
+	         * @returns {boolean} the key is released
 	         */
 	
 	    }, {
-	        key: 'isReleased',
+	        key: "isReleased",
 	        value: function isReleased(key) {
-	            return this.getKeyState(key, 'RELEASED');
+	            return this.getKeyState(key, "RELEASED");
 	        }
 	
 	        /* GETTERS & SETTERS */
-	
-	        /**
-	         * Get name of the component
-	         * @returns {string} the name of the component
-	         */
-	
-	    }, {
-	        key: 'name',
-	        get: function get() {
-	            return "keyboard";
-	        }
 	
 	        /**
 	         * List of all key usable
@@ -2007,96 +1908,96 @@
 	         */
 	
 	    }, {
-	        key: 'KEY',
+	        key: "KEY",
 	        get: function get() {
 	            return {
-	                'BACKSPACE': 8,
-	                'TAB': 9,
-	                'ENTER': 13,
-	                'PAUSE': 19,
-	                'CAPS': 20,
-	                'ESC': 27,
-	                'SPACE': 32,
-	                'PAGE_UP': 33,
-	                'PAGE_DOWN': 34,
-	                'END': 35,
-	                'HOME': 36,
-	                'ARROW_LEFT': 37,
-	                'ARROW_UP': 38,
-	                'ARROW_RIGHT': 39,
-	                'ARROW_DOWN': 40,
-	                'INSERT': 45,
-	                'DELETE': 46,
-	                'NUM_0': 48,
-	                'NUM_1': 49,
-	                'NUM_2': 50,
-	                'NUM_3': 51,
-	                'NUM_4': 52,
-	                'NUM_5': 53,
-	                'NUM_6': 54,
-	                'NUM_7': 55,
-	                'NUM_8': 56,
-	                'NUM_9': 57,
-	                'A': 65,
-	                'B': 66,
-	                'C': 67,
-	                'D': 68,
-	                'E': 69,
-	                'F': 70,
-	                'G': 71,
-	                'H': 72,
-	                'I': 73,
-	                'J': 74,
-	                'K': 75,
-	                'L': 76,
-	                'M': 77,
-	                'N': 78,
-	                'O': 79,
-	                'P': 80,
-	                'Q': 81,
-	                'R': 82,
-	                'S': 83,
-	                'T': 84,
-	                'U': 85,
-	                'V': 86,
-	                'W': 87,
-	                'X': 88,
-	                'Y': 89,
-	                'Z': 90,
-	                'NUMPAD_0': 96,
-	                'NUMPAD_1': 97,
-	                'NUMPAD_2': 98,
-	                'NUMPAD_3': 99,
-	                'NUMPAD_4': 100,
-	                'NUMPAD_5': 101,
-	                'NUMPAD_6': 102,
-	                'NUMPAD_7': 103,
-	                'NUMPAD_8': 104,
-	                'NUMPAD_9': 105,
-	                'MULTIPLY': 106,
-	                'ADD': 107,
-	                'SUBSTRACT': 109,
-	                'DECIMAL': 110,
-	                'DIVIDE': 111,
-	                'F1': 112,
-	                'F2': 113,
-	                'F3': 114,
-	                'F4': 115,
-	                'F5': 116,
-	                'F6': 117,
-	                'F7': 118,
-	                'F8': 119,
-	                'F9': 120,
-	                'F10': 121,
-	                'F11': 122,
-	                'F12': 123,
-	                'SHIFT': 16,
-	                'CTRL': 17,
-	                'ALT': 18,
-	                'PLUS': 187,
-	                'COMMA': 188,
-	                'MINUS': 189,
-	                'PERIOD': 190
+	                "BACKSPACE": 8,
+	                "TAB": 9,
+	                "ENTER": 13,
+	                "PAUSE": 19,
+	                "CAPS": 20,
+	                "ESC": 27,
+	                "SPACE": 32,
+	                "PAGE_UP": 33,
+	                "PAGE_DOWN": 34,
+	                "END": 35,
+	                "HOME": 36,
+	                "ARROW_LEFT": 37,
+	                "ARROW_UP": 38,
+	                "ARROW_RIGHT": 39,
+	                "ARROW_DOWN": 40,
+	                "INSERT": 45,
+	                "DELETE": 46,
+	                "NUM_0": 48,
+	                "NUM_1": 49,
+	                "NUM_2": 50,
+	                "NUM_3": 51,
+	                "NUM_4": 52,
+	                "NUM_5": 53,
+	                "NUM_6": 54,
+	                "NUM_7": 55,
+	                "NUM_8": 56,
+	                "NUM_9": 57,
+	                "A": 65,
+	                "B": 66,
+	                "C": 67,
+	                "D": 68,
+	                "E": 69,
+	                "F": 70,
+	                "G": 71,
+	                "H": 72,
+	                "I": 73,
+	                "J": 74,
+	                "K": 75,
+	                "L": 76,
+	                "M": 77,
+	                "N": 78,
+	                "O": 79,
+	                "P": 80,
+	                "Q": 81,
+	                "R": 82,
+	                "S": 83,
+	                "T": 84,
+	                "U": 85,
+	                "V": 86,
+	                "W": 87,
+	                "X": 88,
+	                "Y": 89,
+	                "Z": 90,
+	                "NUMPAD_0": 96,
+	                "NUMPAD_1": 97,
+	                "NUMPAD_2": 98,
+	                "NUMPAD_3": 99,
+	                "NUMPAD_4": 100,
+	                "NUMPAD_5": 101,
+	                "NUMPAD_6": 102,
+	                "NUMPAD_7": 103,
+	                "NUMPAD_8": 104,
+	                "NUMPAD_9": 105,
+	                "MULTIPLY": 106,
+	                "ADD": 107,
+	                "SUBSTRACT": 109,
+	                "DECIMAL": 110,
+	                "DIVIDE": 111,
+	                "F1": 112,
+	                "F2": 113,
+	                "F3": 114,
+	                "F4": 115,
+	                "F5": 116,
+	                "F6": 117,
+	                "F7": 118,
+	                "F8": 119,
+	                "F9": 120,
+	                "F10": 121,
+	                "F11": 122,
+	                "F12": 123,
+	                "SHIFT": 16,
+	                "CTRL": 17,
+	                "ALT": 18,
+	                "PLUS": 187,
+	                "COMMA": 188,
+	                "MINUS": 189,
+	                "PERIOD": 190
 	            };
 	        }
 	
@@ -2106,12 +2007,12 @@
 	         */
 	
 	    }, {
-	        key: 'STATE',
+	        key: "STATE",
 	        get: function get() {
 	            return {
-	                PRESSED: 'pressed',
-	                RELEASED: 'released',
-	                HOLD: 'hold'
+	                PRESSED: "pressed",
+	                RELEASED: "released",
+	                HOLD: "hold"
 	            };
 	        }
 	    }]);
@@ -2120,6 +2021,55 @@
 	}(_index2.default);
 	
 	exports.default = Keyboard;
+
+/***/ },
+
+/***/ 515:
+/*!********************************************************************!*\
+  !*** ./public/projects/escapethefate/src/entities/EntityPlayer.js ***!
+  \********************************************************************/
+/***/ function(module, exports, __webpack_require__) {
+
+	"use strict";
+	
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	
+	var _Entity = __webpack_require__(/*! src/Entity */ 512);
+	
+	var _Entity2 = _interopRequireDefault(_Entity);
+	
+	var _Engine = __webpack_require__(/*! src/Engine */ 507);
+	
+	var _Engine2 = _interopRequireDefault(_Engine);
+	
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+	
+	exports.default = function () {
+	    var props = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+	    return new _Entity2.default({
+	        components: [],
+	
+	        props: Object.assign({
+	            width: 20,
+	            height: 20,
+	            debug: true
+	        }, props),
+	
+	        beforeUpdate: function beforeUpdate() {
+	            if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_RIGHT)) {
+	                this.x += 10;
+	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_LEFT)) {
+	                this.x -= 10;
+	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_UP)) {
+	                this.y -= 10;
+	            } else if (_Engine2.default.keyboard.isHeld(_Engine2.default.keyboard.KEY.ARROW_DOWN)) {
+	                this.y += 10;
+	            }
+	        }
+	    });
+	};
 
 /***/ }
 

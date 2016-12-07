@@ -4,15 +4,69 @@ export default class Class {
 
     /**
      * @constructor
+     * @param {{ name: string, components: [], props: {} }} options: options for the element
      */
-    constructor () {
+    constructor (options = {}) {
 
         /**
          * Unique id of element
          * @type {string}
          */
         this.id = Class.generateId();
+
+        /**
+         * Name of the class to be recognized
+         * @type {string}
+         */
+        this.name = "class";
+
+        /**
+         * Props before update
+         * @type {{}} properties
+         */
+        this.previousProps = Object.assign({}, options.props);
+
+        // Add default props
+        this.props(this.previousProps);
     }
+
+    /**
+     * Initialization of the element after it is created into the engine
+     * @initialize
+     * @returns {void}
+     */
+    initialize () { }
+
+    /**
+     * Update lifecycle
+     * @update
+     * @returns {void}
+     */
+    update () {
+        const changedProps = {};
+
+        for (const key in this.previousProps) {
+            if (this.previousProps.hasOwnProperty(key) && this[key] !== this[key]) {
+                changedProps[key] = this[key];
+                this.requestRender = true;
+            }
+        }
+
+        if (this.requestRender) {
+            this.onPropsChanged(changedProps);
+        }
+    }
+
+    /*eslint-disable*/
+    /**
+     * called when props has changed
+     * @param {*} changedProps: changed properties
+     * @return {void}
+     */
+    onPropsChanged (changedProps) { }
+    /*eslint-enable*/
+
+    /* METHODS */
 
     /**
      * Set attributes to current instance
@@ -27,24 +81,6 @@ export default class Class {
         }
 
         return this;
-    }
-
-    /**
-     * Initialization of the element after it is created into the engine
-     * @returns {void}
-     */
-    initialize () { }
-
-    /* METHODS */
-
-    /* GETTERS & SETTERS */
-
-    /**
-     * String identifier
-     * @returns {string} the name of the class
-     */
-    get name () {
-        return "Class";
     }
 
     /* STATICS */

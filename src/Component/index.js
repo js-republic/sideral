@@ -12,6 +12,13 @@ export default class Component extends Class {
         super();
 
         /**
+         * Name of the component
+         * @readonly
+         * @type {string}
+         */
+        this.name = "component";
+
+        /**
          * Element which using this component
          * @type {Element}
          */
@@ -45,18 +52,5 @@ export default class Component extends Class {
 
             return null;
         });
-    }
-
-
-    /* METHODS */
-
-    /* GETTERS & SETTERS */
-
-    /**
-     * Name of the component
-     * @returns {string} the name
-     */
-    get name () {
-        return "component";
     }
 }
