@@ -1,5 +1,9 @@
 .idea
 public/lib
+public/projects/escapethefate/sideral.js
+public/projects/escapethefate/sideral.js.map
+public/projects/theblackknight/sideral.js
+public/projects/theblackknight/sideral.js.map
 
 # Logs
 logs
