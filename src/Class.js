@@ -46,7 +46,7 @@ export default class Class {
         const changedProps = {};
 
         for (const key in this.previousProps) {
-            if (this.previousProps.hasOwnProperty(key) && this[key] !== this[key]) {
+            if (this.previousProps.hasOwnProperty(key) && this.previousProps[key] !== this[key]) {
                 changedProps[key] = this[key];
                 this.requestRender = true;
             }

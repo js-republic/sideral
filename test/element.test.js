@@ -56,16 +56,6 @@ describe("element testing", () => {
         expect(element.components.length).toBe(0);
     });
 
-    it("should add destroy function into componentFunction when you add a component", () => {
-        class ComponentExtended extends Component {
-            toto () { }
-        }
-
-        element.toto = () => {};
-        element.compose(new ComponentExtended());
-        expect(element.componentFunctions.toto.length).toBe(1);
-    });
-
     it("should call components function with same function name", () => {
         class ComponentExtended extends Component {
             toto (value) {
@@ -82,25 +72,5 @@ describe("element testing", () => {
         element.compose(componentExtended);
         element.toto(4);
         expect(componentExtended.test).toBe(4);
-    });
-
-    it("should not add componentFunction if a function of a component doesnot exist into element", () => {
-        class ComponentExtended extends Component {
-            toto () { }
-        }
-
-        element.compose(new ComponentExtended());
-        expect(element.componentFunctions.toto).toBeUndefined();
-    });
-
-    it("should remove componentsFunction when component is decomposed from an element", () => {
-        class ComponentExtended extends Component {
-            toto () {}
-        }
-
-        element.toto = () => {};
-        element.compose(new ComponentExtended());
-        element.decompose("component");
-        expect(element.componentFunctions.toto.length).toBe(0);
     });
 });

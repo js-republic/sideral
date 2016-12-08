@@ -21,6 +21,12 @@ export default class Element extends Class {
         this.name = "element";
 
         /**
+         * List of all components by their names
+         * @type {Array<string>}
+         */
+        this.components = [];
+
+        /**
          * Lifecycle functions enhancement
          * @type {{}}
          */
@@ -143,14 +149,40 @@ export default class Element extends Class {
     }
 
 
-    /* COMPONENTS */
+    /* METHODS */
+
+    /**
+     * Attach an element to an array
+     * @param {Element} element: element to attach
+     * @param {Array<Element>} arr: Array to store elements
+     * @param {function=} callback: callback with element added in parameter
+     * @returns {Element} current element
+     */
+    attach (element, arr, callback) {
+        if (!element) {
+            return this;
+        }
+
+        if (arr && arr instanceof Array) {
+            arr.push(element);
+        }
+
+        element.initialize();
+
+        if (callback) {
+            callback(element);
+        }
+
+        return this;
+    }
 
     /**
      * Add a component into this element
      * @param {Component} component: The component to be added
+     * @param {function=} callback: Callback with the element composed in parameter
      * @returns {Element} current element
      */
-    compose (component) {
+    compose (component, callback) {
         if (!(component instanceof Component)) {
             throw new Error("Element.compose : the component is not an instance of Component.");
         }
@@ -159,6 +191,10 @@ export default class Element extends Class {
         this[component.name] = component;
         this.components.push(component.name);
         component.initialize();
+
+        if (callback) {
+            callback(component);
+        }
 
         return this;
     }
@@ -169,21 +205,7 @@ export default class Element extends Class {
      * @returns {Element} current element
      */
     decompose (componentName) {
-        this.components.map((name, index) => {
-            if (name === componentName) {
-                this[name].pluggedFunctions.map((pluggedFunction) => {
-                    if (this.componentFunctions[pluggedFunction]) {
-                        this.componentFunctions[pluggedFunction] = this.componentFunctions[pluggedFunction].filter(compName => compName !== name);
-                    }
-
-                    return null;
-                });
-
-                this.components.splice(index, 1);
-            }
-
-            return null;
-        });
+        this.components = this.components.filter(name => name !== componentName);
 
         return this;
     }
@@ -195,27 +217,9 @@ export default class Element extends Class {
      * @returns {boolean|function} the element is composed of the component
      */
     isComposedOf (componentName, callback) {
-        const exist = Boolean(this.components.find(component => component === componentName));
+        const exist = Boolean(this.components.find(name => name === componentName));
 
         return callback && exist ? callback() : exist;
-    }
-
-    /**
-     * Add a new component function to be executed before the parent function
-     * @param {string} componentName: the name of the component
-     * @param {string} functionName: the name of the function
-     * @returns {void|null} nothing
-     */
-    addComponentFunction (componentName, functionName) {
-        if (!this.isComposedOf(componentName) || !this[functionName]) {
-            return null;
-        }
-
-        if (!this.componentFunctions[functionName]) {
-            this.componentFunctions[functionName] = [];
-        }
-
-        this.componentFunctions[functionName].push(componentName);
     }
 
     /**
@@ -224,8 +228,10 @@ export default class Element extends Class {
      * @returns {void}
      */
     callComponentFunction (functionName) {
-        if (this.componentFunctions[functionName]) {
-            this.componentFunctions[functionName].map((name) => this[name][functionName](...Array.prototype.slice.call(arguments, 1)));
-        }
+        this.components.forEach((name) => {
+            if (this[name] && this[name][functionName]) {
+                this[name][functionName](...Array.prototype.slice.call(arguments, 1));
+            }
+        });
     }
 }

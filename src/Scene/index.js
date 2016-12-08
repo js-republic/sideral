@@ -12,6 +12,39 @@ export default class Scene extends Element {
      * @param {*} options: options
      */
     constructor (options = {}) {
+        const props = options.props || {};
+
+        /**
+         * Width of the scene
+         * @type {number}
+         */
+        props.width = props.width || 10;
+
+        /**
+         * Height of the scene
+         * @type {number}
+         */
+        props.height = props.height || 10;
+
+        /**
+         * Position of the camera
+         * @type {{x: number, y: number, follow: Entity|null}}
+         */
+        props.camera = {x: 0, y: 0, follow: null};
+
+        /**
+         * Gravity of the scene
+         * @type {number}
+         */
+        props.gravity = props.gravity || 0;
+
+        /**
+         * Scale of all entities behind this scene
+         * @type {number}
+         */
+        props.scale = props.scale || 1;
+
+        options.props = props;
         super(options);
 
         /**
@@ -26,24 +59,6 @@ export default class Scene extends Element {
          * @type {Array<Entity>}
          */
         this.entities = [];
-
-        /**
-         * Gravity of the scene
-         * @type {number}
-         */
-        this.gravity = options.gravity || 0;
-
-        /**
-         * Scale of all entities behind this scene
-         * @type {number}
-         */
-        this.scale = options.scale || 1;
-
-        /**
-         * Position of the camera
-         * @type {{x: number, y: number, follow: Entity|null}}
-         */
-        this.camera = {x: 0, y: 0, following: null};
     }
 
     /**
@@ -53,7 +68,7 @@ export default class Scene extends Element {
     initialize () {
         super.initialize();
 
-        this.compose(new Canvas(this.width(), this.height()));
+        this.compose(new Canvas({ width: this.width, height: this.height }));
     }
 
     /**
@@ -64,8 +79,8 @@ export default class Scene extends Element {
         super.update();
 
         if (this.camera.follow) {
-            this.camera.x = this.camera.follow.x() + (this.camera.follow.width() * this.scale / 2) - (this.width() / 2 / this.scale);
-            this.camera.y = this.camera.follow.y() + (this.camera.follow.height() * this.scale / 2) - (this.height() / 2 / this.scale);
+            this.camera.x = this.camera.follow.x + (this.camera.follow.width * this.scale / 2) - (this.width / 2 / this.scale);
+            this.camera.y = this.camera.follow.y + (this.camera.follow.height * this.scale / 2) - (this.height / 2 / this.scale);
         }
 
         this.entities.map(entity => entity.update());
@@ -117,49 +132,16 @@ export default class Scene extends Element {
     /**
      * Attach an entity to the scene
      * @param {Entity} entity: entity to attach
-     * @returns {Scene} current instance
+     * @param {function=} callback: callback with entity added in parameter
+     * @returns {Element} current instance
      */
-    attachEntity (entity) {
+    attachEntity (entity, callback) {
         if (!entity || (entity && !(entity instanceof Entity))) {
             throw new Error("Scene.attachEntity : entity must be an instance of Entity");
         }
 
-        this.entities.push(entity);
         entity.scene = this;
-        entity.initialize();
 
-        return this;
-    }
-
-    /* GETTERS & SETTERS */
-
-    /**
-     * Get or set the width
-     * @param {number=} width: if exist, width will be setted
-     * @returns {number} the current width
-     */
-    width (width) {
-        if (typeof width !== "undefined") {
-            if (this.isComposedOf("canvas")) {
-                this.canvas.width(width);
-            }
-        }
-
-        return super.width(width);
-    }
-
-    /**
-     * Get or set the height
-     * @param {number=} height: if exist, height will be setted
-     * @returns {number} the current height
-     */
-    height (height) {
-        if (typeof height !== "undefined") {
-            if (this.isComposedOf("canvas")) {
-                this.canvas.height(height);
-            }
-        }
-
-        return super.height(height);
+        return this.attach(entity, this.entities, callback);
     }
 }

@@ -7,9 +7,10 @@ export default class Component extends Class {
 
     /**
      * @constructor
+     * @param {{}} options: options
      */
-    constructor () {
-        super();
+    constructor (options = {}) {
+        super({ props: options });
 
         /**
          * Name of the component
@@ -23,12 +24,6 @@ export default class Component extends Class {
          * @type {Element}
          */
         this.composedBy = null;
-
-        /**
-         * List of all functions plugged to the parent
-         * @type {Array}
-         */
-        this.pluggedFunctions = [];
     }
 
     /**
@@ -39,18 +34,5 @@ export default class Component extends Class {
         if (!this.composedBy) {
             throw new Error("Component.initialize : A Component must be composed by an element before calling Initiliaze.");
         }
-
-        const functions = Object.getOwnPropertyNames(Object.getPrototypeOf(this)).filter(prop => prop !== "constructor" && prop !== "initialize");
-
-        this.pluggedFunctions = [];
-
-        functions.map((key) => {
-            if (this.composedBy[key]) {
-                this.composedBy.addComponentFunction(this.name, key);
-                this.pluggedFunctions.push(key);
-            }
-
-            return null;
-        });
     }
 }

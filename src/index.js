@@ -14,3 +14,13 @@ const Sideral = {
 };
 
 export default Sideral;
+
+
+/*
+
+export default Entity("space", {
+    x: 10,
+    y: 10
+})
+
+ */

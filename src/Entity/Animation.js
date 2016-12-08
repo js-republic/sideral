@@ -12,6 +12,39 @@ export default class Animation extends Entity {
      * @param {*} options: options
      */
     constructor (options = {}) {
+        const props = options.props || {};
+
+        /**
+         * Duration of the animation
+         * @type {number}
+         */
+        props.duration = props.duration || 0;
+
+        /**
+         * Other options of animation
+         * @type {Entity}
+         */
+        props.follow = props.follow || null;
+
+        /**
+         * Number of loop
+         * @type {number}
+         */
+        props.loop = typeof props.loop === "undefined" ? -1 : props.loop;
+
+        /**
+         * Path of the picture
+         * @type {string}
+         */
+        props.path = props.path || "";
+
+        /**
+         * Frames of the animation
+         * @type {Array<number>}
+         */
+        props.frames = props.frames || [];
+
+        options.props = props;
         super(options);
 
         /**
@@ -20,36 +53,6 @@ export default class Animation extends Entity {
          * @type {string}
          */
         this.name = "animation";
-
-        /**
-         * Duration of the animation
-         * @type {number}
-         */
-        this.duration = options.duration || 0;
-
-        /**
-         * Other options of animation
-         * @type {Entity}
-         */
-        this.follow = options.follow;
-
-        /**
-         * Number of loop
-         * @type {number}
-         */
-        this.loop = typeof options.loop === "undefined" ? -1 : options.loop;
-
-        /**
-         * Path of the picture
-         * @type {string}
-         */
-        this.path = options.path;
-
-        /**
-         * Frames of the animation
-         * @type {Array<number>}
-         */
-        this.frames = options.frames;
     }
 
     /**
@@ -59,8 +62,19 @@ export default class Animation extends Entity {
     initialize () {
         super.initialize();
 
-        this.compose(new Sprite(this.path, this.width, this.height)).sprite.addAnimation("idle", this.duration, this.frames);
-        this.compose(new Timer(this.sprite.getAnimationDuration("idle", this.loop > 0 ? this.loop : 0), () => this.destroy()));
+        this.compose(new Sprite({
+            path        : this.path,
+            width       : this.width,
+            height      : this.height,
+            animations  : [
+                { name: "idle", duration: this.duration, frames: this.frames }
+            ]
+        }));
+
+        this.compose(new Timer({
+            duration: this.sprite.getAnimationDuration("idle", this.loop > 0 ? this.loop : 0),
+            eventComplete: () => this.destroy()
+        }));
 
         this.sprite.currentAnimation("idle");
     }

@@ -1,6 +1,6 @@
-import Animation from "./../src/Entity/Animation";
-import Scene from "./../src/Scene";
-import Entity from "./../src/Entity";
+import Animation from "./../../src/Entity/Animation";
+import Scene from "./../../src/Scene";
+import Entity from "./../../src/Entity";
 
 
 describe("Animation ", () => {
@@ -15,7 +15,7 @@ describe("Animation ", () => {
 
     it("should create a sprite", () => {
         const scene = new Scene();
-        animation = new Animation(path, 10, 10, 1, [0]);
+        animation = new Animation({ props: { path: path, width: 10, height: 10, duration: 1, frames: [0] } });
 
         scene.attachEntity(animation);
         expect(animation.sprite.animation.name).toBe("idle");
@@ -23,13 +23,13 @@ describe("Animation ", () => {
 
     it("should follow an entity", () => {
         const scene = new Scene(),
-            entity = new Entity();
+            entity = new Entity({ props: { x: 10, y: 10 } });
 
-        animation = new Animation(path, 10, 10);
+        animation = new Animation({ props: { path: path, width: 10, height: 10 } });
 
-        scene.attachEntity(entity, 10, 10).attachEntity(animation);
+        scene.attachEntity(entity).attachEntity(animation);
         animation.follow = entity;
         scene.update();
-        expect(animation.x()).toBe(10);
-    })
+        expect(animation.x).toBe(10);
+    });
 });

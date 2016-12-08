@@ -10,7 +10,71 @@ export default class Entity extends Element {
      * @constructor
      * @param {*} options: options
      */
-    constructor (options) {
+    constructor (options = {}) {
+        const props = options.props || {};
+
+        /**
+         * Show more information about entity on screen
+         * @type {boolean}
+         */
+        props.debug = props.debug || false;
+
+        /**
+         * Position on x axis
+         * @type {number}
+         */
+        props.x = props.x || 0;
+
+        /**
+         * Position on y axis
+         * @type {number}
+         */
+        props.y = props.y || 0;
+
+        /**
+         * Width of entity
+         * @type {number}
+         */
+        props.width = props.width || 10;
+
+        /**
+         * Height of entity
+         * @type {number}
+         */
+        props.height = props.height || 10;
+
+        /**
+         * Mass of the entity (used for collision)
+         * @type {string}
+         */
+        props.mass = props.mass || Entity.MASS.NONE;
+
+        /**
+         * Direction movement of the entity
+         * @type {{x: number, y: number}}
+         */
+        props.direction = props.direction || {x: 0, y: 0};
+
+        /**
+         * Speed movement of the entity
+         * @type {{x: number, y: number}}
+         */
+        props.speed = props.speed || {x: 100, y: 100};
+
+        /**
+         * Velocity of the entity
+         * @type {{x: number, y: number}}
+         * @readonly
+         */
+        props.velocity = props.velocity || {x: 0, y: 0};
+
+        /**
+         * Factor of scene gravity
+         * @type {number}
+         */
+        props.gravityFactor = props.gravityFactor || 1;
+
+        options.props = props;
         super(options);
 
         /**
@@ -19,67 +83,6 @@ export default class Entity extends Element {
          * @type {string}
          */
         this.name = "entity";
-
-        /**
-         * Show more information about entity on screen
-         * @type {boolean}
-         */
-        this.debug = options.debug;
-
-        /**
-         * Position on x axis
-         * @type {number}
-         */
-        this.x = options.x || 0;
-
-        /**
-         * Position on y axis
-         * @type {number}
-         */
-        this.y = options.y || 0;
-
-        /**
-         * Width of entity
-         * @type {number}
-         */
-        this.width = options.width || 10;
-
-        /**
-         * Height of entity
-         * @type {number}
-         */
-        this.height = options.height || 10;
-
-        /**
-         * Mass of the entity (used for collision)
-         * @type {string}
-         */
-        this.mass = options.mass || Entity.MASS.NONE;
-
-        /**
-         * Direction movement of the entity
-         * @type {{x: number, y: number}}
-         */
-        this.direction = options.direction || {x: 0, y: 0};
-
-        /**
-         * Speed movement of the entity
-         * @type {{x: number, y: number}}
-         */
-        this.speed = options.speed || {x: 100, y: 100};
-
-        /**
-         * Velocity of the entity
-         * @type {{x: number, y: number}}
-         * @readonly
-         */
-        this.velocity = options.velocity || {x: 0, y: 0};
-
-        /**
-         * Factor of scene gravity
-         * @type {number}
-         */
-        this.gravityFactor = options.gravityFactor || 1;
 
         /**
          * Reference to the current scene

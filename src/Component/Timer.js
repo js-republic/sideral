@@ -7,41 +7,47 @@ export default class Timer extends Component {
     /* LIFECYCLE */
     /**
      * Timer constructor
-     * @param {number} duration: duration of the timer
      * @param {*} options: options to be binded to timer
      */
-    constructor (duration, options = {}) {
-        super();
+    constructor (options = {}) {
 
         /**
          * Duration of the timer
          * @type {number}
          */
-        this.duration = duration;
+        options.duration = options.duration || 0;
 
         /**
          * Number of time the timer must reset after complete
          * @type {number}
          */
-        this.recurrence = options.recurrence || 0;
+        options.recurrence = options.recurrence || 0;
 
         /**
          * If reversible, the timer will go t o it's initial value after complete
          * @type {boolean}
          */
-        this.reversible = options.reversible || false;
+        options.reversible = Boolean(options.reversible);
 
         /**
          * Event fired when initialize
          * @type {function}
          */
-        this.eventInit  = options.initialize;
+        options.eventInit  = options.eventInit || null;
 
         /**
          * Event fired when completed
          * @type {function}
          */
-        this.eventComplete = options.complete;
+        options.eventComplete = options.eventComplete || null;
+
+        super(options);
+
+        /**
+         * Name of the component
+         * @type {string}
+         */
+        this.name = "timer";
 
         /**
          * Tendance value (used with reversible)
@@ -142,12 +148,6 @@ export default class Timer extends Component {
         this.tendance   = this.duration < 0 ? 1 : -1;
         this.pause      = false;
         this.finished   = false;
-    }
-
-    /* GETTERS & SETTERS */
-
-    get name () {
-        return "timer";
     }
 
     /* STATIC */

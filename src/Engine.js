@@ -174,18 +174,18 @@ class Engine extends Element {
     /**
      * Attach a scene to current engine
      * @param {*} scene: the scene to attach to the engine
-     * @returns {Engine} the current engine
+     * @param {function=} callback: Callback with scene added in parameter
+     * @returns {Element} the current engine
      */
-    attachScene (scene) {
+    attachScene (scene, callback) {
         if (!scene || (scene && !(scene instanceof Scene))) {
             throw new Error("Engine.attachScene : scene must be an instance of Scene.");
         }
 
-        scene.width(this.width());
-        scene.height(this.height());
+        scene.width  = this.width;
+        scene.height = this.height;
 
-        this.scenes.push(scene);
-        scene.initialize();
+        this.attach(scene, this.scenes, callback);
 
         if (this.dom && scene.isComposedOf("canvas")) {
             scene.canvas.setParentDOM(this.dom);
@@ -229,6 +229,8 @@ class Engine extends Element {
 
 
 export default new Engine({
-    width : 50,
-    height: 50
+    props: {
+        width : 50,
+        height: 50
+    }
 });

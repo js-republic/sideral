@@ -10,6 +10,24 @@ export default class Canvas extends Component {
      * @param {*} options: options
      */
     constructor (options = {}) {
+
+        /**
+         * Width of the canvas
+         * @type {number}
+         */
+        options.width = options.width || 10;
+
+        /**
+         * Height of the canvas
+         * @type {number}
+         */
+        options.height = options.height || 10;
+
+        /**
+         * DOM parent of the canvas
+         */
+        options.parentDOM = options.parentDOM || null;
+
         super(options);
 
         /**
@@ -18,11 +36,6 @@ export default class Canvas extends Component {
          * @type {string}
          */
         this.name = "canvas";
-
-        /**
-         * DOM parent of the canvas
-         */
-        this.parentDOM = options.parentDOM;
 
         /**
          * Dom of the canvas
@@ -41,18 +54,6 @@ export default class Canvas extends Component {
          * @type {string}
          */
         this.clearColor = null;
-
-        /**
-         * Width of the canvas
-         * @type {number}
-         */
-        this.width = options.width;
-
-        /**
-         * Height of the canvas
-         * @type {number}
-         */
-        this.height = options.height;
     }
 
     /**

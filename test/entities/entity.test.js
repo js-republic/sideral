@@ -1,6 +1,6 @@
-import Entity from "./../src/Entity";
-import Engine from "./../src/Engine";
-import Scene from "./../src/Scene";
+import Entity from "./../../src/Entity";
+import Engine from "./../../src/Engine";
+import Scene from "./../../src/Scene";
 
 
 describe("Entity testing", () => {
@@ -17,15 +17,16 @@ describe("Entity testing", () => {
     it("should draw box red when it is in debug mode", () => {
         const scene = new Scene();
 
-        Engine.width(10);
-        Engine.height(10);
+        Engine.width = 10;
+        Engine.height = 10;
         Engine.attachScene(scene);
         scene.attachEntity(entity);
 
         entity.debug = true;
 
-        entity.width(10);
-        entity.height(10);
+        entity.width  = 10;
+        entity.height = 10;
+        Engine.update();
         Engine.render();
 
         expect(scene.canvas.context.getImageData(0, 0, 1, 1).data[0]).not.toBeLessThan(100);
@@ -36,48 +37,40 @@ describe("Entity testing", () => {
     });
 
     it("should have correct distance between two entities", () => {
-        const target = new Entity();
-
-        entity.x(0);
-        entity.y(0);
-        target.x(0);
-        target.y(10);
+        const target = new Entity({ props: { x: 0, y: 10 }});
 
         expect(entity.distanceTo(target)).toBe(10);
     });
 
     it("should return direction to left", () => {
-        const target = new Entity();
+        const target = new Entity({ props: {x: -100} });
 
-        target.x(-100);
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: -1, y: 0}));
     });
 
     it("should return direction to right", () => {
-        const target = new Entity();
+        const target = new Entity({ props: {x: 100} });
 
-        target.x(100);
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: 1, y: 0}));
     });
 
     it("should return direction to top", () => {
-        const target = new Entity();
+        const target = new Entity({ props: {y: -100} });
 
-        target.y(-100);
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: 0, y: -1}));
     });
 
     it("should return direction to bottom", () => {
         const target = new Entity();
 
-        entity.y(-100);
+        entity.y = -100;
+        entity.update();
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: 0, y: 1}));
     });
 
     it("should not intersect target", () => {
-        const target = new Entity();
+        const target = new Entity({ props: {x: 100} });
 
-        target.x(100);
         expect(entity.intersect(target)).toBeFalsy();
     });
 
@@ -88,9 +81,8 @@ describe("Entity testing", () => {
     });
 
     it("should intersect target with separation from 1 pixel", () => {
-        const target = new Entity();
+        const target = new Entity({ props: {x: 10} });
 
-        target.x(10);
         expect(entity.intersect(target)).toBeTruthy();
     });
 
@@ -98,14 +90,14 @@ describe("Entity testing", () => {
         entity.direction.x = 1;
         entity.update();
 
-        expect(entity.x()).toBe(100);
+        expect(entity.x).toBe(100);
     });
 
     it("should jump", () => {
         entity.direction.y = -1;
         entity.update();
 
-        expect(entity.y()).toBe(-100);
+        expect(entity.y).toBe(-100);
     });
 
     it("should be down by gravity", () => {
@@ -115,6 +107,6 @@ describe("Entity testing", () => {
         scene.attachEntity(entity);
         scene.update();
 
-        expect(entity.y()).toBe(10);
+        expect(entity.y).toBe(10);
     });
 });
