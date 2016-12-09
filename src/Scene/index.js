@@ -1,79 +1,59 @@
-import Element from "../Element";
-import Entity from "../Entity";
-import Canvas from "../Component/Canvas";
+import ComponentViewable from "./../ComponentViewable";
+import Entity from "./../Entity";
+import Canvas from "./../Component/Canvas";
 
 
-export default class Scene extends Element {
+export default class Scene extends ComponentViewable {
 
     /* LIFECYCLE */
 
     /**
      * @constructor
-     * @param {*} options: options
+     * @param {*} props: properties
      */
-    constructor (options = {}) {
-        const props = options.props || {};
-
-        /**
-         * Width of the scene
-         * @type {number}
-         */
-        props.width = props.width || 10;
-
-        /**
-         * Height of the scene
-         * @type {number}
-         */
-        props.height = props.height || 10;
-
-        /**
-         * Position of the camera
-         * @type {{x: number, y: number, follow: Entity|null}}
-         */
-        props.camera = {x: 0, y: 0, follow: null};
+    constructor (props) {
+        super(props);
 
         /**
          * Gravity of the scene
          * @type {number}
          */
-        props.gravity = props.gravity || 0;
+        this.gravity = this.gravity || 0;
 
         /**
          * Scale of all entities behind this scene
          * @type {number}
          */
-        props.scale = props.scale || 1;
-
-        options.props = props;
-        super(options);
+        this.scale = this.scale || 1;
 
         /**
-         * Name of the element
-         * @readonly
-         * @type {string}
+         * Position of the camera
+         * @type {{x: number, y: number, follow: Entity|null}}
          */
-        this.name = "scene";
-
-        /**
-         * List of entities
-         * @type {Array<Entity>}
-         */
-        this.entities = [];
+        this.camera = {x: 0, y: 0, follow: null};
     }
 
     /**
-     * Initialization
-     * @returns {void}
+     * @override
      */
-    initialize () {
-        super.initialize();
+    initialize (parent) {
+        super.initialize(parent);
 
         this.compose(new Canvas({ width: this.width, height: this.height }));
+
+        // Observe prop width
+        this.observeProp("width", (previousValue, nextValue) => {
+            this.canvas.width = nextValue;
+        });
+
+        // Observe prop height
+        this.observeProp("height", (previousValue, nextValue) => {
+            this.canvas.height = nextValue;
+        });
     }
 
     /**
-     * Update
-     * @returns {void}
+     * @override
      */
     update () {
         super.update();
@@ -82,66 +62,47 @@ export default class Scene extends Element {
             this.camera.x = this.camera.follow.x + (this.camera.follow.width * this.scale / 2) - (this.width / 2 / this.scale);
             this.camera.y = this.camera.follow.y + (this.camera.follow.height * this.scale / 2) - (this.height / 2 / this.scale);
         }
-
-        this.entities.map(entity => entity.update());
     }
 
     /**
-     * @onPropsChanged
-     * @param {*} changedProps: changed properties
-     * @returns {void}
-     */
-    onPropsChanged (changedProps) {
-        super.onPropsChanged(changedProps);
-
-        if (this.isComposedOf("canvas")) {
-            if (changedProps.width) {
-                this.canvas.width = changedProps.width;
-            }
-
-            if (changedProps.height) {
-                this.canvas.height = changedProps.height;
-            }
-        }
-    }
-
-    /**
-     * Render
-     * @param {*} context: context of the canvas (created inside this function)
-     * @returns {void}
+     * @override
      */
     render (context) {
         context = this.canvas.context;
         super.render(context);
-
-        this.entities.filter(x => x.requestRender).map(entity => entity.render(context));
     }
 
     /**
-     * @nextCycle
-     * @returns {void}
+     * @override
      */
     nextCycle () {
         super.nextCycle();
 
-        this.entities.forEach(entity => entity.nextCycle());
+        this.requestRender = true;
     }
 
     /* METHODS */
 
     /**
-     * Attach an entity to the scene
-     * @param {Entity} entity: entity to attach
-     * @param {function=} callback: callback with entity added in parameter
-     * @returns {Element} current instance
+     * @override
      */
-    attachEntity (entity, callback) {
-        if (!entity || (entity && !(entity instanceof Entity))) {
-            throw new Error("Scene.attachEntity : entity must be an instance of Entity");
+    compose (component, next) {
+        super.compose(component, next);
+
+        if (component instanceof Entity) {
+            component.scene = this;
         }
 
-        entity.scene = this;
+        return this;
+    }
 
-        return this.attach(entity, this.entities, callback);
+    /* GETTERS & SETTERS */
+
+    get name () {
+        return "scene";
+    }
+
+    get entities () {
+        return this.components.filter(x => x instanceof Entity);
     }
 }

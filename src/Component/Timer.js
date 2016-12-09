@@ -7,47 +7,40 @@ export default class Timer extends Component {
     /* LIFECYCLE */
     /**
      * Timer constructor
-     * @param {*} options: options to be binded to timer
+     * @param {*} props: properties
      */
-    constructor (options = {}) {
+    constructor (props) {
+        super(props);
 
         /**
          * Duration of the timer
          * @type {number}
          */
-        options.duration = options.duration || 0;
+        this.duration = this.duration || 0;
 
         /**
          * Number of time the timer must reset after complete
          * @type {number}
          */
-        options.recurrence = options.recurrence || 0;
+        this.recurrence = this.recurrence || 0;
 
         /**
          * If reversible, the timer will go t o it's initial value after complete
          * @type {boolean}
          */
-        options.reversible = Boolean(options.reversible);
+        this.reversible = Boolean(this.reversible);
 
         /**
          * Event fired when initialize
          * @type {function}
          */
-        options.eventInit  = options.eventInit || null;
+        this.eventInit  = this.eventInit || null;
 
         /**
          * Event fired when completed
          * @type {function}
          */
-        options.eventComplete = options.eventComplete || null;
-
-        super(options);
-
-        /**
-         * Name of the component
-         * @type {string}
-         */
-        this.name = "timer";
+        this.eventComplete = this.eventComplete || null;
 
         /**
          * Tendance value (used with reversible)
@@ -84,6 +77,18 @@ export default class Timer extends Component {
         if (this.eventInit) {
             this.eventInit();
         }
+    }
+
+    /**
+     * @override
+     */
+    reset () {
+        super.reset();
+
+        this.value      = this.duration;
+        this.tendance   = this.duration < 0 ? 1 : -1;
+        this.pause      = false;
+        this.finished   = false;
     }
 
     /**
@@ -139,15 +144,10 @@ export default class Timer extends Component {
         this.finished = true;
     }
 
-    /**
-     * Restart the timer with its default values
-     * @returns {void}
-     */
-    restart () {
-        this.value      = this.duration;
-        this.tendance   = this.duration < 0 ? 1 : -1;
-        this.pause      = false;
-        this.finished   = false;
+    /* GETTERS & SETTERS */
+
+    get name () {
+        return "timer";
     }
 
     /* STATIC */

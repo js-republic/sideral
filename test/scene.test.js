@@ -15,28 +15,26 @@ describe("Scene testing", () => {
     });
 
     it("should compose a canvas", () => {
-        Engine.attachScene(scene);
+        Engine.compose(scene);
         expect(scene.canvas).not.toBeUndefined();
     });
 
     it("should resize canvas when changing width", () => {
-        Engine.attachScene(scene);
+        Engine.compose(scene);
         scene.width = 100;
-        scene.update();
 
         expect(scene.canvas.width).toBe(100);
     });
 
     it("should resize canvas when changing height", () => {
-        Engine.attachScene(scene);
+        Engine.compose(scene);
         scene.height = 50;
-        scene.update();
 
         expect(scene.canvas.height).toBe(50);
     });
 
     it("should add entity", () => {
-        scene.attachEntity(new Entity());
+        scene.compose(new Entity());
         expect(scene.entities[0]).not.toBeUndefined();
     });
 
@@ -45,41 +43,38 @@ describe("Scene testing", () => {
     });
 
     it("should place entity at right position", () => {
-        scene.attachEntity(new Entity({ props: { x: 10, y: 150 } }));
-        expect(scene.entities[0].x).toBe(10);
-        expect(scene.entities[0].y).toBe(150);
+        scene.compose(new Entity({ x: 10, y: 150 }), (entity) => {
+            expect(entity.x).toBe(10);
+            expect(entity.y).toBe(150);
+        });
     });
 
     it("should follow the entity", () => {
-        const entity = new Entity({ props: { x: 10, y: 10 }});
+        scene.compose(new Entity({ x: 10, y: 10 }), (entity) => {
+            scene.camera.follow = entity;
+            scene.width = 100;
+            scene.update();
 
-        scene.attachEntity(entity);
-        scene.camera.follow = entity;
-        scene.width = 100;
-        scene.update();
-
-        expect(scene.camera.x).toBe(-35);
+            expect(scene.camera.x).toBe(-35);
+        });
     });
 
     it("should update and render entity when scene respectively update and render", () => {
-        const entity = new Entity({
-            props: {
-                x: 10,
-                y: 10
-            },
-
+        class EntityExtended extends Entity {
             update () {
+                super.update();
                 this.updated = true;
-                this.requestRender = true;
-            },
+            }
 
-            render () {
+            render (context) {
+                super.render(context);
                 this.rendered = true;
             }
-        });
+        }
 
-        Engine.attachScene(scene);
-        scene.attachEntity(entity);
+        Engine.compose(scene);
+        scene.compose(new EntityExtended());
+
         scene.update();
         expect(scene.entities[0].updated).toBeTruthy();
 

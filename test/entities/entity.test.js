@@ -17,17 +17,14 @@ describe("Entity testing", () => {
     it("should draw box red when it is in debug mode", () => {
         const scene = new Scene();
 
-        Engine.width = 10;
-        Engine.height = 10;
-        Engine.attachScene(scene);
-        scene.attachEntity(entity);
+        Engine.setProps({ width: 10, height: 10 });
+        Engine.compose(scene);
+        scene.compose(entity);
 
         entity.debug = true;
 
-        entity.width  = 10;
-        entity.height = 10;
         Engine.update();
-        Engine.render();
+        scene.render();
 
         expect(scene.canvas.context.getImageData(0, 0, 1, 1).data[0]).not.toBeLessThan(100);
     });
@@ -37,25 +34,25 @@ describe("Entity testing", () => {
     });
 
     it("should have correct distance between two entities", () => {
-        const target = new Entity({ props: { x: 0, y: 10 }});
+        const target = new Entity({ x: 0, y: 10 });
 
         expect(entity.distanceTo(target)).toBe(10);
     });
 
     it("should return direction to left", () => {
-        const target = new Entity({ props: {x: -100} });
+        const target = new Entity({x: -100});
 
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: -1, y: 0}));
     });
 
     it("should return direction to right", () => {
-        const target = new Entity({ props: {x: 100} });
+        const target = new Entity({x: 100});
 
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: 1, y: 0}));
     });
 
     it("should return direction to top", () => {
-        const target = new Entity({ props: {y: -100} });
+        const target = new Entity({y: -100});
 
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: 0, y: -1}));
     });
@@ -64,12 +61,11 @@ describe("Entity testing", () => {
         const target = new Entity();
 
         entity.y = -100;
-        entity.update();
         expect(entity.directionTo(target)).toEqual(jasmine.objectContaining({x: 0, y: 1}));
     });
 
     it("should not intersect target", () => {
-        const target = new Entity({ props: {x: 100} });
+        const target = new Entity({x: 100});
 
         expect(entity.intersect(target)).toBeFalsy();
     });
@@ -104,7 +100,7 @@ describe("Entity testing", () => {
         const scene = new Scene();
 
         scene.gravity = 10;
-        scene.attachEntity(entity);
+        scene.compose(entity);
         scene.update();
 
         expect(entity.y).toBe(10);

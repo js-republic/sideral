@@ -1,88 +1,48 @@
-import Element from "./../Element";
+import ComponentViewable from "./../ComponentViewable";
 import Engine from "./../Engine";
 
 
-export default class Entity extends Element {
+export default class Entity extends ComponentViewable {
 
     /* LIFECYCLE */
 
     /**
      * @constructor
-     * @param {*} options: options
+     * @param {*} props: properties
      */
-    constructor (options = {}) {
-        const props = options.props || {};
-
-        /**
-         * Show more information about entity on screen
-         * @type {boolean}
-         */
-        props.debug = props.debug || false;
-
-        /**
-         * Position on x axis
-         * @type {number}
-         */
-        props.x = props.x || 0;
-
-        /**
-         * Position on y axis
-         * @type {number}
-         */
-        props.y = props.y || 0;
-
-        /**
-         * Width of entity
-         * @type {number}
-         */
-        props.width = props.width || 10;
-
-        /**
-         * Height of entity
-         * @type {number}
-         */
-        props.height = props.height || 10;
+    constructor (props) {
+        super(props);
 
         /**
          * Mass of the entity (used for collision)
          * @type {string}
          */
-        props.mass = props.mass || Entity.MASS.NONE;
+        this.mass = this.mass || Entity.MASS.NONE;
 
         /**
          * Direction movement of the entity
          * @type {{x: number, y: number}}
          */
-        props.direction = props.direction || {x: 0, y: 0};
+        this.direction = this.direction || {x: 0, y: 0};
 
         /**
          * Speed movement of the entity
          * @type {{x: number, y: number}}
          */
-        props.speed = props.speed || {x: 100, y: 100};
+        this.speed = this.speed || {x: 100, y: 100};
 
         /**
          * Velocity of the entity
          * @type {{x: number, y: number}}
          * @readonly
          */
-        props.velocity = props.velocity || {x: 0, y: 0};
+        this.velocity = this.velocity || {x: 0, y: 0};
 
         /**
          * Factor of scene gravity
          * @type {number}
          */
-        props.gravityFactor = props.gravityFactor || 1;
-
-        options.props = props;
-        super(options);
-
-        /**
-         * Name of the element
-         * @readonly
-         * @type {string}
-         */
-        this.name = "entity";
+        this.gravityFactor = this.gravityFactor || 1;
 
         /**
          * Reference to the current scene
@@ -107,11 +67,11 @@ export default class Entity extends Element {
     }
 
     /**
-     * @beforeUpdate
+     * @override
      * @returns {void}
      */
-    beforeUpdate () {
-        super.beforeUpdate();
+    update () {
+        super.update();
 
         if (this.direction.x) {
             this.velocity.x = this.speed.x * this.direction.x * Engine.tick;
@@ -125,18 +85,12 @@ export default class Entity extends Element {
         }
     }
 
-    /**
-     * Render
-     * @param {*} context: canvas context
-     * @returns {void}
-     */
     render (context) {
-        super.render(context);
-
-        if (this.debug) {
-            context.strokeStyle = "rgb(255, 0, 0)";
-            context.strokeRect(this.x - this.scene.camera.x, this.y - this.scene.camera.y, this.width, this.height);
+        if (this.requestRender) {
+            context.clearRect((this.previousProps.x || this.x) - 1, (this.previousProps.y || this.y) - 1, (this.previousProps.width || this.width) + 2, (this.previousProps.height || this.height) + 2);
         }
+
+        super.render(context);
     }
 
     /* METHODS */
@@ -221,6 +175,10 @@ export default class Entity extends Element {
 
     get moving () {
         return this.direction.x || this.direction.y;
+    }
+
+    get name () {
+        return "entity";
     }
 }
 

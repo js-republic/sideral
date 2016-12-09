@@ -5,37 +5,28 @@ export default class Canvas extends Component {
 
     /* LIFECYCLE */
     /**
-     * Canvas constructor
      * @constructor
-     * @param {*} options: options
+     * @param {*} props: properties
      */
-    constructor (options = {}) {
+    constructor (props) {
+        super(props);
 
         /**
          * Width of the canvas
          * @type {number}
          */
-        options.width = options.width || 10;
+        this.width = this.width || 10;
 
         /**
          * Height of the canvas
          * @type {number}
          */
-        options.height = options.height || 10;
+        this.height = this.height || 10;
 
         /**
          * DOM parent of the canvas
          */
-        options.parentDOM = options.parentDOM || null;
-
-        super(options);
-
-        /**
-         * Name of the element
-         * @readonly
-         * @type {string}
-         */
-        this.name = "canvas";
+        this.parentDOM = this.parentDOM || null;
 
         /**
          * Dom of the canvas
@@ -54,14 +45,14 @@ export default class Canvas extends Component {
          * @type {string}
          */
         this.clearColor = null;
+
     }
 
     /**
-     * @initialize
-     * @returns {void}
+     * @override
      */
-    initialize () {
-        super.initialize();
+    initialize (parent) {
+        super.initialize(parent);
 
         this.dom        = document.createElement("canvas");
         this.dom.id     = this.id;
@@ -70,25 +61,20 @@ export default class Canvas extends Component {
         this.context    = this.dom.getContext("2d");
 
         this.setParentDOM();
-    }
 
-    /**
-     * @onPropsChanged
-     * @param {*} changedProps: changed properties
-     * @returns {void}
-     */
-    onPropsChanged (changedProps) {
-        super.onPropsChanged(changedProps);
-
-        if (this.dom) {
-            if (changedProps.width) {
-                this.dom.width = changedProps.width;
+        // Observe prop width
+        this.observeProp("width", (previousValue, nextValue) => {
+            if (this.dom) {
+                this.dom.width = nextValue;
             }
+        });
 
-            if (changedProps.height) {
-                this.dom.height = changedProps.height;
+        // Observe prop height
+        this.observeProp("height", (previousValue, nextValue) => {
+            if (this.dom) {
+                this.dom.height = nextValue;
             }
-        }
+        });
     }
 
     /* METHODS */
@@ -123,5 +109,11 @@ export default class Canvas extends Component {
             ctx.fillStyle = clearColor || this.clearColor;
             ctx.fillRect(0, 0, this.width, this.height);
         }
+    }
+
+    /* GETTERS & SETTERS */
+
+    get name () {
+        return "canvas";
     }
 }

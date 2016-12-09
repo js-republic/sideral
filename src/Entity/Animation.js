@@ -1,6 +1,6 @@
 import Entity from "./index";
-import Sprite from "../Component/Sprite";
-import Timer from "../Component/Timer";
+import Sprite from "./../Component/Sprite";
+import Timer from "./../Component/Timer";
 
 
 export default class Animation extends Entity {
@@ -9,79 +9,63 @@ export default class Animation extends Entity {
 
     /**
      * @constructor
-     * @param {*} options: options
+     * @param {*} props: props
      */
-    constructor (options = {}) {
-        const props = options.props || {};
+    constructor (props) {
+        super(props);
 
         /**
          * Duration of the animation
          * @type {number}
          */
-        props.duration = props.duration || 0;
+        this.duration = this.duration || 0;
 
         /**
          * Other options of animation
          * @type {Entity}
          */
-        props.follow = props.follow || null;
+        this.follow = this.follow || null;
 
         /**
          * Number of loop
          * @type {number}
          */
-        props.loop = typeof props.loop === "undefined" ? -1 : props.loop;
+        this.loop = typeof this.loop === "undefined" ? -1 : this.loop;
 
         /**
          * Path of the picture
          * @type {string}
          */
-        props.path = props.path || "";
+        this.path = this.path || "";
 
         /**
          * Frames of the animation
          * @type {Array<number>}
          */
-        props.frames = props.frames || [];
-
-        options.props = props;
-        super(options);
-
-        /**
-         * Name of the element
-         * @readonly
-         * @type {string}
-         */
-        this.name = "animation";
+        this.frames = this.frames || [];
     }
 
     /**
-     * @initialize
-     * @returns {void}
+     * @override
      */
-    initialize () {
-        super.initialize();
+    initialize (parent) {
+        super.initialize(parent);
 
         this.compose(new Sprite({
             path        : this.path,
             width       : this.width,
-            height      : this.height,
-            animations  : [
-                { name: "idle", duration: this.duration, frames: this.frames }
-            ]
-        }));
+            height      : this.height
 
-        this.compose(new Timer({
+        })).compose(new Timer({
             duration: this.sprite.getAnimationDuration("idle", this.loop > 0 ? this.loop : 0),
             eventComplete: () => this.destroy()
         }));
 
-        this.sprite.currentAnimation("idle");
+        this.sprite.addAnimation("idle", this.duration, this.frames).currentAnimation("idle");
     }
 
     /**
-     * @update
-     * @returns {void}
+     * @override
      */
     update () {
         super.update();
@@ -90,5 +74,11 @@ export default class Animation extends Entity {
             this.x = this.follow.x + (this.follow.width / 2) - (this.width / 2);
             this.y = this.follow.y + (this.follow.height / 2) - (this.height / 2);
         }
+    }
+
+    /* GETTERS & SETTERS */
+
+    get name () {
+        return "animation";
     }
 }

@@ -8,49 +8,42 @@ export default class Sprite extends Component {
 
     /**
      * @constructor
-     * @param {*} options: options
+     * @param {*} props: properties
      */
-    constructor (options = {}) {
+    constructor (props) {
+        super(props);
+
+        if (!this.path) {
+            throw new Error("Sprite.constructor : a path must be provided");
+        }
 
         /**
          * Flip deleguation of bitmap
          * @type {{x: boolean, y: boolean}}
          */
-        options.flip = options.flip || {x: false, y: false};
+        this.flip = this.flip || {x: false, y: false};
 
         /**
          * Offset of the bitmap compared to the position of the Entity
          * @type {{x: number, y: number}}
          */
-        options.offset = options.offset || {x: 0, y: 0};
+        this.offset = this.offset || {x: 0, y: 0};
 
         /**
          * Rotation of bitmap
          * @type {number}
          */
-        options.rotation = options.rotation || 0;
+        this.rotation = this.rotation || 0;
 
         /**
          * Opacity of the bitmap
          * @type {number}
          */
-        options.opacity = options.opacity || 1;
-
-        super(options);
-
-        if (!options.path) {
-            throw new Error("Sprite.constructor : a path must be provided");
-        }
-
-        /**
-         * Name of the component
-         * @readonly
-         * @type {string}
-         */
-        this.name = "sprite";
+        this.opacity = this.opacity || 1;
 
         /**
          * Picture of the sprite
+         * @readonly
          * @type {Bitmap}
          */
         this.bitmap = new Bitmap();
@@ -67,28 +60,15 @@ export default class Sprite extends Component {
          */
         this.animation = null;
 
-        if (options.width || options.height) {
-            this.bitmap.tilesize = {width: options.width || 0, height: options.height || 0};
+        if (this.width || this.height) {
+            this.bitmap.tilesize = {width: this.width || 0, height: this.height || 0};
         }
 
-        // Add animations from options
-        if (options.animations) {
-            for (const key in options.animations) {
-                if (options.animations.hasOwnProperty(key)) {
-                    const animation = options.animations[key];
-
-                    this.addAnimation(animation.name, animation.duration, animation.frames, animation.offset);
-                }
-            }
-        }
-
-        this.bitmap.onImageLoaded = options.onBitmapLoaded;
-        this.bitmap.load(options.path);
+        this.bitmap.load(this.path);
     }
 
     /**
-     * Update
-     * @returns {void|null} void
+     * @override
      */
     update () {
         super.update();
@@ -100,7 +80,10 @@ export default class Sprite extends Component {
         this.animation.time++;
 
         if (this.animation.time >= this.animation.fraction) {
-            this.composedBy.requestRender = true;
+            if (this.parent) {
+                this.parent.requestRender = true;
+            }
+
             this.animation.time = 0;
 
             if (this.animation.frame >= (this.animation.frames.length - 1)) {
@@ -119,6 +102,8 @@ export default class Sprite extends Component {
      * @returns {void|null} void
      */
     render (context) {
+        super.render(context);
+
         if (!this.bitmap.loaded || !this.composedBy || (this.composedBy && !this.composedBy.scene)) {
             return null;
         }
@@ -145,7 +130,7 @@ export default class Sprite extends Component {
      * @param {string} name: name of the animation
      * @param {number} duration: duration of the animation
      * @param {Array<number>} frames: frames data in order to be render
-     * @param {{x: number, y: number}=} offset: offset bitmap compared to entity's position
+     * @param {{x: number, y: number}|null} offset: offset bitmap compared to entity's position
      * @returns {Sprite} recursive function
      */
     addAnimation (name, duration, frames, offset = null) {
@@ -192,6 +177,10 @@ export default class Sprite extends Component {
     }
 
     /* GETTERS & SETTERS */
+
+    get name () {
+        return "sprite";
+    }
 
     /**
      * Get an animation by its name

@@ -79,7 +79,8 @@ describe("Sprite component", () => {
     it("should loop the animation", () => {
         sprite = new Sprite({ path: path, width: 10, height: 10 });
 
-        sprite.addAnimation("idle", 1, [0, 1]).currentAnimation("idle").update();
+        sprite.addAnimation("idle", 1, [0, 1]).currentAnimation("idle");
+        sprite.update();
         sprite.update();
         expect(sprite.animation.loop).toBe(1);
         expect(sprite.animation.frame).toBe(0);

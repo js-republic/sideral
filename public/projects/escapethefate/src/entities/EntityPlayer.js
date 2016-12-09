@@ -2,16 +2,23 @@ import Entity from "src/Entity";
 import Engine from "src/Engine";
 
 
-export default (props = {}) => new Entity({
-    components: [],
+export default class EntityPlayer extends Entity {
 
-    props: Object.assign({
-        width   : 20,
-        height  : 20,
-        debug   : true
-    }, props),
+    /* LIFECYCLE */
 
-    beforeUpdate () {
+    constructor (props) {
+        super(props);
+
+        this.setProps({
+            width   : 20,
+            height  : 20,
+            debug   : true
+        });
+    }
+
+    update () {
+        super.update();
+
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_RIGHT)) {
             this.x += 10;
 
@@ -26,4 +33,4 @@ export default (props = {}) => new Entity({
 
         }
     }
-});
+}

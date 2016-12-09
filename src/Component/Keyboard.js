@@ -7,17 +7,10 @@ export default class Keyboard extends Component {
 
     /**
      * @constructor
-     * @param {*} options: options
+     * @param {*} props: properties
      */
-    constructor (options) {
-        super(options);
-
-        /**
-         * The name of the component
-         * @readonly
-         * @type {string}
-         */
-        this.name = "keyboard";
+    constructor (props) {
+        super(props);
 
         /**
          * Public input attributes
@@ -34,19 +27,17 @@ export default class Keyboard extends Component {
     }
 
     /**
-     * @initialize
-     * @returns {void}
+     * @override
      */
-    initialize () {
-        super.initialize();
+    initialize (parent) {
+        super.initialize(parent);
 
         window.addEventListener("keydown", this.onKeydown.bind(this));
         window.addEventListener("keyup", this.onKeyup.bind(this));
     }
 
     /**
-     * @update
-     * @returns {void}
+     * @override
      */
     update () {
         super.update();
@@ -152,6 +143,10 @@ export default class Keyboard extends Component {
     }
 
     /* GETTERS & SETTERS */
+
+    get name () {
+        return "keyboard";
+    }
 
     /**
      * List of all key usable

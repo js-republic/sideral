@@ -1,38 +1,232 @@
-import Class from "./../Class";
-
-
-export default class Component extends Class {
+export default class Component {
 
     /* LIFECYCLE */
 
     /**
      * @constructor
-     * @param {{}} options: options
+     * @param {Object=} props: properties
      */
-    constructor (options = {}) {
-        super({ props: options });
+    constructor (props = {}) {
 
         /**
-         * Name of the component
-         * @readonly
+         * Unique Id of the component
          * @type {string}
          */
-        this.name = "component";
+        this.id = Component.generateId();
 
         /**
-         * Element which using this component
-         * @type {Element}
+         * Previous properties that has changed during the cycle
+         * @type {{}}
          */
-        this.composedBy = null;
+        this.previousProps = {};
+
+        /**
+         * List of current components
+         * @type {Array<Component>}
+         */
+        this.components = [];
+
+        /**
+         * Parent which attach this component
+         * @type {Component|null}
+         */
+        this.parent = null;
+
+        /**
+         * Property to know if this component is destroyed and don't be usable until it has been trashed by Garbage Collector
+         * @readonly
+         * @type {boolean}
+         */
+        this.destroyed = true;
+
+        // Merge props
+        this.setProps(props);
     }
 
     /**
-     * Initialization of the component after it is composed
+     * Called when attached to an other component
+     * @initialize
+     * @param {Component=} parent: Component parent owner
      * @returns {void}
      */
-    initialize () {
-        if (!this.composedBy) {
-            throw new Error("Component.initialize : A Component must be composed by an element before calling Initiliaze.");
+    initialize (parent) {
+        this.parent = parent;
+    }
+
+    /**
+     * Destroy a component
+     * @destroy
+     * @returns {void}
+     */
+    destroy () {
+        if (this.parent) {
+            this.parent.decompose(this);
         }
+
+        this.destroyed = true;
+    }
+
+    /**
+     * Update a component
+     * @update
+     * @returns {void|null} null
+     */
+    update () {
+        this.components.forEach(component => component.update());
+    }
+
+    /**
+     * Begin a new cycle
+     * @nextCycle
+     * @returns {void}
+     */
+    nextCycle () {
+        this.previousProps = {};
+
+        this.components.forEach(component => component.nextCycle());
+    }
+
+    /**
+     * Reset this component to its initial state
+     * @reset
+     * @returns {void}
+     */
+    reset () {
+        this.nextCycle();
+        this.destroyed = false;
+    }
+
+    /* METHODS */
+
+    /**
+     * Attach a component
+     * @param {Component} component: component to be attached
+     * @param {function=} next: function with the component attached in parameter
+     * @returns {Component} current instance
+     */
+    compose (component, next) {
+        if (!component || !(component instanceof Component)) {
+            throw new Error("Component.compose : parameter 1 must be an instance of Component.");
+        }
+
+        const name = component.name;
+
+        this.components.push(component);
+        component.initialize(this);
+
+        if (this.prototype) {
+            delete this.prototype[name];
+        }
+
+        Object.defineProperty(this, name, {
+            value       : component,
+            writable    : false,
+            configurable: true
+        });
+
+        if (next) {
+            next(component);
+        }
+
+        return this;
+    }
+
+    /**
+     * Decompose a component
+     * @param {Component} component: The component to be decomposed
+     * @returns {Component} current instance
+     */
+    decompose (component) {
+        if (!component || !(component instanceof Component)) {
+            throw new Error("Component.decompose : parameter 1 must be an instance of Component.");
+        }
+
+        const name = component.name;
+
+        component.destroyed = true;
+        if (this.prototype) {
+            delete this.prototype[name];
+        }
+        this.components = this.components.filter(x => x.name !== name);
+
+        return this;
+    }
+
+    /**
+     * Know if the component has component attached by his name
+     * @param {string} componentName: Name of the component
+     * @returns {boolean} result of the check
+     */
+    has (componentName) {
+        return Boolean(this[componentName]);
+    }
+
+    /**
+     * Set/Add new properties to component
+     * @param {Object} nextProps: next properties to merge
+     * @returns {Component} the component
+     */
+    setProps (nextProps = {}) {
+        const clonedProps = Object.assign({}, nextProps);
+
+        for (const key in clonedProps) {
+            if (clonedProps.hasOwnProperty(key)) {
+                this[key] = clonedProps[key];
+            }
+        }
+
+        return this;
+    }
+
+    /**
+     * Observe property
+     * @param {string} prop: property name
+     * @param {function} setFunction: function observable when property is changed
+     * @returns {void}
+     */
+    observeProp (prop, setFunction) {
+        let value = this[prop];
+
+        delete this[prop];
+        if (this.prototype) {
+            delete this.prototype[prop];
+        }
+
+        Object.defineProperty(this, prop, {
+            get () {
+                return value;
+            },
+
+            set (nextValue) {
+                if (setFunction) {
+                    setFunction(value, nextValue);
+                }
+
+                value = nextValue;
+            },
+
+            configurable: true
+        });
+    }
+
+    /* GETTERS & SETTERS */
+
+    /**
+     * Name identifier
+     * @returns {string} the name
+     */
+    get name () {
+        return "component";
+    }
+
+    /* STATICS */
+
+    /**
+     * Generate an unique id
+     * @returns {string} return the unique id
+     */
+    static generateId () {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).
+        substring(1);
     }
 }

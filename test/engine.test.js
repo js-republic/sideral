@@ -8,20 +8,18 @@ describe("engine testing", () => {
     });
 
     it("should attach a scene", () => {
-        Engine.attachScene(new Scene());
+        Engine.compose(new Scene());
         expect(Engine.scenes.length).toBe(1);
     });
 
     it("should resize scene width", () => {
         Engine.width = 50;
-        Engine.update();
 
         expect(Engine.scenes[0].width).toBe(50);
     });
 
     it("should resize scene height", () => {
         Engine.height = 150;
-        Engine.update();
 
         expect(Engine.scenes[0].height).toBe(150);
     });
@@ -31,7 +29,7 @@ describe("engine testing", () => {
     });
 
     it("should throw an error when attach a scene which is not an instance of scene", () => {
-        expect(() => Engine.attachScene(new (function test () {})())).toThrowError();
+        expect(() => Engine.compose(new (function test () {})())).toThrowError();
     });
 
     it("should attach a dom", () => {
@@ -42,7 +40,6 @@ describe("engine testing", () => {
     it("should resize dom width", () => {
         Engine.attachDOM(document.body);
         Engine.width = 100;
-        Engine.update();
 
         expect(Engine.width).toBe(100);
         expect(Engine.dom.width).toBe(100);
@@ -51,7 +48,6 @@ describe("engine testing", () => {
     it("should resize dom height", () => {
         Engine.attachDOM(document.body);
         Engine.height = 100;
-        Engine.update();
 
         expect(Engine.height).toBe(100);
         expect(Engine.dom.height).toBe(100);

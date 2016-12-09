@@ -15,19 +15,19 @@ describe("Animation ", () => {
 
     it("should create a sprite", () => {
         const scene = new Scene();
-        animation = new Animation({ props: { path: path, width: 10, height: 10, duration: 1, frames: [0] } });
+        animation = new Animation({ path: path, width: 10, height: 10, duration: 1, frames: [0] });
 
-        scene.attachEntity(animation);
+        scene.compose(animation);
         expect(animation.sprite.animation.name).toBe("idle");
     });
 
     it("should follow an entity", () => {
         const scene = new Scene(),
-            entity = new Entity({ props: { x: 10, y: 10 } });
+            entity = new Entity({ x: 10, y: 10 });
 
-        animation = new Animation({ props: { path: path, width: 10, height: 10 } });
+        animation = new Animation({ path: path, width: 10, height: 10 });
 
-        scene.attachEntity(entity).attachEntity(animation);
+        scene.compose(entity).compose(animation);
         animation.follow = entity;
         scene.update();
         expect(animation.x).toBe(10);
