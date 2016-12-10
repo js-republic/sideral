@@ -1,5 +1,5 @@
 import Component from "./index";
-import Picture from "../Picture";
+import Bitmap from "../Util/Bitmap";
 
 
 export default class Sprite extends Component {
@@ -8,23 +8,45 @@ export default class Sprite extends Component {
 
     /**
      * @constructor
-     * @param {string} path: path of the picture
-     * @param {number=} frameWidth: width of a tile
-     * @param {number=} frameHeight: height of a tile
-     * @param {function=} onPictureLoaded: callback when picture is loaded
+     * @param {*} props: properties
      */
-    constructor (path, frameWidth, frameHeight, onPictureLoaded) {
-        super();
+    constructor (props) {
+        super(props);
 
-        if (!path) {
+        if (!this.path) {
             throw new Error("Sprite.constructor : a path must be provided");
         }
 
         /**
-         * Picture of the sprite
-         * @type {Picture}
+         * Flip deleguation of bitmap
+         * @type {{x: boolean, y: boolean}}
          */
-        this.picture = new Picture();
+        this.flip = this.flip || {x: false, y: false};
+
+        /**
+         * Offset of the bitmap compared to the position of the Entity
+         * @type {{x: number, y: number}}
+         */
+        this.offset = this.offset || {x: 0, y: 0};
+
+        /**
+         * Rotation of bitmap
+         * @type {number}
+         */
+        this.rotation = this.rotation || 0;
+
+        /**
+         * Opacity of the bitmap
+         * @type {number}
+         */
+        this.opacity = this.opacity || 1;
+
+        /**
+         * Picture of the sprite
+         * @readonly
+         * @type {Bitmap}
+         */
+        this.bitmap = new Bitmap();
 
         /**
          * List of all animation available on this sprite
@@ -38,43 +60,19 @@ export default class Sprite extends Component {
          */
         this.animation = null;
 
-        /**
-         * Flip deleguation of picture
-         * @type {{x: boolean, y: boolean}}
-         */
-        this.flip = {x: false, y: false};
-
-        /**
-         * Offset of the picture compared to the position of the Entity
-         * @type {{x: number, y: number}}
-         */
-        this.offset = {x: 0, y: 0};
-
-        /**
-         * Rotation of picture
-         * @type {number}
-         */
-        this.rotation = 0;
-
-        /**
-         * Opacity of the picture
-         * @type {number}
-         */
-        this.opacity = 1;
-
-        if (frameWidth || frameHeight) {
-            this.picture.tilesize = {width: frameWidth || 0, height: frameHeight || 0};
+        if (this.width || this.height) {
+            this.bitmap.tilesize = {width: this.width || 0, height: this.height || 0};
         }
 
-        this.picture.onImageLoaded = onPictureLoaded;
-        this.picture.load(path);
+        this.bitmap.load(this.path);
     }
 
     /**
-     * Update
-     * @returns {void|null} void
+     * @override
      */
     update () {
+        super.update();
+
         if (!this.animation || (this.animation && !this.animation.duration)) {
             return null;
         }
@@ -82,6 +80,10 @@ export default class Sprite extends Component {
         this.animation.time++;
 
         if (this.animation.time >= this.animation.fraction) {
+            if (this.parent) {
+                this.parent.requestRender = true;
+            }
+
             this.animation.time = 0;
 
             if (this.animation.frame >= (this.animation.frames.length - 1)) {
@@ -100,7 +102,9 @@ export default class Sprite extends Component {
      * @returns {void|null} void
      */
     render (context) {
-        if (!this.picture.loaded || !this.composedBy || (this.composedBy && !this.composedBy.scene)) {
+        super.render(context);
+
+        if (!this.bitmap.loaded || !this.composedBy || (this.composedBy && !this.composedBy.scene)) {
             return null;
         }
 
@@ -113,10 +117,10 @@ export default class Sprite extends Component {
             offset = this.offset.flip ? {x: this.flip.x ? -this.offset.x : this.offset.x, y: this.flip.y ? -this.offset.y : this.offset.y} : this.offset;
         }
 
-        this.picture.flip       = this.flip;
-        this.picture.opacity    = this.opacity;
-        this.picture.rotation   = this.rotation;
-        this.picture.render(context, this.composedBy.x() - offset.x - this.composedBy.scene.camera.x, this.composedBy.y() - offset.y - this.composedBy.scene.camera.y, this.animation ? this.animation.frames[this.animation.frame] : 0);
+        this.bitmap.flip       = this.flip;
+        this.bitmap.opacity    = this.opacity;
+        this.bitmap.rotation   = this.rotation;
+        this.bitmap.render(context, this.composedBy.x() - offset.x - this.composedBy.scene.camera.x, this.composedBy.y() - offset.y - this.composedBy.scene.camera.y, this.animation ? this.animation.frames[this.animation.frame] : 0);
     }
 
     /* METHODS */
@@ -126,10 +130,10 @@ export default class Sprite extends Component {
      * @param {string} name: name of the animation
      * @param {number} duration: duration of the animation
      * @param {Array<number>} frames: frames data in order to be render
-     * @param {{x: number, y: number}=} offset: offset picture compared to entity's position
+     * @param {{x: number, y: number}|null} offset: offset bitmap compared to entity's position
      * @returns {Sprite} recursive function
      */
-    addAnimation (name, duration, frames, offset) {
+    addAnimation (name, duration, frames, offset = null) {
         if (!name || !frames) {
             throw new Error("Sprite.addAnimation : you must set a name, duration and frames");
         }
@@ -174,10 +178,6 @@ export default class Sprite extends Component {
 
     /* GETTERS & SETTERS */
 
-    /**
-     * Name of the component
-     * @returns {string} the name
-     */
     get name () {
         return "sprite";
     }

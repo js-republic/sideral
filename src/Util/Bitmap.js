@@ -1,4 +1,4 @@
-export default class Picture {
+export default class Bitmap {
 
     /**
      * Constructor

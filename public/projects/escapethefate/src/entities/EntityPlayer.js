@@ -1,42 +1,36 @@
 import Entity from "src/Entity";
+import Engine from "src/Engine";
 
 
 export default class EntityPlayer extends Entity {
 
     /* LIFECYCLE */
 
-    /**
-     * @constructor
-     */
-    constructor () {
-        super();
+    constructor (props) {
+        super(props);
 
-        // Set properties
-        this.props({
-            size : { width: 20, height: 20 },
-            debug: true
+        this.setProps({
+            width   : 20,
+            height  : 20,
+            debug   : true
         });
     }
 
-    /* METHODS */
+    update () {
+        super.update();
 
-    right () {
-        this.direction = {x: 1, y: 0};
-    }
+        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_RIGHT)) {
+            this.x += 10;
 
-    idle () {
-        this.direction = {x: 0, y: 0};
-    }
+        } else if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_LEFT)) {
+            this.x -= 10;
 
-    left () {
-        this.direction = {x: -1, y: 0};
-    }
+        } else if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_UP)) {
+            this.y -= 10;
 
-    top () {
-        this.direction = {x: 0, y: -1};
-    }
+        } else if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_DOWN)) {
+            this.y += 10;
 
-    bottom () {
-        this.direction = {x: 0, y: 1};
+        }
     }
 }

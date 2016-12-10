@@ -1,25 +1,26 @@
-import Element from "./../../src/Element";
+import Component from "./../../src/Component";
 import Timer from "./../../src/Component/Timer";
 
 
 describe("Timer testing", () => {
     let timer,
-        element;
+        component;
 
     beforeEach(() => {
-        element = new Element();
+        component = new Component();
     });
 
     it("should be initialized with correct value", () => {
-        timer = new Timer(10);
+        timer = new Timer({ duration: 10 });
         expect(timer.value).toBe(10);
     });
 
     it("should be initialized when attached to an element", () => {
         let initialized = false;
 
-        element.compose(new Timer(10, {
-            initialize: () => { initialized = true; }
+        component.compose(new Timer({
+            duration: 10,
+            eventInit: () => { initialized = true; }
         }));
 
         expect(initialized).toBeTruthy();
@@ -28,41 +29,42 @@ describe("Timer testing", () => {
     it("should call completed when timer is finished", () => {
         let completed = false;
 
-        element.compose(new Timer(1, {
-            complete: () => { completed = true; }
+        component.compose(new Timer({
+            duration: 1,
+            eventComplete: () => { completed = true; }
         }));
 
-        element.update();
+        component.update();
         expect(completed).toBeTruthy();
     });
 
     it("should update when element which compose it is updated", () => {
-        element.compose(new Timer(10));
-        element.update();
-        expect(element.timer.value).toBe(9);
+        component.compose(new Timer({ duration: 10 }));
+        component.update();
+        expect(component.timer.value).toBe(9);
     });
 
     it("should have a correct value rationed", () => {
-        timer = new Timer(10);
+        timer = new Timer({ duration: 10 });
 
         expect(timer.getValueRationed()).toBe(1);
     });
 
     it("should stop the timer", () => {
-        element.compose(new Timer(10));
-        element.update();
-        element.timer.stop();
-        element.update();
+        component.compose(new Timer({ duration: 10 }));
+        component.update();
+        component.timer.stop();
+        component.update();
 
-        expect(element.timer.value).toBe(9);
+        expect(component.timer.value).toBe(9);
     });
 
     it("should restart the timer", () => {
-        element.compose(new Timer(10));
-        element.update();
-        element.timer.restart();
+        component.compose(new Timer({ duration: 10 }));
+        component.update();
+        component.timer.reset();
 
-        expect(element.timer.value).toBe(10);
+        expect(component.timer.value).toBe(10);
     });
 
     it("should convert frames to ms", () => {
@@ -70,18 +72,18 @@ describe("Timer testing", () => {
     });
 
     it("should restart to initial value with recurrence", () => {
-        element.compose(new Timer(1, { recurrence: 1 }));
-        element.update();
+        component.compose(new Timer({ duration: 1, recurrence: 1 }));
+        component.update();
 
-        expect(element.timer.value).toBe(1);
+        expect(component.timer.value).toBe(1);
     });
 
     it("should reverse the tendance when there is recurrence and reversible", () => {
-        element.compose(new Timer(2, { recurrence: 1, reversible: true }));
-        element.update();
-        element.update();
-        element.update();
+        component.compose(new Timer({ duration: 2, recurrence: 1, reversible: true }));
+        component.update();
+        component.update();
+        component.update();
 
-        expect(element.timer.value).toBe(1);
+        expect(component.timer.value).toBe(1);
     });
 });

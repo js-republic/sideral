@@ -1,24 +1,35 @@
-import Element from "./Element";
+import Component from "./Component";
 import Scene from "./Scene";
 
 
-class Engine extends Element {
+class Engine extends Component {
 
     /* LIFECYCLE */
-    constructor () {
-        super();
+
+    /**
+     * @constructor
+     * @param {*} props: properties
+     */
+    constructor (props) {
+        super(props);
+
+        /**
+         * Width of the Engine
+         * @type {number}
+         */
+        this.width = this.width || 50;
+
+        /**
+         * Height of the Engine
+         * @type {number}
+         */
+        this.height = this.height || 50;
 
         /**
          * Global data to store
          * @type {{}}
          */
         this.storage = {};
-
-        /**
-         * List of scenes attached to engine
-         * @type {Array}
-         */
-        this.scenes = [];
 
         /**
          * Time since last update
@@ -56,28 +67,45 @@ class Engine extends Element {
          * @readonly
          */
         this.stopped = false;
+
+        // Auto initialization
+        this.initialize(null);
     }
 
     /**
-     * Update
-     * @returns {void}
+     * @override
      */
-    update () {
-        super.update();
+    initialize (parent) {
+        super.initialize(parent);
 
-        this.scenes.map(scene => scene.update());
+        // Observe width
+        this.observeProp("width", (previousValue, nextValue) => {
+            if (this.dom) {
+                this.dom.width = nextValue;
+            }
+
+            this.scenes.forEach(scene => scene.width = nextValue);
+        });
+
+        // Observe height
+        this.observeProp("height", (previousValue, nextValue) => {
+            if (this.dom) {
+                this.dom.height = nextValue;
+            }
+
+            this.scenes.forEach(scene => scene.height = nextValue);
+        });
     }
 
     /**
-     * Render
-     * @param {*=} context: canvas render (Engine has no context, it's only for overriding)
+     * Render scenes
      * @returns {void}
      */
-    render (context) {
-        super.render(context);
-
-        this.scenes.map(scene => scene.render(context));
+    render () {
+        this.scenes.forEach(scene => scene.render());
     }
+
+    /* METHODS */
 
     /**
      * Run the engine
@@ -98,7 +126,8 @@ class Engine extends Element {
         this.tick       = 1000 / (this.fps * 1000);
 
         this.update();
-        this.render(null);
+        this.render();
+        this.nextCycle();
 
         this.lastUpdate = window.performance.now();
     }
@@ -122,30 +151,24 @@ class Engine extends Element {
     }
 
     /**
-     * Attach a scene to current engine
-     * @param {*} scene: the scene to attach to the engine
-     * @returns {Engine} the current engine
+     * @override
+     * @param {Component} component: component
+     * @param {function=} next: function callback
+     * @returns {Component} current instance
      */
-    attachScene (scene) {
-        if (!scene || (scene && !(scene instanceof Scene))) {
-            throw new Error("Engine.attachScene : scene must be an instance of Scene.");
-        }
+    compose (component, next) {
+        super.compose(component, next);
 
-        scene.width(this.width());
-        scene.height(this.height());
+        if (component instanceof Scene) {
+            component.width  = this.width;
+            component.height = this.height;
 
-        this.scenes.push(scene);
-        scene.initialize();
-
-        if (this.dom && scene.isComposedOf("canvas")) {
-            scene.canvas.setParentDOM(this.dom);
+            if (this.dom && component.has("canvas")) {
+                component.canvas.setParentDOM(this.dom);
+            }
         }
 
         return this;
-    }
-
-    reorganizeCanvas () {
-
     }
 
     /**
@@ -168,7 +191,7 @@ class Engine extends Element {
         parentDOM.appendChild(this.dom);
 
         this.scenes.forEach((scene) => {
-            if (scene.isComposedOf("canvas")) {
+            if (scene.has("canvas")) {
                 scene.canvas.setParentDOM(this.dom);
             }
         });
@@ -176,53 +199,14 @@ class Engine extends Element {
         return this;
     }
 
-
     /* GETTERS & SETTERS */
 
-    /**
-     * The name of the engine
-     * @returns {string} the name
-     */
     get name () {
         return "engine";
     }
 
-    /**
-     * Get or set the width
-     * @param {number=} width: if exist, width will be setted
-     * @returns {number} the current width
-     */
-    width (width) {
-        if (typeof width !== "undefined") {
-            if (this.dom) {
-                this.dom.width = width;
-            }
-
-            this.scenes.forEach((scene) => {
-                scene.width(width);
-            });
-        }
-
-        return super.width(width);
-    }
-
-    /**
-     * Get or set the height
-     * @param {number=} height: if exist, height will be setted
-     * @returns {number} the current height
-     */
-    height (height) {
-        if (typeof height !== "undefined") {
-            if (this.dom) {
-                this.dom.height = height;
-            }
-
-            this.scenes.forEach((scene) => {
-                scene.height(height);
-            });
-        }
-
-        return super.height(height);
+    get scenes () {
+        return this.components.filter(x => x instanceof Scene);
     }
 }
 

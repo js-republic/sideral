@@ -7,41 +7,40 @@ export default class Timer extends Component {
     /* LIFECYCLE */
     /**
      * Timer constructor
-     * @param {number} duration: duration of the timer
-     * @param {*} options: options to be binded to timer
+     * @param {*} props: properties
      */
-    constructor (duration, options = {}) {
-        super();
+    constructor (props) {
+        super(props);
 
         /**
          * Duration of the timer
          * @type {number}
          */
-        this.duration = duration;
+        this.duration = this.duration || 0;
 
         /**
          * Number of time the timer must reset after complete
          * @type {number}
          */
-        this.recurrence = options.recurrence || 0;
+        this.recurrence = this.recurrence || 0;
 
         /**
          * If reversible, the timer will go t o it's initial value after complete
          * @type {boolean}
          */
-        this.reversible = options.reversible || false;
+        this.reversible = Boolean(this.reversible);
 
         /**
          * Event fired when initialize
          * @type {function}
          */
-        this.eventInit  = options.initialize;
+        this.eventInit  = this.eventInit || null;
 
         /**
          * Event fired when completed
          * @type {function}
          */
-        this.eventComplete = options.complete;
+        this.eventComplete = this.eventComplete || null;
 
         /**
          * Tendance value (used with reversible)
@@ -78,6 +77,18 @@ export default class Timer extends Component {
         if (this.eventInit) {
             this.eventInit();
         }
+    }
+
+    /**
+     * @override
+     */
+    reset () {
+        super.reset();
+
+        this.value      = this.duration;
+        this.tendance   = this.duration < 0 ? 1 : -1;
+        this.pause      = false;
+        this.finished   = false;
     }
 
     /**
@@ -131,17 +142,6 @@ export default class Timer extends Component {
         }
 
         this.finished = true;
-    }
-
-    /**
-     * Restart the timer with its default values
-     * @returns {void}
-     */
-    restart () {
-        this.value      = this.duration;
-        this.tendance   = this.duration < 0 ? 1 : -1;
-        this.pause      = false;
-        this.finished   = false;
     }
 
     /* GETTERS & SETTERS */
