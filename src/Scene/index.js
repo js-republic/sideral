@@ -50,6 +50,9 @@ export default class Scene extends ComponentViewable {
         this.observeProp("height", (previousValue, nextValue) => {
             this.canvas.height = nextValue;
         });
+
+        // Observe prop for scale and update it at next cycle
+        this.observeProp("scale");
     }
 
     /**
@@ -70,14 +73,21 @@ export default class Scene extends ComponentViewable {
     render (context) {
         context = this.canvas.context;
         super.render(context);
+
+        return context;
     }
 
     /**
      * @override
      */
     nextCycle () {
-        super.nextCycle();
+        this.hasChanged("scale", (previousValue, nextValue) => {
+            if (this.has("canvas")) {
+                this.canvas.context.scale(nextValue / previousValue, nextValue / previousValue);
+            }
+        });
 
+        super.nextCycle();
         this.requestRender = true;
     }
 

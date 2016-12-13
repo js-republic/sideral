@@ -15,12 +15,6 @@ export default class Component {
         this.id = Component.generateId();
 
         /**
-         * Previous properties that has changed during the cycle
-         * @type {{}}
-         */
-        this.previousProps = {};
-
-        /**
          * List of current components
          * @type {Array<Component>}
          */
@@ -38,6 +32,21 @@ export default class Component {
          * @type {boolean}
          */
         this.destroyed = true;
+
+        /**
+         * Props that are changed since the new cycle
+         * @readonly
+         * @type {{}}
+         */
+        this.previousProps = {};
+
+        /**
+         * Props Cached, do not modify
+         * @private
+         * @readonly
+         * @type {{}}
+         */
+        this._cachedProps = {};
 
         // Merge props
         this.setProps(props);
@@ -162,6 +171,22 @@ export default class Component {
     }
 
     /**
+     * Check if a prop has changed
+     * @param {string} prop: name of the property
+     * @param {function=} next: next function called if prop has changed
+     * @returns {*|boolean} the result
+     */
+    hasChanged (prop, next) {
+        const response = this.previousProps[prop] && this.previousProps[prop] !== this[prop];
+
+        if (response) {
+            next(this.previousProps[prop], this[prop]);
+        }
+
+        return response;
+    }
+
+    /**
      * Set/Add new properties to component
      * @param {Object} nextProps: next properties to merge
      * @returns {Component} the component
@@ -181,11 +206,11 @@ export default class Component {
     /**
      * Observe property
      * @param {string} prop: property name
-     * @param {function} setFunction: function observable when property is changed
+     * @param {function=} setFunction: function observable when property is changed
      * @returns {void}
      */
     observeProp (prop, setFunction) {
-        let value = this[prop];
+        this._cachedProps[prop] = this[prop];
 
         delete this[prop];
         if (this.prototype) {
@@ -194,15 +219,16 @@ export default class Component {
 
         Object.defineProperty(this, prop, {
             get () {
-                return value;
+                return this._cachedProps[prop];
             },
 
             set (nextValue) {
                 if (setFunction) {
-                    setFunction(value, nextValue);
+                    setFunction(this._cachedProps[prop], nextValue);
                 }
 
-                value = nextValue;
+                this.previousProps[prop]    = this._cachedProps[prop];
+                this._cachedProps[prop]     = nextValue;
             },
 
             configurable: true

@@ -65,7 +65,7 @@ export default class ComponentViewable extends Component {
         }
 
         this.components.forEach((component) => {
-            if (component instanceof ComponentViewable) {
+            if (component.render) {
                 component.render(context);
             }
         });
@@ -99,8 +99,8 @@ export default class ComponentViewable extends Component {
 
         props.forEach((prop) => {
             this.observeProp(prop, (previousValue) => {
-                this.previousProps[prop]    = previousValue;
-                this.requestRender          = true;
+                this.previousProps[prop] = previousValue;
+                this.requestRender = true;
             });
         });
     }
