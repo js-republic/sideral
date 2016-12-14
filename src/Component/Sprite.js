@@ -65,7 +65,9 @@ export default class Sprite extends Component {
         }
 
         this.bitmap.load(this.path, () => {
-            this.parent.requestRender = true;
+            if (this.parent) {
+                this.parent.requestRender = true;
+            }
         });
     }
 
@@ -173,7 +175,9 @@ export default class Sprite extends Component {
             this.animation.time     = 0;
         }
 
-        this.parent.requestRender = true;
+        if (this.parent) {
+            this.parent.requestRender = true;
+        }
 
         return this;
     }
