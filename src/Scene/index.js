@@ -31,6 +31,12 @@ export default class Scene extends ComponentViewable {
          * @type {{x: number, y: number, follow: Entity|null}}
          */
         this.camera = {x: 0, y: 0, follow: null};
+
+        /**
+         * List of componentViewable needing to be render
+         * @type {{}}
+         */
+        this.renderRequested = {};
     }
 
     /**
@@ -72,7 +78,13 @@ export default class Scene extends ComponentViewable {
      */
     render (context) {
         context = this.canvas.context;
-        super.render(context);
+
+        this.components.forEach((component) => {
+            if (this.renderRequested[component.id] && component.render) {
+                component.render(context);
+                delete this.renderRequested[component.id];
+            }
+        });
 
         return context;
     }
@@ -88,7 +100,6 @@ export default class Scene extends ComponentViewable {
         });
 
         super.nextCycle();
-        this.requestRender = true;
     }
 
     /* METHODS */
@@ -100,7 +111,8 @@ export default class Scene extends ComponentViewable {
         super.compose(component, next);
 
         if (component instanceof Entity) {
-            component.scene = this;
+            component.scene                     = this;
+            this.renderRequested[component.id]  = true;
         }
 
         return this;

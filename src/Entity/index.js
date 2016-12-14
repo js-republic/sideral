@@ -86,14 +86,19 @@ export default class Entity extends ComponentViewable {
     }
 
     render (context) {
-        if (this.requestRender) {
-            context.clearRect((this.previousProps.x || this.x) - 1, (this.previousProps.y || this.y) - 1, (this.previousProps.width || this.width) + 2, (this.previousProps.height || this.height) + 2);
-        }
+        context.clearRect((this.previousProps.x || this.x) - 1, (this.previousProps.y || this.y) - 1, (this.previousProps.width || this.width) + 2, (this.previousProps.height || this.height) + 2);
 
         super.render(context);
     }
 
     /* METHODS */
+
+    /**
+     * @override
+     */
+    getScene () {
+        return this.scene;
+    }
 
     /**
      * Get distance between this entity and an other

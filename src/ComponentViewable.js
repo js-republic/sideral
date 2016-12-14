@@ -42,12 +42,6 @@ export default class ComponentViewable extends Component {
          */
         this.debug = this.debug || false;
 
-        /**
-         * Set at true when component need to be render
-         * @type {boolean}
-         */
-        this.requestRender = true;
-
         // Observe default props for rendering
         this.observeRenderingProps(["x", "y", "width", "height"]);
     }
@@ -59,10 +53,6 @@ export default class ComponentViewable extends Component {
      * @returns {void|null} null
      */
     render (context) {
-        if (!this.requestRender) {
-            return null;
-        }
-
         this.components.forEach((component) => {
             if (component.render) {
                 component.render(context);
@@ -76,12 +66,35 @@ export default class ComponentViewable extends Component {
     }
 
     /**
-     * @override
+     * Get the parent scene
+     * @returns {Scene} scene of the component
      */
-    nextCycle () {
-        super.nextCycle();
+    getScene () {
+        const recursive = (component) => {
+            if (!component.parent) {
+                return null;
+            }
 
-        this.requestRender = false;
+            if (component.has("canvas") && component.camera) {
+                return component.parent;
+            }
+
+            return recursive(component.parent);
+        };
+
+        return recursive(this);
+    }
+
+    /**
+     * Call the parent scene to request a new render
+     * @returns {void}
+     */
+    requestRender () {
+        const scene = this.getScene();
+
+        if (scene) {
+            scene.requestRender[this.id] = true;
+        }
     }
 
     /* METHODS */
@@ -99,7 +112,7 @@ export default class ComponentViewable extends Component {
         props.forEach((prop) => {
             this.observeProp(prop, (previousValue) => {
                 this.previousProps[prop] = previousValue;
-                this.requestRender = true;
+                this.requestRender();
             });
         });
     }

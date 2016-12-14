@@ -66,7 +66,7 @@ export default class Sprite extends Component {
 
         this.bitmap.load(this.path, () => {
             if (this.parent) {
-                this.parent.requestRender = true;
+                this.parent.requestRender();
             }
         });
     }
@@ -85,7 +85,7 @@ export default class Sprite extends Component {
 
         if (this.animation.time >= this.animation.fraction) {
             if (this.parent) {
-                this.parent.requestRender = true;
+                this.parent.requestRender();
             }
 
             this.animation.time = 0;
@@ -176,7 +176,7 @@ export default class Sprite extends Component {
         }
 
         if (this.parent) {
-            this.parent.requestRender = true;
+            this.parent.requestRender();
         }
 
         return this;
