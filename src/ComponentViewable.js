@@ -44,7 +44,6 @@ export default class ComponentViewable extends Component {
 
         /**
          * Set at true when component need to be render
-         * @readonly
          * @type {boolean}
          */
         this.requestRender = true;
@@ -65,7 +64,7 @@ export default class ComponentViewable extends Component {
         }
 
         this.components.forEach((component) => {
-            if (component instanceof ComponentViewable) {
+            if (component.render) {
                 component.render(context);
             }
         });
@@ -99,8 +98,8 @@ export default class ComponentViewable extends Component {
 
         props.forEach((prop) => {
             this.observeProp(prop, (previousValue) => {
-                this.previousProps[prop]    = previousValue;
-                this.requestRender          = true;
+                this.previousProps[prop] = previousValue;
+                this.requestRender = true;
             });
         });
     }

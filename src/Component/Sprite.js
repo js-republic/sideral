@@ -64,7 +64,11 @@ export default class Sprite extends Component {
             this.bitmap.tilesize = {width: this.width || 0, height: this.height || 0};
         }
 
-        this.bitmap.load(this.path);
+        this.bitmap.load(this.path, () => {
+            if (this.parent) {
+                this.parent.requestRender = true;
+            }
+        });
     }
 
     /**
@@ -102,9 +106,7 @@ export default class Sprite extends Component {
      * @returns {void|null} void
      */
     render (context) {
-        super.render(context);
-
-        if (!this.bitmap.loaded || !this.composedBy || (this.composedBy && !this.composedBy.scene)) {
+        if (!this.bitmap.loaded || !this.parent || (this.parent && !this.parent.scene)) {
             return null;
         }
 
@@ -120,7 +122,7 @@ export default class Sprite extends Component {
         this.bitmap.flip       = this.flip;
         this.bitmap.opacity    = this.opacity;
         this.bitmap.rotation   = this.rotation;
-        this.bitmap.render(context, this.composedBy.x() - offset.x - this.composedBy.scene.camera.x, this.composedBy.y() - offset.y - this.composedBy.scene.camera.y, this.animation ? this.animation.frames[this.animation.frame] : 0);
+        this.bitmap.render(context, this.parent.x - offset.x - this.parent.scene.camera.x, this.parent.y - offset.y - this.parent.scene.camera.y, this.animation ? this.animation.frames[this.animation.frame] : 0);
     }
 
     /* METHODS */
@@ -171,6 +173,10 @@ export default class Sprite extends Component {
             this.animation.loop     = 0;
             this.animation.frame    = 0;
             this.animation.time     = 0;
+        }
+
+        if (this.parent) {
+            this.parent.requestRender = true;
         }
 
         return this;
