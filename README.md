@@ -1,7 +1,6 @@
-[![Stories in Ready](https://badge.waffle.io/js-republic/sideral.png?label=ready&title=Ready)](https://waffle.io/js-republic/sideral)
 # Sideral JS
 
-[![Build Status](https://travis-ci.org/js-republic/sideral.svg?branch=master)](https://travis-ci.org/js-republic/sideral) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badge/) [![License: GPL v3](https://img.shields.io/badge/license-GPL--V3-blue.svg)](https://www.gnu.org/licenses/quick-guide-gplv3.fr.html) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
+[![Stories in Ready](https://badge.waffle.io/js-republic/sideral.png?label=ready&title=Ready)](https://waffle.io/js-republic/sideral) [![Build Status](https://travis-ci.org/js-republic/sideral.svg?branch=master)](https://travis-ci.org/js-republic/sideral) [![Open Source Love](https://badges.frapsoft.com/os/v2/open-source.png?v=103)](https://github.com/ellerbrock/open-source-badge/) [![License: GPL v3](https://img.shields.io/badge/license-GPL--V3-blue.svg)](https://www.gnu.org/licenses/quick-guide-gplv3.fr.html) [![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg)](http://commitizen.github.io/cz-cli/)
 
 :rocket::construction: Project in construction :construction::rocket:
 
