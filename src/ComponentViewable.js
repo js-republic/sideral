@@ -93,7 +93,7 @@ export default class ComponentViewable extends Component {
         const scene = this.getScene();
 
         if (scene) {
-            scene.requestRender[this.id] = true;
+            scene.renderRequested[this.id] = true;
         }
     }
 

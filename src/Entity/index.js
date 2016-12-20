@@ -75,18 +75,20 @@ export default class Entity extends ComponentViewable {
 
         if (this.direction.x) {
             this.velocity.x = this.speed.x * this.direction.x * Engine.tick;
-            this.x += this.velocity.x;
+            this.x += Math.round(this.velocity.x);
         }
 
         this.velocity.y = this.scene && this.scene.gravity && this.gravityFactor ? this.scene.gravity * this.gravityFactor * Engine.tick : 0;
         if (this.velocity.y || this.direction.y) {
             this.velocity.y += this.speed.y * this.direction.y * Engine.tick;
-            this.y += this.velocity.y;
+            this.y += Math.round(this.velocity.y);
         }
     }
 
     render (context) {
-        context.clearRect((this.previousProps.x || this.x) - 1, (this.previousProps.y || this.y) - 1, (this.previousProps.width || this.width) + 2, (this.previousProps.height || this.height) + 2);
+        const linewidth = context.lineWidth;
+
+        context.clearRect((this.previousProps.x || this.x) - linewidth, (this.previousProps.y || this.y) - linewidth, (this.previousProps.width || this.width) + (linewidth * 2), (this.previousProps.height || this.height) + (linewidth * 2));
 
         super.render(context);
     }

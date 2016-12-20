@@ -108,14 +108,12 @@ export default class Scene extends ComponentViewable {
      * @override
      */
     compose (component, next) {
-        super.compose(component, next);
-
-        if (component instanceof Entity) {
+        if (component && component instanceof Entity) {
             component.scene                     = this;
             this.renderRequested[component.id]  = true;
         }
 
-        return this;
+        return super.compose(component, next);
     }
 
     /* GETTERS & SETTERS */
