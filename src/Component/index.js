@@ -109,7 +109,7 @@ export default class Component {
 
     /**
      * Attach a component
-     * @param {Component} component: component to be attached
+     * @param {Component|*} component: component to be attached
      * @param {function=} next: function with the component attached in parameter
      * @returns {Component} current instance
      */

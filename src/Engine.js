@@ -68,6 +68,13 @@ class Engine extends Component {
          */
         this.stopped = false;
 
+        /**
+         * Canvas as a layer
+         * @readonly
+         * @type {{}}
+         */
+        this.layers = {};
+
         // Auto initialization
         this.initialize(null);
     }
@@ -81,7 +88,7 @@ class Engine extends Component {
         // Observe width
         this.observeProp("width", (previousValue, nextValue) => {
             if (this.dom) {
-                this.dom.width = nextValue;
+                this.dom.style.width    = `${nextValue}px`;
             }
 
             this.scenes.forEach(scene => scene.width = nextValue);
@@ -90,7 +97,7 @@ class Engine extends Component {
         // Observe height
         this.observeProp("height", (previousValue, nextValue) => {
             if (this.dom) {
-                this.dom.height = nextValue;
+                this.dom.style.height   = `${nextValue}px`;
             }
 
             this.scenes.forEach(scene => scene.height = nextValue);
@@ -129,6 +136,12 @@ class Engine extends Component {
         this.render();
         this.nextCycle();
 
+        if (this.debug && !this.debugtimer) {
+            this.debug.innerHTML = `FPS: ${this.fps}`;
+            this.debugtimer = 60;
+        }
+
+        this.debugtimer--;
         this.lastUpdate = window.performance.now();
     }
 
@@ -151,24 +164,75 @@ class Engine extends Component {
     }
 
     /**
+     * Add a new canvas as a layer
+     * @param {Component} canvas: Canvas component
+     * @param {number} position: position of the canvas
+     * @returns {void}
+     */
+    createLayer (canvas, position = 0) {
+        const keys = Object.keys(this.layers),
+            getKey = (key) => {
+                return keys.find(x => x === key) ? getKey(key + 1) : key;
+            };
+
+        if (canvas && canvas.dom) {
+            const key = getKey(position);
+
+            canvas.setParentDOM(this.dom);
+            this.layers[key] = canvas;
+            this.sortLayers();
+        }
+    }
+
+    /**
+     * Sort all layers by their position on the table
+     * @returns {void}
+     */
+    sortLayers () {
+        const keys      = Object.keys(this.layers);
+        let position    = 0;
+
+        keys.sort().forEach((key) => {
+            const layer = this.layers[key];
+
+            if (!layer.dom) {
+                return null;
+            }
+
+            if (position) {
+                layer.dom.style.position = "absolute";
+                layer.dom.style.top     = 0;
+                layer.dom.style.left    = 0;
+                layer.dom.style.zIndex  = position;
+            } else {
+                layer.dom.style.position = "static";
+            }
+
+            position++;
+        });
+    }
+
+    /**
      * @override
      * @param {Component} component: component
      * @param {function=} next: function callback
      * @returns {Component} current instance
      */
     compose (component, next) {
-        super.compose(component, next);
-
         if (component instanceof Scene) {
             component.width  = this.width;
             component.height = this.height;
 
+            super.compose(component, next);
+
             if (this.dom && component.has("canvas")) {
-                component.canvas.setParentDOM(this.dom);
+                this.createLayer(component.canvas);
             }
+
+            return this;
         }
 
-        return this;
+        return super.compose(component, next);
     }
 
     /**
@@ -184,8 +248,18 @@ class Engine extends Component {
         if (!this.dom) {
             this.dom                = document.createElement("div");
             this.dom.id             = this.id;
+            this.dom.style.width    = `${this.width}px`;
+            this.dom.style.height   = `${this.height}px`;
             this.dom.className      = "sideral-engine";
             this.dom.style.position = "relative";
+            this.dom.style.overflow = "hidden";
+            this.dom.style.margin   = "10px auto";
+
+            const debug = document.createElement("div");
+
+            debug.id = "debug";
+            parentDOM.appendChild(debug);
+            this.debug = debug;
         }
 
         parentDOM.appendChild(this.dom);
@@ -195,6 +269,8 @@ class Engine extends Component {
                 scene.canvas.setParentDOM(this.dom);
             }
         });
+
+        this.sortLayers();
 
         return this;
     }

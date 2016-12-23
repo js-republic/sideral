@@ -42,7 +42,7 @@ describe("engine testing", () => {
         Engine.width = 100;
 
         expect(Engine.width).toBe(100);
-        expect(Engine.dom.width).toBe(100);
+        expect(Engine.dom.style.width).toBe("100px");
     });
 
     it("should resize dom height", () => {
@@ -50,7 +50,7 @@ describe("engine testing", () => {
         Engine.height = 100;
 
         expect(Engine.height).toBe(100);
-        expect(Engine.dom.height).toBe(100);
+        expect(Engine.dom.style.height).toBe("100px");
     });
 
     it("should run", () => {
