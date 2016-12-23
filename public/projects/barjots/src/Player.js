@@ -32,7 +32,7 @@ export default class Player extends Entity {
         if (this.has("sprite")) {
             this.sprite.offset = {x: 17, y: 34};
             this.sprite.addAnimation("idle", 0, [143]).
-                addAnimation("move_up", 5, [104, 105, 106, 107, 108, 109, 110, 111, 1112]).
+                addAnimation("move_up", 5, [104, 105, 106, 107, 108, 109, 110, 111, 112]).
                 addAnimation("move_down", 5, [130, 131, 132, 133, 134, 135, 136, 137, 138]).
                 addAnimation("move_left", 5, [117, 118, 119, 120, 121, 122, 123, 124, 125]).
                 addAnimation("move_right", 5, [143, 144, 145, 146, 147, 148, 149, 150, 151]);

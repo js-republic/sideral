@@ -87,6 +87,13 @@ export default class Tilemap extends Component {
         this.canvas.clear();
 
         Engine.createLayer(this.canvas, -1);
+
+        this.observeProp("camera", (previousValue, nextValue) => {
+            if (this.has("canvas")) {
+                this.canvas.dom.style.marginLeft  = `${-nextValue.x}px`;
+                this.canvas.dom.style.marginTop = `${-nextValue.y}px`;
+            }
+        });
     }
 
     /**
@@ -102,8 +109,7 @@ export default class Tilemap extends Component {
         }
 
         if (this.camera.x !== this.parent.camera.x || this.camera.y !== this.parent.camera.y) {
-            this.camera.x = this.parent.camera.x;
-            this.camera.y = this.parent.camera.y;
+            this.camera = {x: this.parent.camera.x, y: this.parent.camera.y};
 
         }
     }

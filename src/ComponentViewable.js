@@ -36,12 +36,6 @@ export default class ComponentViewable extends Component {
          */
         this.height = this.height || 10;
 
-        /**
-         * If debug mode, it will show the box on canvas
-         * @type {boolean}
-         */
-        this.debug = this.debug || false;
-
         // Observe default props for rendering
         this.observeRenderingProps(["x", "y", "width", "height"]);
     }
@@ -58,11 +52,6 @@ export default class ComponentViewable extends Component {
                 component.render(context);
             }
         });
-
-        if (this.debug) {
-            context.strokeStyle = "red";
-            context.strokeRect(this.x, this.y, this.width, this.height);
-        }
     }
 
     /**

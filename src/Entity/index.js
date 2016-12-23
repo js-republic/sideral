@@ -45,6 +45,12 @@ export default class Entity extends ComponentViewable {
         this.gravityFactor = this.gravityFactor || 1;
 
         /**
+         * If debug mode, it will show the box on canvas
+         * @type {boolean}
+         */
+        this.debug = this.debug || false;
+
+        /**
          * Reference to the current scene
          * @readonly
          * @type {*}
@@ -91,6 +97,13 @@ export default class Entity extends ComponentViewable {
         context.clearRect((this.previousProps.x || this.x) - linewidth, (this.previousProps.y || this.y) - linewidth, (this.previousProps.width || this.width) + (linewidth * 2), (this.previousProps.height || this.height) + (linewidth * 2));
 
         super.render(context);
+
+        if (this.debug) {
+            const camera        = this.scene ? this.scene.camera : {x: 0, y: 0};
+
+            context.strokeStyle = "red";
+            context.strokeRect(this.x - camera.x, this.y - camera.y, this.width, this.height);
+        }
     }
 
     /* METHODS */
