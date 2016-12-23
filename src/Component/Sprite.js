@@ -66,7 +66,7 @@ export default class Sprite extends Component {
 
         this.bitmap.load(this.path, () => {
             if (this.parent) {
-                this.parent.requestRender = true;
+                this.parent.requestRender();
             }
         });
     }
@@ -85,7 +85,7 @@ export default class Sprite extends Component {
 
         if (this.animation.time >= this.animation.fraction) {
             if (this.parent) {
-                this.parent.requestRender = true;
+                this.parent.requestRender();
             }
 
             this.animation.time = 0;
@@ -118,6 +118,10 @@ export default class Sprite extends Component {
         } else if (this.offset) {
             offset = this.offset.flip ? {x: this.flip.x ? -this.offset.x : this.offset.x, y: this.flip.y ? -this.offset.y : this.offset.y} : this.offset;
         }
+
+        context.clearRect((this.parent.previousProps.x || this.parent.x) - offset.x - this.parent.scene.camera.x,
+            (this.parent.previousProps.y || this.parent.y) - offset.y - this.parent.scene.camera.y,
+            this.width, this.height);
 
         this.bitmap.flip       = this.flip;
         this.bitmap.opacity    = this.opacity;
@@ -176,7 +180,7 @@ export default class Sprite extends Component {
         }
 
         if (this.parent) {
-            this.parent.requestRender = true;
+            this.parent.requestRender();
         }
 
         return this;

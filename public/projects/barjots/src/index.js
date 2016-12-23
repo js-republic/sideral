@@ -1,16 +1,16 @@
 import Engine from "src/Engine";
 import Keyboard from "src/Component/Keyboard";
 
-import SceneGame from "./SceneGame";
+import SceneArena from "./scenes/Arena";
 
 
 Engine.attachDOM(document.getElementById("sideral-app"));
 
 Engine.setProps({
-    width : 500,
-    height: 200
+    width : 608,
+    height: 336
 });
 
-Engine.compose(new Keyboard()).compose(new SceneGame());
+Engine.compose(new Keyboard()).compose(new SceneArena());
 
 Engine.run();
