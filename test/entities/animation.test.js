@@ -30,6 +30,7 @@ describe("Animation ", () => {
         scene.compose(entity).compose(animation);
         animation.follow = entity;
         scene.update();
+
         expect(animation.x).toBe(10);
     });
 });
