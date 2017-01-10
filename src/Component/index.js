@@ -4,58 +4,55 @@ export default class Component {
 
     /**
      * @constructor
-     * @param {Object=} props: properties
+     * @param {{}=} props: properties to merge
      */
-    constructor (props = {}) {
+    constructor (props) {
 
         /**
-         * Unique Id of the component
+         * Unique Id for the Comonent
          * @type {string}
          */
         this.id = Component.generateId();
 
         /**
-         * List of current components
+         * List of all components children
          * @type {Array<Component>}
          */
-        this.components = [];
+        this.children = [];
 
         /**
-         * Parent which attach this component
-         * @type {Component|null}
+         * Parent component
+         * @type {Component}
          */
         this.parent = null;
 
         /**
-         * Property to know if this component is destroyed and don't be usable until it has been trashed by Garbage Collector
-         * @readonly
+         * Check if this component must be collected by garbage
          * @type {boolean}
          */
-        this.destroyed = true;
+        this.destroyed = false;
 
         /**
-         * Props that are changed since the new cycle
+         * All reactive props that has been evolued
          * @readonly
          * @type {{}}
          */
-        this.previousProps = {};
+        this.previousProps  = {};
 
         /**
-         * Props Cached, do not modify
-         * @private
+         * Reactive props
          * @readonly
          * @type {{}}
          */
-        this._cachedProps = {};
+        this.props          = {};
 
         // Merge props
-        this.setProps(props);
+        this.set(props);
     }
 
     /**
-     * Called when attached to an other component
-     * @initialize
-     * @param {Component=} parent: Component parent owner
+     * Called by the parent
+     * @param {Component} parent: the parent
      * @returns {void}
      */
     initialize (parent) {
@@ -63,135 +60,27 @@ export default class Component {
     }
 
     /**
-     * Destroy a component
-     * @destroy
+     * Update lifecycle
      * @returns {void}
-     */
-    destroy () {
-        if (this.parent) {
-            this.parent.decompose(this);
-        }
-
-        this.destroyed = true;
-    }
-
-    /**
-     * Update a component
-     * @update
-     * @returns {void|null} null
      */
     update () {
-        this.components.forEach(component => component.update());
+
     }
 
     /**
-     * Begin a new cycle
-     * @nextCycle
+     * Render lifecycle
      * @returns {void}
      */
-    nextCycle () {
-        this.previousProps = {};
-
-        this.components.forEach(component => component.nextCycle());
-    }
-
-    /**
-     * Reset this component to its initial state
-     * @reset
-     * @returns {void}
-     */
-    reset () {
-        this.nextCycle();
-        this.destroyed = false;
-    }
+    render () { }
 
     /* METHODS */
 
     /**
-     * Attach a component
-     * @param {Component|*} component: component to be attached
-     * @param {function=} next: function with the component attached in parameter
-     * @returns {Component} current instance
-     */
-    compose (component, next) {
-        if (!component || !(component instanceof Component)) {
-            throw new Error("Component.compose : parameter 1 must be an instance of Component.");
-        }
-
-        const name = component.name;
-
-        this.components.push(component);
-        component.initialize(this);
-
-        if (this.prototype) {
-            delete this.prototype[name];
-        }
-
-        Object.defineProperty(this, name, {
-            value       : component,
-            writable    : false,
-            configurable: true
-        });
-
-        if (next) {
-            next(component);
-        }
-
-        return this;
-    }
-
-    /**
-     * Decompose a component
-     * @param {Component} component: The component to be decomposed
-     * @returns {Component} current instance
-     */
-    decompose (component) {
-        if (!component || !(component instanceof Component)) {
-            throw new Error("Component.decompose : parameter 1 must be an instance of Component.");
-        }
-
-        const name = component.name;
-
-        component.destroyed = true;
-        if (this.prototype) {
-            delete this.prototype[name];
-        }
-        this.components = this.components.filter(x => x.name !== name);
-
-        return this;
-    }
-
-    /**
-     * Know if the component has component attached by his name
-     * @param {string} componentName: Name of the component
-     * @returns {boolean} result of the check
-     */
-    has (componentName) {
-        return Boolean(this[componentName]);
-    }
-
-    /**
-     * Check if a prop has changed
-     * @param {string} prop: name of the property
-     * @param {function=} next: next function called if prop has changed
-     * @returns {*|boolean} the result
-     */
-    hasChanged (prop, next) {
-        const response = this.previousProps[prop] && this.previousProps[prop] !== this[prop];
-
-        if (response) {
-            next(this.previousProps[prop], this[prop]);
-        }
-
-        return response;
-    }
-
-    /**
      * Set/Add new properties to component
      * @param {Object} nextProps: next properties to merge
-     * @returns {Component} the component
+     * @returns {Component} the current component
      */
-    setProps (nextProps = {}) {
+    set (nextProps = {}) {
         const clonedProps = Object.assign({}, nextProps);
 
         for (const key in clonedProps) {
@@ -204,31 +93,65 @@ export default class Component {
     }
 
     /**
-     * Observe property
+     * Compose a component and set it has a children of the current Component
+     * @param {Component} component: child
+     * @param {*=} next: function callback
+     * @returns {Component} current Component
+     */
+    compose (component, next) {
+        if (!component || !(component instanceof Component)) {
+            throw new Error("Component.compose : parameter 1 must be an instance of 'Component'.");
+        }
+
+        const name = component.name;
+
+        this.children.push(component);
+        component.initialize(this);
+
+        if (this.prototype) {
+            delete this.prototype[name];
+        }
+
+        Object.defineProperty(this, name, {
+            value           : component,
+            writable        : false,
+            configurable    : true
+        });
+
+        if (next) {
+            next(component);
+        }
+
+        return this;
+    }
+
+    /**
+     * Set a property as a reactive property
      * @param {string} prop: property name
-     * @param {function=} setFunction: function observable when property is changed
+     * @param {function=} callback: function fire when property is changed
      * @returns {void}
      */
-    observeProp (prop, setFunction) {
-        this._cachedProps[prop] = this[prop];
+    reactiveProp (prop, callback) {
+        this.props[prop] = this[prop];
 
         delete this[prop];
+
         if (this.prototype) {
             delete this.prototype[prop];
         }
 
         Object.defineProperty(this, prop, {
             get () {
-                return this._cachedProps[prop];
+                return this.props[prop];
             },
 
             set (nextValue) {
-                if (setFunction) {
-                    setFunction(this._cachedProps[prop], nextValue);
-                }
+                this.previousProps[prop]    = this.props[prop];
+                this.props[prop]            = nextValue;
 
-                this.previousProps[prop]    = this._cachedProps[prop];
-                this._cachedProps[prop]     = nextValue;
+                if (callback) {
+                    callback(this.previousProps[prop], this.props[prop]);
+                }
             },
 
             configurable: true
@@ -237,10 +160,6 @@ export default class Component {
 
     /* GETTERS & SETTERS */
 
-    /**
-     * Name identifier
-     * @returns {string} the name
-     */
     get name () {
         return "component";
     }

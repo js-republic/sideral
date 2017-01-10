@@ -30,7 +30,8 @@
   "babel": {
     "presets": [
       "es2015",
-      "react"
+      "react",
+      "stage-2"
     ]
   },
   "bugs": {
@@ -62,6 +63,8 @@
   },
   "dependencies": {
     "axios": "^0.15.3",
+    "babel-eslint": "6",
+    "babel-preset-stage-2": "^6.18.0",
     "body-parser": "^1.15.2",
     "compression": "^1.6.2",
     "cookie-parser": "^1.4.3",
@@ -73,6 +76,7 @@
     "morgan": "^1.7.0",
     "ncp": "^2.0.0",
     "path": "^0.12.7",
+    "pixi": "^0.3.1",
     "pug": "^2.0.0-beta6",
     "react": "^15.4.1",
     "react-addons-css-transition-group": "^15.4.1",
