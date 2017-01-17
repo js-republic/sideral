@@ -1,5 +1,7 @@
+import PIXI from "pixi.js";
+
 import Component from "./Component";
-import PIXI from "pixi";
+import Scene from "./Scene";
 
 
 class Engine extends Component {
@@ -14,18 +16,6 @@ class Engine extends Component {
         super(props);
 
         /**
-         * Pixi container
-         * @type {*}
-         */
-        this.stage      = null;
-
-        /**
-         * Pixi renderer
-         * @type {*}
-         */
-        this.renderer   = null;
-
-        /**
          * Width of the engine
          * @type {number}
          */
@@ -38,16 +28,19 @@ class Engine extends Component {
         this.height     = 0;
 
         /**
-         * Set the engine at full screen
-         * @type {boolean}
-         */
-        this.fullScreen = false;
-
-        /**
          * Global data to store
          * @type {{}}
          */
         this.storage    = {};
+
+        // read-only
+
+        /**
+         * Pixi renderer
+         * @readonly
+         * @type {*}
+         */
+        this.renderer   = null;
 
         /**
          * Dom element to render the engine
@@ -99,27 +92,17 @@ class Engine extends Component {
         this.layers     = {};
 
         // Auto-initialization
-        this.initialize(null);
+        this.initialize();
     }
 
-    initialize (parent) {
-        super.initialize(parent);
-
-        this.reactiveProp("fullScreen", (previousValue, nextValue) => {
-            if (!previousValue && nextValue) {
-                this.renderer.view.style.position   = "absolute";
-                this.renderer.view.style.display    = "block";
-                this.resize();
-
-            } else if (previousValue && !nextValue) {
-                this.renderer.view.style.position   = "";
-                this.renderer.view.style.display    = "";
-                this.resize();
-
-            }
-        });
-
-        this.reactiveProp("width", () => this._resize());
+    /**
+     * @override
+     */
+    setReactivity () {
+        this.reactivity.
+            when("width").change(this._resize.bind(this)).
+            when("height").change(this._resize.bind(this)).
+            start();
     }
 
     /**
@@ -142,7 +125,9 @@ class Engine extends Component {
         this.tick       = 1000 / (this.fps * 1000);
 
         super.update();
-        this.render();
+
+        // Render all scenes
+        this.children.filter(x => x instanceof Scene).forEach(scene => this.renderer.render(scene.stage));
 
         this.lastUpdate = window.performance.now();
     }
@@ -158,9 +143,11 @@ class Engine extends Component {
             throw new Error("Engine.start", "You must set 'width', 'height' and a 'dom' container");
         }
 
+        console.log(PIXI);
         this.renderer   = PIXI.autoDetectRenderer(this.width, this.height);
         this.dom.appendChild(this.renderer.view);
 
+        this._resize();
         this.restart();
     }
 

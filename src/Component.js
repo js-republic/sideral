@@ -1,12 +1,20 @@
+import Reactivity from "./Reactivity";
+
+
 export default class Component {
 
     /* LIFECYCLE */
 
     /**
      * @constructor
-     * @param {{}=} props: properties to merge
      */
-    constructor (props) {
+    constructor () {
+
+        /**
+         * Define a flux of reactivity between attributes
+         * @type {Reactivity}
+         */
+        this.reactivity = new Reactivity(this);
 
         /**
          * Unique Id for the Comonent
@@ -33,30 +41,28 @@ export default class Component {
         this.destroyed = false;
 
         /**
-         * All reactive props that has been evolued
-         * @readonly
-         * @type {{}}
+         * If true, the component can be render into the current parent scene
+         * @type {boolean}
          */
-        this.previousProps  = {};
+        this.viewable   = false;
 
-        /**
-         * Reactive props
-         * @readonly
-         * @type {{}}
-         */
-        this.props          = {};
-
-        // Merge props
-        this.set(props);
+        // Add all reactivity logic here
+        this.setReactivity();
     }
 
     /**
-     * Called by the parent
-     * @param {Component} parent: the parent
+     * Instance all your reactive props here
      * @returns {void}
      */
-    initialize (parent) {
-        this.parent = parent;
+    setReactivity () { }
+
+    /**
+     * Called when all parent components are initialized
+     * @param {{}=} props: properties to merge
+     * @returns {void}
+     */
+    initialize (props) {
+        this.set(props);
     }
 
     /**
@@ -64,14 +70,16 @@ export default class Component {
      * @returns {void}
      */
     update () {
-
+        this.children.forEach(child => child.update());
     }
 
     /**
      * Render lifecycle
      * @returns {void}
      */
-    render () { }
+    render () {
+        this.children.forEach(child => child.render());
+    }
 
     /* METHODS */
 
@@ -95,10 +103,11 @@ export default class Component {
     /**
      * Compose a component and set it has a children of the current Component
      * @param {Component} component: child
+     * @param {{}=} injectProps: props to inject after parent created
      * @param {*=} next: function callback
      * @returns {Component} current Component
      */
-    compose (component, next) {
+    compose (component, injectProps = {}, next = null) {
         if (!component || !(component instanceof Component)) {
             throw new Error("Component.compose : parameter 1 must be an instance of 'Component'.");
         }
@@ -106,7 +115,8 @@ export default class Component {
         const name = component.name;
 
         this.children.push(component);
-        component.initialize(this);
+        component.parent = this;
+        component.initialize(injectProps);
 
         if (this.prototype) {
             delete this.prototype[name];
@@ -123,39 +133,6 @@ export default class Component {
         }
 
         return this;
-    }
-
-    /**
-     * Set a property as a reactive property
-     * @param {string} prop: property name
-     * @param {function=} callback: function fire when property is changed
-     * @returns {void}
-     */
-    reactiveProp (prop, callback) {
-        this.props[prop] = this[prop];
-
-        delete this[prop];
-
-        if (this.prototype) {
-            delete this.prototype[prop];
-        }
-
-        Object.defineProperty(this, prop, {
-            get () {
-                return this.props[prop];
-            },
-
-            set (nextValue) {
-                this.previousProps[prop]    = this.props[prop];
-                this.props[prop]            = nextValue;
-
-                if (callback) {
-                    callback(this.previousProps[prop], this.props[prop]);
-                }
-            },
-
-            configurable: true
-        });
     }
 
     /* GETTERS & SETTERS */

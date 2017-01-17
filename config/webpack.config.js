@@ -32,6 +32,13 @@ module.exports = {
             query: {
                 presets: ["es2015", "react"]
             }
-        }]
+        }],
+
+        postLoaders: [
+            {
+                include: path.resolve(__dirname, "../node_modules/pixi.js"),
+                loader: "ify"
+            }
+        ]
     }
 };

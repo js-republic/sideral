@@ -1,45 +1,59 @@
-import PIXI from "pixi";
+import PIXI from "pixi.js";
 
-import ComponentViewable from "./Component/Viewable";
+import Engine from "./Engine";
+import Component from "./Component";
 
 
-export default class Scene extends ComponentViewable {
+export default class Scene extends Component {
 
     /* LIFECYCLE */
 
-    /**
-     * @constructor
-     * @param {number} gravity: Gravity established by the scene
-     * @param {number} scale: Scale of the scene
-     * @param {number} width: Width of the scene
-     * @param {number} height: Height of the scene
-     * @param {*} props: other properties
-     */
-    constructor ({ gravity = 0, scale = 0, width = 0, height = 0, ...props}) {
-        super(props);
-
-        this.gravity    = gravity;
-
-        this.scale      = scale;
-
-        this.width      = width;
-
-        this.height     = height;
+    constructor () {
+        super();
 
         /**
          * Stage of PIXI
          * @type {*}
          */
-        this.stage      = null;
+        this.stage      = new PIXI.Container();
+
+        /**
+         * Gravity of the scene
+         * @type {number}
+         */
+        this.gravity    = 0;
+
+        /**
+         * Scale of the scene
+         * @type {number}
+         */
+        this.scale      = 1;
+
+        /**
+         * Width of the scene
+         * @type {number}
+         */
+        this.width      = Engine.width;
+
+        /**
+         * Height of the scene
+         * @type {number}
+         */
+        this.height     = Engine.height;
+
+        /**
+         * Background of the scene
+         * @type {string|number}
+         */
+        this.background = 0xFF00FF;
     }
 
     /**
-     * @initialize
      * @override
      */
-    initialize (parent) {
-        super.initialize(parent);
-
-        this.stage = new PIXI.Container();
+    setReactiveProps () {
+        this.reactiveProp("background", () => {
+            console.log(this.stage.backgroundColor);
+        });
     }
 }
