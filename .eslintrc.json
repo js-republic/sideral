@@ -17,6 +17,9 @@
     "plugins": [
         "react"
     ],
+    "globals": {
+        "PIXI": true
+    },
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-spacing": "error",

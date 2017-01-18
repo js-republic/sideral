@@ -1,5 +1,3 @@
-import PIXI from "pixi.js";
-
 import Component from "./Component";
 import Scene from "./Scene";
 
@@ -143,7 +141,6 @@ class Engine extends Component {
             throw new Error("Engine.start", "You must set 'width', 'height' and a 'dom' container");
         }
 
-        console.log(PIXI);
         this.renderer   = PIXI.autoDetectRenderer(this.width, this.height);
         this.dom.appendChild(this.renderer.view);
 

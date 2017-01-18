@@ -1,5 +1,3 @@
-import PIXI from "pixi.js";
-
 import Engine from "./Engine";
 import Component from "./Component";
 

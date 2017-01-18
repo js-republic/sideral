@@ -1,7 +1,6 @@
-require("webpack");
-
-const entries = require("./webpack.entries.json"),
-  path = require("path");
+const webpack   = require("webpack"),
+    entries     = require("./webpack.entries.json"),
+    path        = require("path");
 
 
 module.exports = {
@@ -22,23 +21,26 @@ module.exports = {
     devtool: "source-map",
 
     module: {
-        loaders: [{
-            test: /\.json$/,
-            loader: "json"
-        }, {
-            test: /\.jsx?$/,
-            loader: "babel-loader",
-            exclude: /node_modules/,
-            query: {
-                presets: ["es2015", "react"]
-            }
-        }],
-
-        postLoaders: [
+        loaders: [
             {
-                include: path.resolve(__dirname, "../node_modules/pixi.js"),
-                loader: "ify"
+                test: /\.json$/,
+                loader: "json"
+            },
+
+            {
+                test: /\.jsx?$/,
+                loader: "babel-loader",
+                exclude: /node_modules/,
+                query: {
+                    presets: ["es2015", "react"]
+                }
             }
         ]
-    }
+    },
+
+    plugins: [
+        new webpack.ProvidePlugin({
+            PIXI: path.join(__dirname, "../node_modules/pixi.js")
+        })
+    ]
 };
