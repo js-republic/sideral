@@ -1,16 +1,13 @@
-import Component from "./../Component";
+import Mixin from "./../Mixin";
 
 
-export default class Keyboard extends Component {
-
-    /* LIFECYCLE */
+export default class Keyboard extends Mixin {
 
     /**
      * @constructor
-     * @param {*} props: properties
      */
-    constructor (props) {
-        super(props);
+    constructor () {
+        super();
 
         /**
          * Public input attributes
@@ -29,11 +26,24 @@ export default class Keyboard extends Component {
     /**
      * @override
      */
-    initialize (parent) {
-        super.initialize(parent);
-
+    initialize () {
         window.addEventListener("keydown", this.onKeydown.bind(this));
         window.addEventListener("keyup", this.onKeyup.bind(this));
+    }
+
+    /**
+     * @override
+     */
+    canBeUsed (parent) {
+        return parent && parent.name === "engine";
+    }
+
+    /**
+     * @override
+     */
+    kill () {
+        window.removeEventListener("keydown", this.onKeydown.bind(this));
+        window.removeEventListener("keyup", this.onKeydown.bind(this));
     }
 
     /**
@@ -59,7 +69,7 @@ export default class Keyboard extends Component {
                     this.input[key] = this.STATE.PRESSED;
                 }
 
-                // Released
+            // Released
             } else if (_input === this.STATE.RELEASED) {
                 if (!input) {
                     this.input[key] = this.STATE.PRESSED;

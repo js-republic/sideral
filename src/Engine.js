@@ -1,5 +1,5 @@
 import Component from "./Component";
-import Scene from "./Scene";
+import Util from "./Util";
 
 
 class Engine extends Component {
@@ -8,22 +8,16 @@ class Engine extends Component {
 
     /**
      * @constructor
-     * @param {{}=} props: properties
      */
-    constructor (props) {
-        super(props);
+    constructor () {
+        super();
 
         /**
-         * Width of the engine
-         * @type {number}
+         * PIXI Container
+         * @type {PIXI}
+         * @private
          */
-        this.width      = 0;
-
-        /**
-         * Height of the engine
-         * @type {number}
-         */
-        this.height     = 0;
+        this._container = PIXI.autoDetectRenderer(this.width, this.height);
 
         /**
          * Global data to store
@@ -32,13 +26,6 @@ class Engine extends Component {
         this.storage    = {};
 
         // read-only
-
-        /**
-         * Pixi renderer
-         * @readonly
-         * @type {*}
-         */
-        this.renderer   = null;
 
         /**
          * Dom element to render the engine
@@ -83,6 +70,12 @@ class Engine extends Component {
         this.stopped    = true;
 
         /**
+         * Background of the engine
+         * @type {string}
+         */
+        this.background = "#FF00FF";
+
+        /**
          * Canvas as a layer
          * @readonly
          * @type {{}}
@@ -100,7 +93,9 @@ class Engine extends Component {
         this.reactivity.
             when("width").change(this._resize.bind(this)).
             when("height").change(this._resize.bind(this)).
-            start();
+            when("dom").change(this._onDOMChange.bind(this)).
+            start().
+            when("background").change(this._onBackgroundChange.bind(this));
     }
 
     /**
@@ -125,7 +120,7 @@ class Engine extends Component {
         super.update();
 
         // Render all scenes
-        this.children.filter(x => x instanceof Scene).forEach(scene => this.renderer.render(scene.stage));
+        // this.children.filter(x => x instanceof Scene).forEach(scene => this.renderer.render(scene.stage));
 
         this.lastUpdate = window.performance.now();
     }
@@ -140,9 +135,6 @@ class Engine extends Component {
         if (!this.width || !this.height || !this.dom) {
             throw new Error("Engine.start", "You must set 'width', 'height' and a 'dom' container");
         }
-
-        this.renderer   = PIXI.autoDetectRenderer(this.width, this.height);
-        this.dom.appendChild(this.renderer.view);
 
         this._resize();
         this.restart();
@@ -173,12 +165,39 @@ class Engine extends Component {
      * @returns {void|null} -
      */
     _resize () {
-        if (!this.renderer) {
+        if (!this._container) {
             return null;
         }
 
-        this.renderer.autoResize = true;
-        this.renderer.resize(this.width, this.height);
+        this._container.autoResize = true;
+        this._container.resize(this.width, this.height);
+    }
+
+    /**
+     * When "dom" property has changed
+     * @private
+     * @param {*} previousDOM: previous value of "dom" property
+     * @returns {void}
+     */
+    _onDOMChange (previousDOM) {
+        if (previousDOM) {
+            previousDOM.removeChild(this._container.view);
+        }
+
+        if (this.dom) {
+            this.dom.appendChild(this._container.view);
+        }
+    }
+
+    _onBackgroundChange () {
+        // TODO: fix the background color event
+        console.log(this._container.backgroundColor);
+
+        this._container.transparent = this.background.toLowerCase() === "transparent";
+
+        if (!this._container.transparent) {
+            this._container.backgroundColor = Util.colorToDecimal(this.background);
+        }
     }
 
     /* GETTERS & SETTERS */
@@ -188,5 +207,7 @@ class Engine extends Component {
     }
 }
 
+
+PIXI.utils.skipHello();
 
 export default new Engine();

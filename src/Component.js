@@ -1,7 +1,7 @@
-import Reactivity from "./Reactivity";
+import Mixin from "./Mixin";
 
 
-export default class Component {
+export default class Component extends Mixin {
 
     /* LIFECYCLE */
 
@@ -9,18 +9,31 @@ export default class Component {
      * @constructor
      */
     constructor () {
+        super();
 
         /**
-         * Define a flux of reactivity between attributes
-         * @type {Reactivity}
+         * Position X
+         * @type {number}
          */
-        this.reactivity = new Reactivity(this);
+        this.x  = 0;
 
         /**
-         * Unique Id for the Comonent
-         * @type {string}
+         * Position Y
+         * @type {number}
          */
-        this.id = Component.generateId();
+        this.y  = 0;
+
+        /**
+         * Size width
+         * @type {number}
+         */
+        this.width = 0;
+
+        /**
+         * Size height
+         * @type {number}
+         */
+        this.height = 0;
 
         /**
          * List of all components children
@@ -35,39 +48,15 @@ export default class Component {
         this.parent = null;
 
         /**
-         * Check if this component must be collected by garbage
-         * @type {boolean}
+         * PIXI Container
+         * @type {PIXI.DisplayObject}
          */
-        this.destroyed = false;
-
-        /**
-         * If true, the component can be render into the current parent scene
-         * @type {boolean}
-         */
-        this.viewable   = false;
-
-        // Add all reactivity logic here
-        this.setReactivity();
+        this._container = null;
     }
 
     /**
-     * Instance all your reactive props here
-     * @returns {void}
-     */
-    setReactivity () { }
-
-    /**
-     * Called when all parent components are initialized
-     * @param {{}=} props: properties to merge
-     * @returns {void}
-     */
-    initialize (props) {
-        this.set(props);
-    }
-
-    /**
-     * Update lifecycle
-     * @returns {void}
+     * @update
+     * @override
      */
     update () {
         this.children.forEach(child => child.update());
@@ -84,20 +73,39 @@ export default class Component {
     /* METHODS */
 
     /**
-     * Set/Add new properties to component
-     * @param {Object} nextProps: next properties to merge
-     * @returns {Component} the current component
+     * Set and get the current position
+     * @param {number=} x: position x
+     * @param {number=} y: position y
+     * @returns {{x: number, y: number}} current position
      */
-    set (nextProps = {}) {
-        const clonedProps = Object.assign({}, nextProps);
-
-        for (const key in clonedProps) {
-            if (clonedProps.hasOwnProperty(key)) {
-                this[key] = clonedProps[key];
-            }
+    position (x, y) {
+        if (typeof x !== "undefined") {
+            this.x = x;
         }
 
-        return this;
+        if (typeof y !== "undefined") {
+            this.y = y;
+        }
+
+        return {x: this.x, y: this.y};
+    }
+
+    /**
+     * Set and get the current size
+     * @param {number=} width: the width
+     * @param {number=} height: the height
+     * @returns {{width: number, height: number}} current size
+     */
+    size (width, height) {
+        if (typeof width !== "undefined") {
+            this.width = width;
+        }
+
+        if (typeof height !== "undefined") {
+            this.height = height;
+        }
+
+        return {width: this.width, height: this.height};
     }
 
     /**
@@ -112,11 +120,18 @@ export default class Component {
             throw new Error("Component.compose : parameter 1 must be an instance of 'Component'.");
         }
 
-        const name = component.name;
+        if (!component.canBeUsed(this)) {
+            return this;
+        }
 
         this.children.push(component);
+
+        const name = component.name;
+
         component.parent = this;
-        component.initialize(injectProps);
+        component.set(injectProps);
+        component.initialize();
+
 
         if (this.prototype) {
             delete this.prototype[name];
@@ -139,16 +154,5 @@ export default class Component {
 
     get name () {
         return "component";
-    }
-
-    /* STATICS */
-
-    /**
-     * Generate an unique id
-     * @returns {string} return the unique id
-     */
-    static generateId () {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).
-        substring(1);
     }
 }

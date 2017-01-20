@@ -13,7 +13,7 @@ export default class Scene extends Component {
          * Stage of PIXI
          * @type {*}
          */
-        this.stage      = new PIXI.Container();
+        this._container  = new PIXI.Container();
 
         /**
          * Gravity of the scene
@@ -38,20 +38,25 @@ export default class Scene extends Component {
          * @type {number}
          */
         this.height     = Engine.height;
-
-        /**
-         * Background of the scene
-         * @type {string|number}
-         */
-        this.background = 0xFF00FF;
     }
 
+    setReactivity () {
+        this.reactivity.
+            when("background").change(this.onBackgroundChange.bind(this)).
+            start();
+    }
+
+    /* METHODS */
+
     /**
-     * @override
+     * Event when background value is changed
+     * @private
+     * @returns {void|null} -
      */
-    setReactiveProps () {
-        this.reactiveProp("background", () => {
-            console.log(this.stage.backgroundColor);
-        });
+    onBackgroundChange () {
+        if (!this._container) {
+            return null;
+        }
+
     }
 }
