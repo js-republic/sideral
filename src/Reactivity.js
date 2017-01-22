@@ -10,18 +10,18 @@ export default class Reactivity {
         this.props              = {};
         this.propagations       = [];
         this.currentPropagation = null;
-        this.currentProp        = null;
+        this.currentProps       = [];
     }
 
     /**
      * Add a new reactivity with the property name change its value
-     * @param {string} name: name of the container prop that must be followed to be reactive
+     * @param {string} names: name of the container prop that must be followed to be reactive
      * @returns {Reactivity} the current reactivity flux
      */
-    when (name) {
-        this._createReactiveProp(name);
+    when (...names) {
+        names.forEach(name => this._createReactiveProp(name));
 
-        this.currentProp        = name;
+        this.currentProps       = names;
         this.currentPropagation = null;
 
         return this;
@@ -34,7 +34,7 @@ export default class Reactivity {
      */
     change (method) {
         this.currentPropagation = {
-            prop    : this.currentProp,
+            props   : this.currentProps,
             methods : [method.bind(this.container)]
         };
 
@@ -50,6 +50,23 @@ export default class Reactivity {
      */
     then (method) {
         this.currentPropagation.methods.push(method.bind(this.container));
+
+        return this;
+    }
+
+    /**
+     * Remove reactivity with attributes names
+     * @param {string} names: attributes names
+     * @returns {Reactivity} the current reactivity flux
+     */
+    unbind (...names) {
+        this.propagations = this.propagations.filter((propagation) => {
+            return names.forEach((name) => {
+                if (propagation.props.find(prop => prop === name)) {
+                    return true;
+                }
+            });
+        });
 
         return this;
     }
@@ -90,8 +107,9 @@ export default class Reactivity {
                 this.reactivity.props[name] = nextValue;
 
                 this.reactivity.propagations.
-                    filter(propagation => propagation.prop === name).
-                    forEach(propagation => propagation.methods.forEach(method => method()));
+                filter(propagation => Boolean(propagation.props.
+                    find(prop => prop === name))).
+                        forEach(propagation => propagation.methods.forEach(method => method()));
             }
         });
     }

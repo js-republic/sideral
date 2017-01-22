@@ -12,12 +12,14 @@ class Engine extends Component {
     constructor () {
         super();
 
+        this.name = "engine";
+
         /**
          * PIXI Container
          * @type {PIXI}
          * @private
          */
-        this._container = PIXI.autoDetectRenderer(this.width, this.height);
+        this._container = PIXI.autoDetectRenderer(this.width, this.height, { autoResize: true });
 
         /**
          * Global data to store
@@ -73,14 +75,7 @@ class Engine extends Component {
          * Background of the engine
          * @type {string}
          */
-        this.background = "#FF00FF";
-
-        /**
-         * Canvas as a layer
-         * @readonly
-         * @type {{}}
-         */
-        this.layers     = {};
+        this.background = "#DDDDDD";
 
         // Auto-initialization
         this.initialize();
@@ -91,12 +86,18 @@ class Engine extends Component {
      */
     setReactivity () {
         this.reactivity.
-            when("width").change(this._resize.bind(this)).
-            when("height").change(this._resize.bind(this)).
+            unbind("x", "y", "width", "height").
+            when("width", "height").change(this._resize.bind(this)).
             when("dom").change(this._onDOMChange.bind(this)).
             start().
             when("background").change(this._onBackgroundChange.bind(this));
     }
+
+    /**
+     * With Engine, there is no need to add the addChild PIXI Method
+     * @override
+     */
+    willReceiveChild (child) { }
 
     /**
      * Update of the engine
@@ -119,8 +120,8 @@ class Engine extends Component {
 
         super.update();
 
-        // Render all scenes
-        // this.children.filter(x => x instanceof Scene).forEach(scene => this.renderer.render(scene.stage));
+        // Render all Child
+        this.children.forEach(child => this._container.render(child._container));
 
         this.lastUpdate = window.performance.now();
     }
@@ -169,7 +170,6 @@ class Engine extends Component {
             return null;
         }
 
-        this._container.autoResize = true;
         this._container.resize(this.width, this.height);
     }
 
@@ -189,21 +189,17 @@ class Engine extends Component {
         }
     }
 
+    /**
+     * When "background" property has changed
+     * @private
+     * @returns {void}
+     */
     _onBackgroundChange () {
-        // TODO: fix the background color event
-        console.log(this._container.backgroundColor);
+        const color = Util.colorToDecimal(this.background);
 
-        this._container.transparent = this.background.toLowerCase() === "transparent";
-
-        if (!this._container.transparent) {
-            this._container.backgroundColor = Util.colorToDecimal(this.background);
+        if (!isNaN(color)) {
+            this._container.backgroundColor = color;
         }
-    }
-
-    /* GETTERS & SETTERS */
-
-    get name () {
-        return "engine";
     }
 }
 

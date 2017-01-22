@@ -11,6 +11,6 @@ Engine.set({
 
 }).start();
 
-Engine.compose(new Keyboard()).compose(new Arena());
+Engine.mix(new Keyboard()).compose(new Arena());
 
 window.Engine = Engine;

@@ -12,6 +12,12 @@ export default class Component extends Mixin {
         super();
 
         /**
+         * Name of the Component
+         * @type {string}
+         */
+        this.name = "component";
+
+        /**
          * Position X
          * @type {number}
          */
@@ -27,13 +33,13 @@ export default class Component extends Mixin {
          * Size width
          * @type {number}
          */
-        this.width = 0;
+        this.width = 10;
 
         /**
          * Size height
          * @type {number}
          */
-        this.height = 0;
+        this.height = 10;
 
         /**
          * List of all components children
@@ -52,6 +58,22 @@ export default class Component extends Mixin {
          * @type {PIXI.DisplayObject}
          */
         this._container = null;
+
+        // auto-binding
+
+        this._containerPosition = this._containerPosition.bind(this);
+        this._containerSize     = this._containerSize.bind(this);
+    }
+
+    /**
+     * @override
+     */
+    initialize () {
+        this.reactivity.
+            when("x", "y").change(this._containerPosition).
+            when("width", "height").change(this._containerSize);
+
+        super.initialize();
     }
 
     /**
@@ -59,6 +81,8 @@ export default class Component extends Mixin {
      * @override
      */
     update () {
+        super.update();
+
         this.children.forEach(child => child.update());
     }
 
@@ -126,12 +150,12 @@ export default class Component extends Mixin {
 
         this.children.push(component);
 
-        const name = component.name;
-
         component.parent = this;
         component.set(injectProps);
         component.initialize();
+        this.willReceiveChild(component);
 
+        const name = component.name;
 
         if (this.prototype) {
             delete this.prototype[name];
@@ -150,9 +174,75 @@ export default class Component extends Mixin {
         return this;
     }
 
-    /* GETTERS & SETTERS */
+    /**
+     * Decompose a component
+     * @param {Component} component child
+     * @param {*=} next: function callback
+     */
+    decompose (component, next) {
+        if (!component || !(component instanceof Component)) {
+            throw new Error("Component.compose : parameter 1 must be an instance of 'Component'.");
+        }
 
-    get name () {
-        return "component";
+        this.willLoseChild(component);
+
+        this.components = this.components.filter(x => x.id === component.id);
+
+        if (this.prototype) {
+            delete this.prototype[component.name];
+        }
+
+        component.kill();
+
+        if (next) {
+            next(component);
+        }
+
+        return this;
+    }
+
+    /**
+     * Lifecycle when a new child is composed
+     * @param {Component} child: the child
+     * @returns {void}
+     */
+    willReceiveChild (child) {
+        if (this._container && child && child._container) {
+            this._container.addChild(child._container);
+        }
+    }
+
+    /**
+     * Lifecycle when a child is removed
+     * @param {Component} child: the child to remove
+     * @returns {void}
+     */
+    willLoseChild (child) {
+        if (this._container && child && child._container) {
+            this._container.removeCHild(child._container);
+        }
+    }
+
+    /* REACTIVITY */
+
+    /**
+     * Replace the current component into the canvas
+     * @private
+     */
+    _containerPosition () {
+        if (this._container) {
+            this._container.position.set(this.x, this.y);
+        }
+    }
+
+    /**
+     * Replace the current size of the component
+     * @private
+     */
+    _containerSize () {
+        if (!this.children.length && this._container) {
+            this._container.width   = this.width;
+            this._container.height  = this.height;
+        }
     }
 }

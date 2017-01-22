@@ -9,6 +9,8 @@ export default class Scene extends Component {
     constructor () {
         super();
 
+        this.name = "scene";
+
         /**
          * Stage of PIXI
          * @type {*}
@@ -40,23 +42,5 @@ export default class Scene extends Component {
         this.height     = Engine.height;
     }
 
-    setReactivity () {
-        this.reactivity.
-            when("background").change(this.onBackgroundChange.bind(this)).
-            start();
-    }
-
     /* METHODS */
-
-    /**
-     * Event when background value is changed
-     * @private
-     * @returns {void|null} -
-     */
-    onBackgroundChange () {
-        if (!this._container) {
-            return null;
-        }
-
-    }
 }

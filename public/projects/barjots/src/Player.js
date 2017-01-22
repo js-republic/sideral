@@ -1,4 +1,4 @@
-import Entity from "src/Entity";
+import Sprite from "src/Entity";
 
 
 export default class player extends Entity {

@@ -9,6 +9,8 @@ export default class Keyboard extends Mixin {
     constructor () {
         super();
 
+        this.name = "keyboard";
+
         /**
          * Public input attributes
          * @type {{}}
@@ -153,10 +155,6 @@ export default class Keyboard extends Mixin {
     }
 
     /* GETTERS & SETTERS */
-
-    get name () {
-        return "keyboard";
-    }
 
     /**
      * List of all key usable

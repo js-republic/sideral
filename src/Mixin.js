@@ -16,6 +16,12 @@ export default class Mixin {
         this.id = Mixin.generateId();
 
         /**
+         * Name of the mixin
+         * @type {string}
+         */
+        this.name = "mixin";
+
+        /**
          * Owner of the current instance
          * @type {Component}
          */
@@ -28,13 +34,18 @@ export default class Mixin {
         this.reactivity = new Reactivity(this);
 
         /**
+         * Array of mixins name
+         * @readonly
+         * @type {Array<String>}
+         */
+        this.mixins = [];
+
+        /**
          * Check if this component must be collected by garbage
+         * @readonly
          * @type {boolean}
          */
         this.destroyed = false;
-
-        // Add all reactivity logic here
-        this.setReactivity();
     }
 
     /**
@@ -55,11 +66,11 @@ export default class Mixin {
     }
 
     /**
-     * @update
+     * @initialize
      * @returns {void}
      */
     initialize () {
-
+        this.setReactivity();
     }
 
     /**
@@ -67,7 +78,7 @@ export default class Mixin {
      * @returns {void}
      */
     update () {
-
+        this.mixins.forEach(mixin => this[mixin].update());
     }
 
     /**
@@ -102,9 +113,10 @@ export default class Mixin {
      * Add a new feature with the mixin passed by parameter
      * @param {Mixin} mixin: feature to add to the component
      * @param {{}=} injectProps: props to inject after parent created
+     * @param {*=} next: function callback after mixed
      * @returns {Mixin} the current Mixin instance
      */
-    mix (mixin, injectProps = {}) {
+    mix (mixin, injectProps = {}, next) {
         if (!(mixin instanceof Mixin)) {
             throw new Error("Component.mix", "Mixin must be an instance of Mixin.");
         }
@@ -113,19 +125,66 @@ export default class Mixin {
             return this;
         }
 
-        this[mixin.name] = mixin;
-
         mixin.set(injectProps);
+        this.willReceiveMixin(mixin);
+
+        const name = mixin.name;
+
+        if (this.prototype) {
+            delete this.prototype[name];
+        }
+
+        this[name] = mixin;
+        this.mixins.push(name);
+
         mixin.initialize();
+
+        if (next) {
+            next(mixin);
+        }
 
         return this;
     }
 
-    /* GETTERS & SETTERS */
+    /**
+     * Unmix a mixin
+     * @param {Mixin} mixin: mixin to remove
+     * @param {*=} next: function callback
+     * @returns {Mixin} current mixin
+     */
+    unmix (mixin, next) {
+        if (!(mixin instanceof Mixin)) {
+            throw new Error("Component.mix", "Mixin must be an instance of Mixin.");
+        }
 
-    get name () {
-        return "mixin";
+        this.willLoseMixin(mixin);
+
+        this.mixins = this.mixins.filter(x => x.id === mixin.id);
+
+        if (this.prototype) {
+            delete this.prototype[mixin.name];
+        }
+
+        mixin.kill();
+
+        if (next) {
+            next(mixin);
+        }
+
+        return this;
     }
+
+    /**
+     * Event when a new mixin is added
+     * @param mixin
+     */
+    willReceiveMixin (mixin) { }
+
+    /**
+     * Event when mixin is removed
+     * @param mixin
+     */
+    willLoseMixin (mixin) { }
 
     /* STATICS */
 
