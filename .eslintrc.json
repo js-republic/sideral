@@ -5,6 +5,7 @@
         "es6": true,
         "node": true
     },
+    "parser": "babel-eslint",
     "extends": "eslint:recommended",
     "parserOptions": {
         "sourceType": "module",
@@ -16,6 +17,9 @@
     "plugins": [
         "react"
     ],
+    "globals": {
+        "PIXI": true
+    },
     "rules": {
         "accessor-pairs": "error",
         "array-bracket-spacing": "error",
@@ -63,7 +67,6 @@
         "new-parens": "error",
         "newline-after-var": "error",
         "newline-before-return": "error",
-        "newline-per-chained-call": "error",
         "no-alert": "error",
         "no-array-constructor": "error",
         "no-caller": "error",
@@ -169,6 +172,7 @@
         "wrap-iife": "error",
         "wrap-regex": "error",
         "yield-star-spacing": "error",
-        "yoda": "error"
+        "yoda": "error",
+        "strict": 0
     }
 }
