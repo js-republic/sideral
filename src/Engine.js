@@ -1,5 +1,5 @@
 import Component from "./Component";
-import Scene from "./Scene";
+import Util from "./Util";
 
 
 class Engine extends Component {
@@ -8,283 +8,202 @@ class Engine extends Component {
 
     /**
      * @constructor
-     * @param {*} props: properties
      */
-    constructor (props) {
-        super(props);
+    constructor () {
+        super();
+
+        this.name = "engine";
 
         /**
-         * Width of the Engine
-         * @type {number}
+         * PIXI Container
+         * @type {PIXI}
+         * @private
          */
-        this.width = this.width || 50;
-
-        /**
-         * Height of the Engine
-         * @type {number}
-         */
-        this.height = this.height || 50;
+        this._container = PIXI.autoDetectRenderer(this.width, this.height, { autoResize: true });
 
         /**
          * Global data to store
          * @type {{}}
          */
-        this.storage = {};
+        this.storage    = {};
+
+        // read-only
 
         /**
-         * Time since last update
+         * Dom element to render the engine
+         * @readonly
+         * @type {*}
+         */
+        this.dom        = null;
+
+        /**
+         * Time since last loop
+         * @readonly
          * @type {number}
          */
         this.lastUpdate = 0;
 
         /**
          * Current FPS (Frames per second)
+         * @readonly
          * @type {number}
          */
-        this.fps = 60;
+        this.fps        = 60;
 
         /**
-         * Current latence between each frame (in ms)
+         * Current latency between each frame (in ms)
+         * @readonly
          * @type {number}
          */
-        this.latence = 0;
+        this.latency    = 0;
 
         /**
-         * Current latence between each frame (in second)
+         * Tick of latency between each frame (in second)
+         * @readonly
          * @type {number}
          */
-        this.tick = 1;
+        this.tick       = 1;
 
         /**
-         * DOM of the engine
-         * @type {null}
-         */
-        this.dom = null;
-
-        /**
-         * Stop the run
+         * Check if the engine is currently looping
+         * @readonly
          * @type {boolean}
-         * @readonly
          */
-        this.stopped = false;
+        this.stopped    = true;
 
         /**
-         * Canvas as a layer
-         * @readonly
-         * @type {{}}
+         * Background of the engine
+         * @type {string}
          */
-        this.layers = {};
+        this.background = "#DDDDDD";
 
-        // Auto initialization
-        this.initialize(null);
+        // Auto-initialization
+        this.initialize();
     }
 
     /**
      * @override
      */
-    initialize (parent) {
-        super.initialize(parent);
-
-        // Observe width
-        this.observeProp("width", (previousValue, nextValue) => {
-            if (this.dom) {
-                this.dom.style.width    = `${nextValue}px`;
-            }
-
-            this.scenes.forEach(scene => scene.width = nextValue);
-        });
-
-        // Observe height
-        this.observeProp("height", (previousValue, nextValue) => {
-            if (this.dom) {
-                this.dom.style.height   = `${nextValue}px`;
-            }
-
-            this.scenes.forEach(scene => scene.height = nextValue);
-        });
+    setReactivity () {
+        this.reactivity.
+            unbind("x", "y", "width", "height").
+            when("width", "height").change(this._resize.bind(this)).
+            when("dom").change(this._onDOMChange.bind(this)).
+            start().
+            when("background").change(this._onBackgroundChange.bind(this));
     }
 
     /**
-     * Render scenes
-     * @returns {void}
+     * With Engine, there is no need to add the addChild PIXI Method
+     * @override
      */
-    render () {
-        this.scenes.forEach(scene => scene.render());
-    }
-
-    /* METHODS */
+    willReceiveChild (child) { }
 
     /**
-     * Run the engine
-     * @param {number=} timeStart: time sended by requestAnimationFrame
-     * @returns {void|null} null
+     * Update of the engine
+     * @override
+     * @param {number=} timeStart: time provided by the refresh frame
+     * @returns {void|null} -
      */
-    run (timeStart) {
+    update (timeStart) {
         if (this.stopped) {
             return null;
         }
 
         timeStart = timeStart || window.performance.now();
-        requestAnimationFrame(this.run.bind(this));
+        requestAnimationFrame(this.update.bind(this));
 
-        // 100ms latence max
-        this.latence    = Math.min(timeStart - this.lastUpdate, 100);
-        this.fps        = Math.floor(1000 / this.latence);
+        // 100ms latency max
+        this.latency    = Math.min(timeStart - this.lastUpdate, 100);
+        this.fps        = Math.floor(1000 / this.latency);
         this.tick       = 1000 / (this.fps * 1000);
 
-        this.update();
-        this.render();
-        this.nextCycle();
+        super.update();
 
-        if (this.debug && !this.debugtimer) {
-            this.debug.innerHTML = `FPS: ${this.fps}`;
-            this.debugtimer = 60;
-        }
+        // Render all Child
+        this.children.forEach(child => this._container.render(child._container));
 
-        this.debugtimer--;
         this.lastUpdate = window.performance.now();
     }
 
+    /* METHODS */
+
     /**
-     * Stop the loop
+     * Start the engine
+     * @returns {void}
+     */
+    start () {
+        if (!this.width || !this.height || !this.dom) {
+            throw new Error("Engine.start", "You must set 'width', 'height' and a 'dom' container");
+        }
+
+        this._resize();
+        this.restart();
+    }
+
+    /**
+     * Stop the Engine
      * @returns {void}
      */
     stop () {
-        this.stopped    = true;
-        this.tick       = 0;
+        this.stopped = true;
     }
 
     /**
-     * Restart the loop
+     * Restart the Engine
      * @returns {void}
      */
     restart () {
-        this.stopped    = false;
-        this.run();
+        this.stopped = false;
+        this.update();
+    }
+
+    /* PRIVATE */
+
+    /**
+     * Resize the pixi renderer
+     * @private
+     * @returns {void|null} -
+     */
+    _resize () {
+        if (!this._container) {
+            return null;
+        }
+
+        this._container.resize(this.width, this.height);
     }
 
     /**
-     * Add a new canvas as a layer
-     * @param {Component} canvas: Canvas component
-     * @param {number} position: position of the canvas
+     * When "dom" property has changed
+     * @private
+     * @param {*} previousDOM: previous value of "dom" property
      * @returns {void}
      */
-    createLayer (canvas, position = 0) {
-        const keys = Object.keys(this.layers),
-            getKey = (key) => {
-                return keys.find(x => x === key) ? getKey(key + 1) : key;
-            };
+    _onDOMChange (previousDOM) {
+        if (previousDOM) {
+            previousDOM.removeChild(this._container.view);
+        }
 
-        if (canvas && canvas.dom) {
-            const key = getKey(position);
-
-            canvas.setParentDOM(this.dom);
-            this.layers[key] = canvas;
-            this.sortLayers();
+        if (this.dom) {
+            this.dom.appendChild(this._container.view);
         }
     }
 
     /**
-     * Sort all layers by their position on the table
+     * When "background" property has changed
+     * @private
      * @returns {void}
      */
-    sortLayers () {
-        const keys      = Object.keys(this.layers);
-        let position    = 0;
+    _onBackgroundChange () {
+        const color = Util.colorToDecimal(this.background);
 
-        keys.sort().forEach((key) => {
-            const layer = this.layers[key];
-
-            if (!layer.dom) {
-                return null;
-            }
-
-            if (position) {
-                layer.dom.style.position = "absolute";
-                layer.dom.style.top     = 0;
-                layer.dom.style.left    = 0;
-                layer.dom.style.zIndex  = position;
-            } else {
-                layer.dom.style.position = "static";
-            }
-
-            position++;
-        });
-    }
-
-    /**
-     * @override
-     * @param {Component} component: component
-     * @param {function=} next: function callback
-     * @returns {Component} current instance
-     */
-    compose (component, next) {
-        if (component instanceof Scene) {
-            component.width  = this.width;
-            component.height = this.height;
-
-            super.compose(component, next);
-
-            if (this.dom && component.has("canvas")) {
-                this.createLayer(component.canvas);
-            }
-
-            return this;
+        if (!isNaN(color)) {
+            this._container.backgroundColor = color;
         }
-
-        return super.compose(component, next);
-    }
-
-    /**
-     * Attach a dom to the parent dom passed by parameter
-     * @param {*} parentDOM: the dom to attach the engine
-     * @returns {Engine} : the current Engine
-     */
-    attachDOM (parentDOM) {
-        if (!parentDOM) {
-            throw new Error("Engine.initialize : dom must be passed to parameters and must be valid.");
-        }
-
-        if (!this.dom) {
-            this.dom                = document.createElement("div");
-            this.dom.id             = this.id;
-            this.dom.style.width    = `${this.width}px`;
-            this.dom.style.height   = `${this.height}px`;
-            this.dom.className      = "sideral-engine";
-            this.dom.style.position = "relative";
-            this.dom.style.overflow = "hidden";
-            this.dom.style.margin   = "10px auto";
-
-            const debug = document.createElement("div");
-
-            debug.id = "debug";
-            parentDOM.appendChild(debug);
-            this.debug = debug;
-        }
-
-        parentDOM.appendChild(this.dom);
-
-        this.scenes.forEach((scene) => {
-            if (scene.has("canvas")) {
-                scene.canvas.setParentDOM(this.dom);
-            }
-        });
-
-        this.sortLayers();
-
-        return this;
-    }
-
-    /* GETTERS & SETTERS */
-
-    get name () {
-        return "engine";
-    }
-
-    get scenes () {
-        return this.components.filter(x => x instanceof Scene);
     }
 }
 
+
+PIXI.utils.skipHello();
 
 export default new Engine();
