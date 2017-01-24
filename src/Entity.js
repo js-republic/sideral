@@ -43,6 +43,4 @@ export default class Entity extends Component {
          */
         this.standing   = false;
     }
-
-    /* PRIVATE */
 }
