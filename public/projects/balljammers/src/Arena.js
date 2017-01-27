@@ -1,9 +1,10 @@
-import Scene from "src/Scene";
+import Tilemap from "src/Scene/Tilemap";
 
 import Player from "./Player";
+import arena from "./../tilemaps/arena";
 
 
-export default class Arena extends Scene {
+export default class Arena extends Tilemap {
 
     /* LIFECYCLE */
 
@@ -12,6 +13,8 @@ export default class Arena extends Scene {
      */
     constructor () {
         super();
+
+        this.tiledata = arena;
 
         this.player = new Player();
 

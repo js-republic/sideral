@@ -12,7 +12,7 @@ module.exports = {
     entry: entries,
 
     resolve: {
-        extensions: ["", ".js", ".jsx"],
+        extensions: ["", ".js", ".json", ".jsx"],
         root: [
             path.resolve("./")
         ]

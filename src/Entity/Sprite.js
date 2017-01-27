@@ -57,6 +57,7 @@ export default class Sprite extends Entity {
 
         PIXI.loader.add(image).load(() => {
             const texture           = PIXI.loader.resources[image].texture;
+
             this.spritesheet        = { image: image, tilewidth: tilewidth, tileheight: tileheight };
 
             if (typeof tilewidth !== "undefined" && typeof tileheight !== "undefined") {
