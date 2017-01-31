@@ -1,6 +1,8 @@
+import Engine from "src/Engine";
 import Scene from "src/Scene";
 
 import Player from "./Player";
+import tilemapArena from "./../tilemaps/arena";
 
 
 export default class Arena extends Scene {
@@ -10,12 +12,13 @@ export default class Arena extends Scene {
     /**
      * @constructor
      */
-    constructor () {
-        super();
+    initialize () {
+        super.initialize();
 
-        this.player = new Player();
+        this.tilemap    = tilemapArena;
+        this.player     = new Player();
+        window.player   = this.player;
 
-        window.player = this.player;
         this.compose(this.player, { debug: true });
     }
 

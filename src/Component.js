@@ -178,6 +178,7 @@ export default class Component extends Mixin {
      * Decompose a component
      * @param {Component} component child
      * @param {*=} next: function callback
+     * @returns {Component} current instance
      */
     decompose (component, next) {
         if (!component || !(component instanceof Component)) {
@@ -228,6 +229,7 @@ export default class Component extends Mixin {
     /**
      * Replace the current component into the canvas
      * @private
+     * @returns {void}
      */
     _containerPosition () {
         if (this._container) {
@@ -238,6 +240,7 @@ export default class Component extends Mixin {
     /**
      * Replace the current size of the component
      * @private
+     * @returns {void}
      */
     _containerSize () {
         if (!this.children.length && this._container) {

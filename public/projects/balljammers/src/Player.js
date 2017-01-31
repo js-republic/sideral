@@ -5,6 +5,9 @@ export default class Player extends Sprite {
 
     /* LIFECYCLE */
 
+    /**
+     * @constructor
+     */
     constructor () {
         super();
 

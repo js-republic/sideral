@@ -40,7 +40,76 @@ export default class Scene extends Component {
          * @type {number}
          */
         this.height     = Engine.height;
+
+        /**
+         * set a tilemap to the current Scene
+         * @type {*}
+         */
+        this.tilemap    = null;
+
+        // Private
+
+        /**
+         * Canvas to store the current tilemap texture
+         * @private
+         * @type {*}
+         */
+        this._canvas    = null;
+
+        // Auto-binding
+
+        this._onTilemapChange = this._onTilemapChange.bind(this);
+    }
+
+    setReactivity () {
+        super.setReactivity();
+
+        this.reactivity.
+            when("tilemap").change(this._onTilemapChange);
     }
 
     /* METHODS */
+
+    _onTilemapChange (previousValue) {
+        const canvas    = document.createElement("canvas"),
+            ctx         = canvas.getContext("2d"),
+            image       = new Image();
+
+        if (previousValue && previousValue.sprite) {
+            this._container.removeChild(previousValue.sprite);
+        }
+
+        this.tilemap.width  = 0;
+        this.tilemap.height = 0;
+
+        // Determine the size of the tilemap
+        this.tilemap.grid.visual.forEach(layer => layer.forEach(line => {
+            this.tilemap.width = line.length > this.tilemap.width ? line.length : this.tilemap.width;
+        }));
+
+        this.tilemap.width *= this.tilemap.tilewidth;
+        this.tilemap.height = this.tilemap.grid.visual[0].length * this.tilemap.tileheight;
+        canvas.width        = this.tilemap.width;
+        canvas.height       = this.tilemap.height;
+
+        // Load the tileset
+        image.onload = () => {
+            // Render the tilemap into the canvas
+            this.tilemap.grid.visual.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
+                ctx.drawImage(image,
+                    Math.floor(tile * this.tilemap.tilewidth) % image.width,
+                    Math.floor(tile * this.tilemap.tilewidth / image.width) * this.tilemap.tileheight,
+                    this.tilemap.tilewidth, this.tilemap.tileheight,
+                    x * this.tilemap.tilewidth, y * this.tilemap.tileheight,
+                    this.tilemap.tilewidth, this.tilemap.tileheight
+                );
+            })));
+
+            this.tilemap.sprite         = PIXI.Sprite.from(canvas);
+
+            this._container.addChildAt(this.tilemap.sprite, 0);
+        };
+
+        image.src = this.tilemap.path;
+    }
 }
