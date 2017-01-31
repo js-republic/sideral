@@ -22,12 +22,6 @@ export default class Entity extends Component {
         this.mass           = null;
 
         /**
-         * z index for the entity
-         * @type {number}
-         */
-        this.z              = -1;
-
-        /**
          * Factor of gravity provided by the scene
          * @type {number}
          */
@@ -48,10 +42,6 @@ export default class Entity extends Component {
          * @type {boolean}
          */
         this.standing       = false;
-
-        // auto-binding
-
-        this._onZChange = this._onZChange.bind(this);
     }
 
     /**
@@ -59,21 +49,5 @@ export default class Entity extends Component {
      */
     setReactivity () {
         super.setReactivity();
-
-        this.reactivity.
-            when("z").change(this._onZChange);
-    }
-
-    /* PRIVATE */
-
-    /**
-     * When z change
-     * @private
-     * @returns {void}
-     */
-    _onZChange () {
-        if (this.z >= 0) {
-            // TODO: sort z index from parent
-        }
     }
 }

@@ -15,25 +15,31 @@ export default class Component extends Mixin {
          * Name of the Component
          * @type {string}
          */
-        this.name = "component";
+        this.name   = "component";
 
         /**
          * Position X
          * @type {number}
          */
-        this.x  = 0;
+        this.x      = 0;
 
         /**
          * Position Y
          * @type {number}
          */
-        this.y  = 0;
+        this.y      = 0;
+
+        /**
+         * Z index. if -1, the z-index is made automatically
+         * @type {number}
+         */
+        this.z      = -1;
 
         /**
          * Size width
          * @type {number}
          */
-        this.width = 10;
+        this.width  = 10;
 
         /**
          * Size height
@@ -53,16 +59,27 @@ export default class Component extends Mixin {
          */
         this.parent = null;
 
+        // private
+
         /**
          * PIXI Container
          * @type {PIXI.DisplayObject}
+         * @private
          */
         this._container = null;
+
+        /**
+         * When a child has changed its z index
+         * @type {boolean}
+         * @private
+         */
+        this._sortChildrenRequested = false;
 
         // auto-binding
 
         this._containerPosition = this._containerPosition.bind(this);
         this._containerSize     = this._containerSize.bind(this);
+        this._onZChange         = this._onZChange.bind(this);
     }
 
     /**
@@ -71,7 +88,8 @@ export default class Component extends Mixin {
     initialize () {
         this.reactivity.
             when("x", "y").change(this._containerPosition).
-            when("width", "height").change(this._containerSize);
+            when("width", "height").change(this._containerSize).
+            when("z").change(this._onZChange);
 
         super.initialize();
     }
@@ -82,6 +100,11 @@ export default class Component extends Mixin {
      */
     update () {
         super.update();
+
+        if (this._sortChildrenRequested) {
+            this._container.children    = this._container.children.sort((a, b) => (a.z || -1) - (b.z || -1));
+            this._sortChildrenRequested = false;
+        }
 
         this.children.forEach(child => child.update());
     }
@@ -220,7 +243,7 @@ export default class Component extends Mixin {
      */
     willLoseChild (child) {
         if (this._container && child && child._container) {
-            this._container.removeCHild(child._container);
+            this._container.removeChild(child._container);
         }
     }
 
@@ -247,5 +270,18 @@ export default class Component extends Mixin {
             this._container.width   = this.width;
             this._container.height  = this.height;
         }
+    }
+
+    /**
+     * When z attribute has changed
+     * @private
+     * @returns {void}
+     */
+    _onZChange () {
+        if (this.parent) {
+            this.parent._sortChildrenRequested = true;
+        }
+
+        this._container.z = this.z;
     }
 }
