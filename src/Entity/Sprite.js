@@ -49,6 +49,7 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
+     * @return {void}
      */
     setSpritesheet (image, tilewidth, tileheight) {
         if (!image) {
@@ -73,6 +74,8 @@ export default class Sprite extends Entity {
     /**
      * Show or hide the debug mode
      * @private
+     * @param {Boolean} previousValue : the previous value of the attribute
+     * @returns {void}
      */
     _displayDebugMode (previousValue) {
         if (this.debug) {
@@ -84,7 +87,7 @@ export default class Sprite extends Entity {
                 fill    : "transparent"
             });
 
-        } else if (Boolean(previousValue)) {
+        } else if (previousValue) {
             this.decompose(this._debug);
 
         }

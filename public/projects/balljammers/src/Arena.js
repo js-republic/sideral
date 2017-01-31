@@ -1,24 +1,24 @@
-import Tilemap from "src/Scene/Tilemap";
+import Engine from "src/Engine";
+import Scene from "src/Scene";
 
 import Player from "./Player";
-import arena from "./../tilemaps/arena";
+import tilemapArena from "./../tilemaps/arena";
 
 
-export default class Arena extends Tilemap {
+export default class Arena extends Scene {
 
     /* LIFECYCLE */
 
     /**
      * @constructor
      */
-    constructor () {
-        super();
+    initialize () {
+        super.initialize();
 
-        this.tiledata = arena;
+        this.tilemap    = tilemapArena;
+        this.player     = new Player();
+        window.player   = this.player;
 
-        this.player = new Player();
-
-        window.player = this.player;
         this.compose(this.player, { debug: true });
     }
 
