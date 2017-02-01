@@ -104,12 +104,14 @@ export default class Reactivity {
             },
 
             set (nextValue) {
+                const previousValue         = this.reactivity.props[name];
+
                 this.reactivity.props[name] = nextValue;
 
                 this.reactivity.propagations.
                 filter(propagation => Boolean(propagation.props.
                     find(prop => prop === name))).
-                        forEach(propagation => propagation.methods.forEach(method => method()));
+                        forEach(propagation => propagation.methods.forEach(method => method(previousValue, name)));
             }
         });
     }

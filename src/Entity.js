@@ -1,4 +1,5 @@
 import Component from "./Component";
+import Scene from "./Scene";
 
 
 export default class Entity extends Component {
@@ -49,5 +50,53 @@ export default class Entity extends Component {
      */
     setReactivity () {
         super.setReactivity();
+    }
+
+    /* METHODS */
+
+    /**
+     * Find the first Scene into parent hierarchy
+     * @param {function=} callback: callback when the scene has been finded
+     * @param {*=} recursive: recursive object to get scene
+     * @returns {void}
+     */
+    getScene (callback, recursive) {
+        recursive = recursive || this;
+
+        if (recursive.parent) {
+
+            if (recursive.parent instanceof Scene) {
+                callback(recursive.parent);
+
+            } else {
+                this.getScene(callback, recursive);
+
+            }
+        }
+    }
+
+    /* PRIVATE */
+
+    /**
+     * @override
+     * @private
+     */
+    _onPositionChange (previousValue, name) {
+        super._onPositionChange(previousValue, name);
+
+        if (name === "x" || name === "y") {
+
+            this.getScene(scene => {
+                const nextValue = name === "x"
+                    ? scene.getLogicXAt(previousValue, this.x, this.y, this.y + this.height, this.width)
+                    : scene.getLogicYAt(previousValue, this.y, this.x, this.x + this.width, this.height);
+
+                console.log(previousValue, this[name], nextValue, name);
+/*
+                if (this[name] !== nextValue) {
+                    this[name] = nextValue;
+                }*/
+            });
+        }
     }
 }

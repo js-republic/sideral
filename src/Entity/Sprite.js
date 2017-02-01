@@ -100,7 +100,6 @@ export default class Sprite extends Entity {
     _onSizeChange () {
         super._onSizeChange();
 
-        console.log(this.debug);
         if (this.debug) {
             this._debug.size(this.width, this.height);
         }
