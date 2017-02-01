@@ -77,21 +77,21 @@ export default class Component extends Mixin {
 
         // auto-binding
 
-        this._containerPosition = this._containerPosition.bind(this);
-        this._containerSize     = this._containerSize.bind(this);
+        this._onPositionChange  = this._onPositionChange.bind(this);
+        this._onSizeChange      = this._onSizeChange.bind(this);
         this._onZChange         = this._onZChange.bind(this);
     }
 
     /**
      * @override
      */
-    initialize () {
-        this.reactivity.
-            when("x", "y").change(this._containerPosition).
-            when("width", "height").change(this._containerSize).
-            when("z").change(this._onZChange);
+    setReactivity () {
+        super.setReactivity();
 
-        super.initialize();
+        this.reactivity.
+            when("x", "y").change(this._onPositionChange).
+            when("width", "height").change(this._onSizeChange).
+            when("z").change(this._onZChange);
     }
 
     /**
@@ -102,7 +102,7 @@ export default class Component extends Mixin {
         super.update();
 
         if (this._sortChildrenRequested) {
-            this._container.children    = this._container.children.sort((a, b) => (a.z || -1) - (b.z || -1));
+            this._container.children    = this._container.children.sort((a, b) => a.z - b.z);
             this._sortChildrenRequested = false;
         }
 
@@ -174,8 +174,7 @@ export default class Component extends Mixin {
         this.children.push(component);
 
         component.parent = this;
-        component.set(injectProps);
-        component.initialize();
+        component.initialize(injectProps);
         this.willReceiveChild(component);
 
         const name = component.name;
@@ -232,7 +231,11 @@ export default class Component extends Mixin {
      */
     willReceiveChild (child) {
         if (this._container && child && child._container) {
-            this._container.addChild(child._container);
+            if (child.z > -1) {
+                this._container.addChildAt(child._container, child.z);
+            } else {
+                this._container.addChild(child._container);
+            }
         }
     }
 
@@ -254,7 +257,7 @@ export default class Component extends Mixin {
      * @private
      * @returns {void}
      */
-    _containerPosition () {
+    _onPositionChange () {
         if (this._container) {
             this._container.position.set(this.x, this.y);
         }
@@ -265,7 +268,7 @@ export default class Component extends Mixin {
      * @private
      * @returns {void}
      */
-    _containerSize () {
+    _onSizeChange () {
         if (!this.children.length && this._container) {
             this._container.width   = this.width;
             this._container.height  = this.height;

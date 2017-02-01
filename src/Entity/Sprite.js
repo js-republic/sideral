@@ -30,7 +30,7 @@ export default class Sprite extends Entity {
 
         // auto-binding
 
-        this._displayDebugMode  = this._displayDebugMode.bind(this);
+        this._onDebugChange  = this._onDebugChange.bind(this);
     }
 
     /**
@@ -40,8 +40,7 @@ export default class Sprite extends Entity {
         super.setReactivity();
 
         this.reactivity.
-            when("debug").change(this._displayDebugMode).
-            start();
+            when("debug").change(this._onDebugChange);
     }
 
     /**
@@ -77,10 +76,11 @@ export default class Sprite extends Entity {
      * @param {Boolean} previousValue : the previous value of the attribute
      * @returns {void}
      */
-    _displayDebugMode (previousValue) {
+    _onDebugChange (previousValue) {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
+                type    : Shape.TYPE.RECTANGLE,
                 width   : this.width,
                 height  : this.height,
                 stroke  : "#FF0000",
@@ -97,7 +97,10 @@ export default class Sprite extends Entity {
      * @override
      * @private
      */
-    _containerSize () {
+    _onSizeChange () {
+        super._onSizeChange();
+
+        console.log(this.debug);
         if (this.debug) {
             this._debug.size(this.width, this.height);
         }
