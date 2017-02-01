@@ -19,7 +19,7 @@ export default class Arena extends Scene {
         this.player     = new Player();
         window.player   = this.player;
 
-        this.compose(this.player, { debug: true });
+        this.compose(this.player, { debug: true, z: 0 });
     }
 
     /**

@@ -32,7 +32,7 @@ export default class Shape extends Entity {
          * Type of the Shape (see Shape.TYPE)
          * @type {string}
          */
-        this.type       = Shape.TYPE.RECTANGLE;
+        this.type       = null;
 
         // auto-binding
 
@@ -44,8 +44,7 @@ export default class Shape extends Entity {
      */
     setReactivity () {
         this.reactivity.
-            when("type").change(this._renderShape).
-            start();
+            when("type", "fill", "stroke").change(this._renderShape);
     }
 
     /* REACTIVITY */
@@ -58,6 +57,8 @@ export default class Shape extends Entity {
     _renderShape () {
         const stroke    = Util.colorToDecimal(this.stroke),
             fill        = Util.colorToDecimal(this.fill);
+
+        this._container.clear();
 
         if (this.stroke !== "transparent" && !isNaN(stroke)) {
             this._container.lineStyle(1, stroke, 1);
@@ -81,9 +82,9 @@ export default class Shape extends Entity {
             height = withStroke ? this.height - 1 : this.height;
 
         switch (this.type) {
-            case Shape.TYPE.RECTANGLE:
-                this._container.drawRect(x, y, width, height);
-                break;
+        default:
+            this._container.drawRect(x, y, width, height);
+            break;
         }
     }
 }
