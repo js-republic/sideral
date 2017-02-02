@@ -49,6 +49,7 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
+     * @returns {void}
      */
     setSpritesheet (image, tilewidth, tileheight) {
         if (!image) {
@@ -57,48 +58,15 @@ export default class Sprite extends Entity {
 
         PIXI.loader.add(image).load(() => {
             const texture           = PIXI.loader.resources[image].texture;
+
             this.spritesheet        = { image: image, tilewidth: tilewidth, tileheight: tileheight };
+
+            if (typeof tilewidth !== "undefined" && typeof tileheight !== "undefined") {
+                texture.frame = new PIXI.Rectangle(0, 0, tilewidth, tileheight);
+            }
 
             this._container.texture = texture;
         });
-    }
-
-    addAnimation (name, delay, tiles, lineOfTexture) {
-        if (!image) {
-            throw new Error("Sprite.addAnimation", "no texture provided.");
-        }
-
-        this.animation = { name: name, delay: delay, tiles: tiles, lineOfTexture: lineOfTexture, frameCounter: 0 };
-
-        if (this.spritesheet && this.spritesheet.image) {
-            this.spritesheet.animations.push(this.animation);
-        }
-
-    }
-
-    updateAnimation(animation) {   
-        if (!animation) {
-            throw new Error("Sprite.updateAnimation", "no animation provided.");
-        } 
-
-        if (this.spritesheet && this.spritesheet.width && this.spritesheet.height) {
-
-            let x, y, tileheight, tilewidth;    
-
-            if(animation.frameCounter === animation.tiles.length){                                                        
-                animation.frameCounter = 0;                                                    
-            };     
-
-            x = animation.tiles[animation.frameCounter];
-            y = animation.lineOfTexture;
-
-            tilewidth = this.spritesheet.width;
-            tileheight = this.spritesheet.height;
-
-            this._container.texture.frame = new PIXI.Rectangle(x, y, tilewidth, tileheight);
-
-            animation.frameCounter++;                 
-        }
     }
 
     /* REACTIVITY */
@@ -106,6 +74,8 @@ export default class Sprite extends Entity {
     /**
      * Show or hide the debug mode
      * @private
+     * @param {*} previousValue: previous value of debug
+     * @returns {void}
      */
     _displayDebugMode (previousValue) {
         if (this.debug) {
@@ -131,9 +101,5 @@ export default class Sprite extends Entity {
         if (this.debug) {
             this._debug.size(this.width, this.height);
         }
-    }
-
-    _onAnimationChange (newValue) {
-        this.updateAnimation(newValue);
     }
 }
