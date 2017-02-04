@@ -81,17 +81,26 @@ export default class Entity extends Component {
      * @override
      * @private
      */
-    _onPositionChange (previousValue, name) {
-        super._onPositionChange(previousValue, name);
+    _onPositionChange ({ x, y, ...options }) {
+        super._onPositionChange({ x, y, ...options });
 
-        if (name === "x" || name === "y") {
+        const isX   = typeof x !== "undefined",
+            isY     = typeof y !== "undefined";
+
+        if (isX || isY) {
 
             this.getScene(scene => {
-                const nextValue = name === "x"
-                    ? scene.getLogicXAt(previousValue, this.x, this.y, this.y + this.height, this.width)
-                    : scene.getLogicYAt(previousValue, this.y, this.x, this.x + this.width, this.height);
+                const nextValue = isX
+                    ? scene.getLogicXAt(x, this.x, this.y, this.y + this.height, this.width)
+                    : scene.getLogicYAt(y, this.y, this.x, this.x + this.width, this.height);
 
-                console.log(previousValue, this[name], nextValue, name);
+                if (isY && this.y !== nextValue) {
+                    this.y = nextValue;
+                }
+
+                if (isX && this.x !== nextValue) {
+                    this.x = nextValue;
+                }
 /*
                 if (this[name] !== nextValue) {
                     this[name] = nextValue;

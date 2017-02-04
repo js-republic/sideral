@@ -127,7 +127,7 @@ export default class Scene extends Component {
      * @param {number} height : height of the object
      * @returns {number} get the position y
      */
-    getLogicYAtOLD (posY, nextY, xmin, xmax, height) {
+    getLogicYAt (posY, nextY, xmin, xmax, height) {
         if (!this.tilemap || (this.tilemap && !this.tilemap.sprite)) {
             return nextY;
         }
@@ -154,52 +154,11 @@ export default class Scene extends Component {
 
             for (let x = cellXMin; x <= cellXMax; x++) {
                 if (grid[x]) {
+                    console.log("coince", y, (y * this.tilemap.tileheight) - height);
+
                     return orientation > 0
                         ? (y * this.tilemap.tileheight) - height
                         : (y + 1) * this.tilemap.tileheight;
-                }
-            }
-        }
-
-        return nextY;
-    }
-
-    getLogicYAt (posY, nextY, xmin, xmax, height) {
-        if (!this.tilemap || (this.tilemap && !this.tilemap.sprite)) {
-            return nextY;
-        }
-
-        const orientation   = nextY > posY ? 1 : -1,
-            cellYMin        = orientation > 0 ? Math.floor(posY / this.tilemap.tileheight) : Math.floor(nextY / this.tilemap.tileheight),
-            cellYMax        = orientation > 0 ? Math.floor((nextY + height) / this.tilemap.tileheight) : Math.floor((posY + height) / this.tilemap.tileheight),
-            cellXMin        = Math.floor(Math.abs(xmin) / this.tilemap.tilewidth),
-            cellXMax        = Math.floor(Math.abs(xmax - 1) / this.tilemap.tilewidth);
-
-        let grid            = null;
-
-        const loopParameter = {
-            start           : orientation > 0 ? cellYMin : cellYMax,
-            end             : orientation > 0 ? cellYMax : cellYMin,
-            lastCollide     : null
-        };
-
-        for (let y = loopParameter.start; y !== (loopParameter.end + orientation); y += orientation) {
-            grid = this.tilemap.grid.logic[y];
-
-            if (!grid) {
-                continue;
-            }
-
-            for (let x = cellXMin; x <= cellXMax; x++) {
-                if (grid[x]) {
-
-                    /*
-                    return orientation > 0
-                        ? (y * this.tilemap.tileheight) - height
-                        : (y + 1) * this.tilemap.tileheight;
-                    */
-
-                    loopParameter.lastCollide = {x: x, y: y};
                 }
             }
         }
