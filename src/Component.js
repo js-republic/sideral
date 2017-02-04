@@ -115,6 +115,8 @@ export default class Component extends Mixin {
      */
     render () {
         this.children.forEach(child => child.render());
+
+        this.reactivity.update();
     }
 
     /* METHODS */

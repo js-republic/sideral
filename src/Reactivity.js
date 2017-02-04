@@ -34,8 +34,9 @@ export default class Reactivity {
      */
     change (method) {
         this.currentPropagation = {
-            props   : this.currentProps,
-            methods : [method.bind(this.container)]
+            props           : this.currentProps,
+            previousValues  : {},
+            methods         : [method.bind(this.container)]
         };
 
         this.propagations.push(this.currentPropagation);
@@ -72,6 +73,22 @@ export default class Reactivity {
     }
 
     /**
+     * Call every methods that attributes has changed
+     * @returns {void}
+     */
+    update () {
+        this.propagations.forEach(propagation => {
+            const keys = Object.keys(propagation.previousValues);
+
+            if (keys.length) {
+                propagation.methods.forEach(method => method(propagation.previousValues || {}));
+            }
+
+            propagation.previousValues = {};
+        });
+    }
+
+    /**
      * Start the current flux with the current value of the property name passed into the 'when' operator
      * @returns {Reactivity} the current reactivity flux
      */
@@ -104,12 +121,18 @@ export default class Reactivity {
             },
 
             set (nextValue) {
+                const previousValue         = this.reactivity.props[name];
+
+                if (nextValue === previousValue) {
+                    return null;
+                }
+
                 this.reactivity.props[name] = nextValue;
 
                 this.reactivity.propagations.
-                filter(propagation => Boolean(propagation.props.
-                    find(prop => prop === name))).
-                        forEach(propagation => propagation.methods.forEach(method => method()));
+                    filter(propagation => Boolean(propagation.props.
+                        find(prop => prop === name))).
+                    forEach(propagation => propagation.previousValues[name] = previousValue);
             }
         });
     }

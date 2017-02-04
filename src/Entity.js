@@ -1,4 +1,6 @@
 import Component from "./Component";
+import Scene from "./Scene";
+import Engine from "./Engine";
 
 
 export default class Entity extends Component {
@@ -27,6 +29,18 @@ export default class Entity extends Component {
          */
         this.gravityFactor  = 0;
 
+        /**
+         * Velocity X
+         * @type {number}
+         */
+        this.vx             = 0;
+
+        /**
+         * Velocity y
+         * @type {number}
+         */
+        this.vy             = 0;
+
         // read-only
 
         /**
@@ -50,4 +64,58 @@ export default class Entity extends Component {
     setReactivity () {
         super.setReactivity();
     }
+
+    /**
+     * @update
+     * @override
+     */
+    update () {
+        super.update();
+
+        if (this.vx || this.vy) {
+            this.updateVelocity();
+        }
+    }
+
+    /* METHODS */
+
+    /**
+     * Update the position with velocity and check if there is not a collision wall
+     * @returns {void}
+     */
+    updateVelocity () {
+        this.getScene(scene => {
+            if (this.vx) {
+                this.x = scene.getLogicXAt(this.x, this.x + (this.vx * Engine.tick), this.y, this.y + this.height, this.width);
+            }
+
+            if (this.vy) {
+                this.y = scene.getLogicYAt(this.y, this.y + (this.vy * Engine.tick), this.x, this.x + this.width, this.height);
+            }
+        });
+    }
+
+    /**
+     * Find the first Scene into parent hierarchy
+     * @param {function=} callback: callback when the scene has been finded
+     * @param {*=} recursive: recursive object to get scene
+     * @returns {void}
+     */
+    getScene (callback, recursive) {
+        recursive = recursive || this;
+
+        if (recursive.parent) {
+
+            if (recursive.parent instanceof Scene) {
+                callback(recursive.parent);
+
+            } else {
+                this.getScene(callback, recursive);
+
+            }
+        }
+    }
+
+    /* PRIVATE */
+
 }

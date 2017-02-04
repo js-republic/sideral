@@ -33,20 +33,31 @@ export default class Arena extends Scene {
             return null;
         }
 
-        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.ARROW_RIGHT)) {
-            this.player.x += 10;
+        let vx = 0,
+            vy = 0;
+
+        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_RIGHT)) {
+            vx += 100;
         }
 
-        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.ARROW_LEFT)) {
-            this.player.x -= 10;
+        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_LEFT)) {
+            vx -= 100;
         }
 
-        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.ARROW_UP)) {
-            this.player.y -= 10;
+        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_UP)) {
+            vy = -100;
         }
 
-        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.ARROW_DOWN)) {
-            this.player.y += 10;
+        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_DOWN)) {
+            vy += 100;
+        }
+
+        if (this.player.vx !== vx) {
+            this.player.vx = vx;
+        }
+
+        if (this.player.vy !== vy) {
+            this.player.vy = vy;
         }
     }
 }
