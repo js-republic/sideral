@@ -154,8 +154,6 @@ export default class Scene extends Component {
 
             for (let x = cellXMin; x <= cellXMax; x++) {
                 if (grid[x]) {
-                    console.log("coince", y, (y * this.tilemap.tileheight) - height);
-
                     return orientation > 0
                         ? (y * this.tilemap.tileheight) - height
                         : (y + 1) * this.tilemap.tileheight;

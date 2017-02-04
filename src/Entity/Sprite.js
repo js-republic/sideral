@@ -30,7 +30,7 @@ export default class Sprite extends Entity {
 
         // auto-binding
 
-        this._onDebugChange  = this._onDebugChange.bind(this);
+        this._onDebugChange     = this._onDebugChange.bind(this);
     }
 
     /**

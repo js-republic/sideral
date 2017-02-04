@@ -116,6 +116,7 @@ class Engine extends Component {
         this.latency    = Math.min(timeStart - this.lastUpdate, 100);
         this.fps        = Math.floor(1000 / this.latency);
         this.tick       = 1000 / (this.fps * 1000);
+        this.tick       = this.tick < 0 ? 0 : this.tick;
 
         super.update();
         super.render();
