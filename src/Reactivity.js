@@ -14,12 +14,30 @@ export default class Reactivity {
     }
 
     /**
+     * Observe the property and set changement into the "last" attribute of the container
+     * @param {string} names: names of the container prop that must be observed
+     * @returns {Reactivity} the current reactivity flux
+     */
+    observe (...names) {
+        if (!this.container.last) {
+            this.container.last = {};
+        }
+
+        names.forEach(name => {
+            this.container.last[name] = this.container[name];
+            this._createReactiveProp(name);
+        });
+
+        return this;
+    }
+
+    /**
      * Add a new reactivity with the property name change its value
      * @param {string} names: name of the container prop that must be followed to be reactive
      * @returns {Reactivity} the current reactivity flux
      */
     when (...names) {
-        names.forEach(name => this._createReactiveProp(name));
+        this.observe(...names);
 
         this.currentProps       = names;
         this.currentPropagation = null;
@@ -128,6 +146,7 @@ export default class Reactivity {
                 }
 
                 this.reactivity.props[name] = nextValue;
+                this.last[name]             = previousValue;
 
                 this.reactivity.propagations.
                     filter(propagation => Boolean(propagation.props.

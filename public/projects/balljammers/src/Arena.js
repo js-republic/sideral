@@ -2,6 +2,7 @@ import Engine from "src/Engine";
 import Scene from "src/Scene";
 
 import Player from "./Player";
+import Ball from "./Ball";
 import tilemapArena from "./../tilemaps/arena";
 
 
@@ -19,7 +20,8 @@ export default class Arena extends Scene {
         this.player     = new Player();
         window.player   = this.player;
 
-        this.compose(this.player, { debug: true, z: 0 });
+        this.compose(this.player, { debug: true, z: 0 }).
+            compose(new Ball(), { debug: true, x: 200, y: 100 });
     }
 
     /**

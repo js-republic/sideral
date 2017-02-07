@@ -11,24 +11,28 @@ export default class Mixin {
 
         /**
          * Unique Id for the Comonent
+         * @readonly
          * @type {string}
          */
         this.id = Mixin.generateId();
 
         /**
          * Name of the mixin
+         * @readonly
          * @type {string}
          */
         this.name = "mixin";
 
         /**
          * Owner of the current instance
+         * @readonly
          * @type {Component}
          */
         this.parent = null;
 
         /**
          * Define a flux of reactivity between attributes
+         * @readonly
          * @type {Reactivity}
          */
         this.reactivity = new Reactivity(this);
@@ -46,6 +50,13 @@ export default class Mixin {
          * @type {boolean}
          */
         this.destroyed = false;
+
+        /**
+         * Get last value by reactivity
+         * @readonly
+         * @type {{}}
+         */
+        this.last = {};
     }
 
     /**

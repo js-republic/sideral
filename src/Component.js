@@ -102,7 +102,7 @@ export default class Component extends Mixin {
         super.update();
 
         if (this._sortChildrenRequested) {
-            this._container.children    = this._container.children.sort((a, b) => a.z - b.z);
+            this._container.children    = this._container.children.sort((a, b) => (a.z || 0) - (b.z || 0));
             this._sortChildrenRequested = false;
         }
 

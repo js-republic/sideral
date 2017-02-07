@@ -55,8 +55,10 @@ export default class Sprite extends Entity {
             throw new Error("Sprite.setSpritesheet", "image is not defined.");
         }
 
-        PIXI.loader.add(image).load(() => {
-            const texture           = PIXI.loader.resources[image].texture;
+        const loader = new PIXI.loaders.Loader();
+
+        loader.add(image).load(() => {
+            const texture           = loader.resources[image].texture;
 
             this.spritesheet        = { image: image, tilewidth: tilewidth, tileheight: tileheight };
 
