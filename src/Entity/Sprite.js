@@ -20,7 +20,7 @@ export default class Sprite extends Entity {
          * SpriteSheet of the Sprite
          * @type {string}
          */
-        this.spritesheet = { texture: null, width: 0, height: 0 };
+        this.spritesheet = { texture: null, width: 0, height: 0, animations: [] };
 
         /**
          * Display the debug mode
@@ -48,7 +48,11 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
+<<<<<<< HEAD
      * @return {void}
+=======
+     * @returns {void}
+>>>>>>> master
      */
     setSpritesheet (image, tilewidth, tileheight) {
         if (!image) {
@@ -73,7 +77,7 @@ export default class Sprite extends Entity {
     /**
      * Show or hide the debug mode
      * @private
-     * @param {Boolean} previousValue : the previous value of the attribute
+     * @param {*} previousValue: previous value of debug
      * @returns {void}
      */
     _onDebugChange (previousValue) {
