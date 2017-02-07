@@ -30,7 +30,7 @@ export default class Sprite extends Entity {
 
         // auto-binding
 
-        this._displayDebugMode  = this._displayDebugMode.bind(this);
+        this._onDebugChange     = this._onDebugChange.bind(this);
     }
 
     /**
@@ -40,8 +40,7 @@ export default class Sprite extends Entity {
         super.setReactivity();
 
         this.reactivity.
-            when("debug").change(this._displayDebugMode).
-            start();
+            when("debug").change(this._onDebugChange);
     }
 
     /**
@@ -49,7 +48,11 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
+<<<<<<< HEAD
+     * @return {void}
+=======
      * @returns {void}
+>>>>>>> master
      */
     setSpritesheet (image, tilewidth, tileheight) {
         if (!image) {
@@ -77,17 +80,18 @@ export default class Sprite extends Entity {
      * @param {*} previousValue: previous value of debug
      * @returns {void}
      */
-    _displayDebugMode (previousValue) {
+    _onDebugChange (previousValue) {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
+                type    : Shape.TYPE.RECTANGLE,
                 width   : this.width,
                 height  : this.height,
                 stroke  : "#FF0000",
                 fill    : "transparent"
             });
 
-        } else if (Boolean(previousValue)) {
+        } else if (previousValue) {
             this.decompose(this._debug);
 
         }
@@ -97,7 +101,9 @@ export default class Sprite extends Entity {
      * @override
      * @private
      */
-    _containerSize () {
+    _onSizeChange () {
+        super._onSizeChange();
+
         if (this.debug) {
             this._debug.size(this.width, this.height);
         }

@@ -67,10 +67,12 @@ export default class Mixin {
 
     /**
      * @initialize
+     * @param {*=} props: props to be merged
      * @returns {void}
      */
-    initialize () {
+    initialize (props = {}) {
         this.setReactivity();
+        this.set(props)
     }
 
     /**
@@ -125,7 +127,6 @@ export default class Mixin {
             return this;
         }
 
-        mixin.set(injectProps);
         this.willReceiveMixin(mixin);
 
         const name = mixin.name;
@@ -137,7 +138,7 @@ export default class Mixin {
         this[name] = mixin;
         this.mixins.push(name);
 
-        mixin.initialize();
+        mixin.initialize(injectProps);
 
         if (next) {
             next(mixin);

@@ -89,7 +89,6 @@ class Engine extends Component {
             unbind("x", "y", "width", "height").
             when("width", "height").change(this._resize.bind(this)).
             when("dom").change(this._onDOMChange.bind(this)).
-            start().
             when("background").change(this._onBackgroundChange.bind(this));
     }
 
@@ -117,8 +116,10 @@ class Engine extends Component {
         this.latency    = Math.min(timeStart - this.lastUpdate, 100);
         this.fps        = Math.floor(1000 / this.latency);
         this.tick       = 1000 / (this.fps * 1000);
+        this.tick       = this.tick < 0 ? 0 : this.tick;
 
         super.update();
+        super.render();
 
         // Render all Child
         this.children.forEach(child => this._container.render(child._container));
@@ -176,12 +177,12 @@ class Engine extends Component {
     /**
      * When "dom" property has changed
      * @private
-     * @param {*} previousDOM: previous value of "dom" property
+     * @param {*} dom: previous value of "dom" property
      * @returns {void}
      */
-    _onDOMChange (previousDOM) {
-        if (previousDOM) {
-            previousDOM.removeChild(this._container.view);
+    _onDOMChange ({ dom }) {
+        if (dom) {
+            dom.removeChild(this._container.view);
         }
 
         if (this.dom) {
