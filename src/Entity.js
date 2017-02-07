@@ -116,6 +116,16 @@ export default class Entity extends Component {
         }
     }
 
-    /* PRIVATE */
+    /**
+     * Check if it intersect with the entity passed in parameter
+     * @param {Entity} entity: other entity to check collision
+     * @returns {boolean} if true, the two entities is in collision
+     */
+    intersect (entity) {
+        return !( entity.x > (this.x + this.width) ||
+            (entity.x + entity.width) < this.x ||
+            entity.y > (this.y + this.height) ||
+            (entity.y + entity.height) < this.y);
+    }
 
 }
