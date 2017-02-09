@@ -12,6 +12,7 @@ export default class Player extends Sprite {
         super();
 
         this.name = "player";
+        this.mass = this.MASS.SOLID;
 
         this.size(64, 64);
 

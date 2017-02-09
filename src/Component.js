@@ -1,4 +1,5 @@
 import Mixin from "./Mixin";
+import Reactivity from "./Mixin/Reactivity";
 
 
 export default class Component extends Mixin {
@@ -77,20 +78,28 @@ export default class Component extends Mixin {
 
         // auto-binding
 
-        this._onPositionChange  = this._onPositionChange.bind(this);
-        this._onSizeChange      = this._onSizeChange.bind(this);
-        this._onZChange         = this._onZChange.bind(this);
+        this._onZChange                 = this._onZChange.bind(this);
+        this._whenPositionHasChanged    = this._whenPositionHasChanged.bind(this);
+        this._whenSizeHasChanged        = this._whenSizeHasChanged.bind(this);
+    }
+
+    /**
+     * @initialize
+     * @override
+     */
+    initialize (props) {
+        this.mix(new Reactivity());
+        this.setReactivity();
+        super.initialize(props);
     }
 
     /**
      * @override
      */
     setReactivity () {
-        super.setReactivity();
-
         this.reactivity.
-            when("x", "y").change(this._onPositionChange).
-            when("width", "height").change(this._onSizeChange).
+            when("x", "y").hasChanged(this._whenPositionHasChanged).
+            when("width", "height").hasChanged(this._whenSizeHasChanged).
             when("z").change(this._onZChange);
     }
 
@@ -99,24 +108,33 @@ export default class Component extends Mixin {
      * @override
      */
     update () {
+        this.children.forEach(child => child.update());
         super.update();
+    }
+
+    /**
+     * @render
+     * @override
+     */
+    render () {
+        if (!this._container) {
+            return null;
+        }
+
 
         if (this._sortChildrenRequested) {
             this._container.children    = this._container.children.sort((a, b) => (a.z || 0) - (b.z || 0));
             this._sortChildrenRequested = false;
         }
-
-        this.children.forEach(child => child.update());
     }
 
     /**
-     * Render lifecycle
-     * @returns {void}
+     * @nextCycle
+     * @override
      */
-    render () {
-        this.children.forEach(child => child.render());
-
-        this.reactivity.update();
+    nextCycle () {
+        this.children.forEach(child => child.nextCycle());
+        super.nextCycle();
     }
 
     /* METHODS */
@@ -255,30 +273,28 @@ export default class Component extends Mixin {
     /* REACTIVITY */
 
     /**
-     * Replace the current component into the canvas
+     * When x or y attribute has changed
      * @private
      * @returns {void}
      */
-    _onPositionChange () {
-        if (this._container) {
-            this._container.position.set(this.x, this.y);
-        }
+    _whenPositionHasChanged () {
+        this._container.position.set(this.x, this.y);
     }
 
     /**
-     * Replace the current size of the component
+     * When width or height attribute has changed
      * @private
      * @returns {void}
      */
-    _onSizeChange () {
-        if (!this.children.length && this._container) {
+    _whenSizeHasChanged () {
+        if (this._container && !this.children.length) {
             this._container.width   = this.width;
             this._container.height  = this.height;
         }
     }
 
     /**
-     * When z attribute has changed
+     * When z attribute change
      * @private
      * @returns {void}
      */

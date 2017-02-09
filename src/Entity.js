@@ -81,6 +81,10 @@ export default class Entity extends Component {
             WEAK    : "weak",
             SOLID   : "solid"
         };
+
+        // Auto-binding
+
+        this._onVelocityChange = this._onVelocityChange.bind(this);
     }
 
     /**
@@ -90,21 +94,7 @@ export default class Entity extends Component {
         super.setReactivity();
 
         this.reactivity.
-            observe("vx", "vy");
-    }
-
-    /**
-     * @update
-     * @override
-     */
-    update () {
-        super.update();
-
-        this.moving = this.vx || this.vy;
-
-        if (this.moving) {
-            this.updateVelocity();
-        }
+            when("vx", "vy").change(this._onVelocityChange);
     }
 
     /* METHODS */
@@ -192,7 +182,7 @@ export default class Entity extends Component {
      * @returns {{x: number, y: number}} the vector
      */
     vectorTo (entity) {
-        return this.vectorBetween(this.x, this.y, this.width, this.height,
+        return Entity.vectorBetween(this.x, this.y, this.width, this.height,
             entity.x, entity.y, entity.width, entity.height);
     }
 
@@ -202,7 +192,7 @@ export default class Entity extends Component {
      * @returns {{x: number, y: number}} the last vector
      */
     lastVectorTo (entity) {
-        return this.vectorBetween(this.last.x, this.last.y, this.last.width, this.last.height,
+        return Entity.vectorBetween(this.last.x, this.last.y, this.last.width, this.last.height,
             entity.x, entity.y, entity.width, entity.height);
     }
 
@@ -212,7 +202,7 @@ export default class Entity extends Component {
      * @returns {number} the distance
      */
     distanceTo (entity) {
-        return this.distanceBetween(this.x, this.y, this.width, this.height,
+        return Entity.distanceBetween(this.x, this.y, this.width, this.height,
             entity.x, entity.y, entity.width, entity.height);
     }
 
@@ -222,7 +212,7 @@ export default class Entity extends Component {
      * @returns {number} the last distance
      */
     lastDistanceTo (entity) {
-        return this.distanceBetween(this.last.x, this.last.y, this.last.width, this.last.height,
+        return Entity.distanceBetween(this.last.x, this.last.y, this.last.width, this.last.height,
             entity.x, entity.y, entity.width, entity.height);
     }
 
@@ -260,7 +250,21 @@ export default class Entity extends Component {
 
     }
 
-    /* STATICS */
+    /* PRIVATE */
+
+    /**
+     * When "vx" or "vy" change
+     * @private
+     * @returns {void}
+     */
+    _onVelocityChange () {
+        this.movig  = this.vx || this.vy;
+
+        this.x      += this.vx * Engine.tick;
+        this.y      += this.vy * Engine.tick;
+    }
+
+    /* STATIC */
 
     /**
      * Get the vector between two entity

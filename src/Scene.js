@@ -46,6 +46,7 @@ export default class Scene extends Component {
 
         /**
          * set a tilemap to the current Scene
+         * @readonly
          * @type {*}
          */
         this.tilemap    = null;
@@ -58,254 +59,31 @@ export default class Scene extends Component {
          * @type {*}
          */
         this._canvas    = null;
-
-        // Auto-binding
-
-        this._onTilemapChange = this._onTilemapChange.bind(this);
-    }
-
-    /**
-     * @override
-     */
-    setReactivity () {
-        super.setReactivity();
-
-        this.reactivity.
-            when("tilemap").change(this._onTilemapChange);
-    }
-
-    /**
-     * @update
-     * @override
-     */
-    update () {
-        super.update();
-
-        this.updateCollisionBetweenEntities();
     }
 
     /* METHODS */
 
-    /**
-     * Determine if there is a collision on X axis
-     * @param {number} posX: position X
-     * @param {number} nextX: position X needed
-     * @param {number} ymin: position Y Min
-     * @param {number} ymax: position Y Max
-     * @param {number} width: width of the object
-     * @returns {number} get the position x
-     */
-    getLogicXAt (posX, nextX, ymin, ymax, width) {
-        if (!this.tilemap || (this.tilemap && !this.tilemap.sprite)) {
-            return nextX;
-        }
-
-        const orientation   = nextX > posX ? 1 : -1,
-            cellXMin        = orientation > 0 ? Math.floor((posX + width) / this.tilemap.tilewidth) : Math.floor(posX / this.tilemap.tilewidth) - 1,
-            cellXMax        = orientation > 0 ? Math.floor((nextX + width) / this.tilemap.tilewidth) : Math.floor(nextX / this.tilemap.tileheight),
-            cellYMin        = Math.floor(Math.abs(ymin) / this.tilemap.tileheight),
-            cellYMax        = Math.floor(Math.abs(ymax - 1) / this.tilemap.tileheight),
-            grid            = this.tilemap.grid.logic;
-
-        let cellY           = null;
-
-        const loopParameter = {
-            start: orientation > 0 ? cellXMax : cellXMin,
-            end: orientation > 0 ? cellXMin : cellXMax
-        };
-
-        for (let y = cellYMin; y <= cellYMax; y++) {
-            cellY = grid[y];
-
-            if (!cellY) {
-                continue;
-            }
-
-            for (let x = loopParameter.start; x !== (loopParameter.end + orientation); x += orientation) {
-                if (cellY[x]) {
-                    return orientation > 0 ? (x * this.tilemap.tilewidth) - width : (x + 1) * this.tilemap.tilewidth;
-                }
-            }
-        }
-
-        return nextX;
-    }
-
-    /**
-     * Determine if there is a collision on y axis
-     * @param {number} posY : Y axis
-     * @param {number} nextY : Y axis position needed
-     * @param {number} xmin : X Min
-     * @param {number} xmax : X Max
-     * @param {number} height : height of the object
-     * @returns {number} get the position y
-     */
-    getLogicYAt (posY, nextY, xmin, xmax, height) {
-        if (!this.tilemap || (this.tilemap && !this.tilemap.sprite)) {
-            return nextY;
-        }
-
-        const orientation   = nextY > posY ? 1 : -1,
-            cellYMin        = orientation > 0 ? Math.floor((posY + height) / this.tilemap.tileheight) : Math.floor(nextY / this.tilemap.tileheight),
-            cellYMax        = orientation > 0 ? Math.floor((nextY + height) / this.tilemap.tileheight) : Math.floor(posY / this.tilemap.tileheight),
-            cellXMin        = Math.floor(Math.abs(xmin) / this.tilemap.tilewidth),
-            cellXMax        = Math.floor(Math.abs(xmax - 1) / this.tilemap.tilewidth);
-
-        let grid            = null;
-
-        const loopParameter = {
-            start: orientation > 0 ? cellYMin : cellYMax,
-            end: orientation > 0 ? cellYMax : cellYMin
-        };
-
-        for (let y = loopParameter.start; y !== (loopParameter.end + orientation); y += orientation) {
-            grid = this.tilemap.grid.logic[y];
-
-            if (!grid) {
-                continue;
-            }
-
-            for (let x = cellXMin; x <= cellXMax; x++) {
-                if (grid[x]) {
-                    return orientation > 0
-                        ? (y * this.tilemap.tileheight) - height
-                        : (y + 1) * this.tilemap.tileheight;
-                }
-            }
-        }
-
-        return nextY;
-    }
-
-    /**
-     * Resolve all collision between entities children
-     * @returns {void}
-     */
-    updateCollisionBetweenEntities () {
-        const entities      = this.children.filter(x => x.mass !== x.MASS.NONE),
-            intersections   = [];
-
-        // 1st step - get all intersections
-        entities.forEach((entity, index) => {
-            for (let i = index + 1; i < entities.length; i++) {
-                const other         = entities[i],
-                    intersection    = entity.intersect(other);
-
-                if (intersection) {
-                    intersections.push([entity, other, intersection]);
-                }
-            }
-        });
-
-        // 2nd step - repositioning of entity by its collision
-        intersections.forEach(intersection => this._replaceEntityByIntersection(...intersection));
-
-        // 3rd step - call event onCollisionWith
-        intersections.forEach(intersection => {
-            intersection[0].onCollisionWith(intersection[1]);
-            intersection[1].onCollisionWith(intersection[0]);
-        });
-    }
-
-    /* PRIVATE */
-
-    /**
-     * Know all if entities in collision are weaker than other and must be moved
-     * @private
-     * @param {Entity} entity: entity
-     * @param {Array<[Entity, Entity, {x: number, y: number}]>} intersections: the current intersections object
-     * @param {{vector: {x: number, y: number}, moveable: boolean, entities: Array<Entity>}=} recursive: recursive object
-     * @returns {{vector: {x: number, y: number}, moveable: boolean, entities: Array<Entity>}} recursive object
-     */
-    _getEntitiesImpactedByStrongerEntities (entity, intersections, recursive) {
-        if (!recursive) {
-            recursive = { vector: entity.getVectorVelocity(), moveable: true, entities: [] };
-        }
-
-        if (recursive.entities.length && (entity.mass === entity.MASS.SOLID || (recursive.vector.x && entity.collide.y) || (recursive.vector.y && entity.collide.y))) {
-            recursive.moveable = false;
-
-            return recursive;
-        }
-
-        intersections.filter(intersection => intersection[0].id === entity.id || intersection[1].id === entity.id).forEach(intersection => {
-            const other = intersection[0].id === entity.id ? intersection[1] : intersection[0],
-                vector  = intersection[2];
-
-            if ((recursive.vector.x && recursive.vector.y) || (((vector.x === recursive.vector.x && vector.x === 0) || (vector.x !== recursive.vector.x && vector.x !== 0)) &&
-                ((vector.y === recursive.vector.y && vector.y === 0) || (vector.y !== recursive.vector.y && vector.y !== 0)))) {
-
-                recursive.entities.push(other);
-
-                if ((recursive.vector.x && recursive.vector.y) || (!recursive.vector.x && !recursive.vector.y)) {
-                    recursive.vector = {x: vector.x ? -vector.x : 0, y: vector.y ? -vector.y : 0};
-                }
-
-                return this._getEntitiesImpactedByStrongerEntities(other, intersections, recursive);
-            }
-        });
-    }
-
-    /**
-     * Repositioning of entity by its vector collision
-     * @private
-     * @param {Entity} entity: the first entity
-     * @param {Entity} other: the second entity
-     * @param {{x: number, y: number}} vector: the vector collision related to the first entity
-     * @returns {void}
-     */
-    _replaceEntityByIntersection (entity, other, vector) {
-        if (vector.x) {
-            if (other.vx && entity.vx && ((entity.vx < 0 && other.vx > 0) || (entity.vx > 0 && other.vx < 0))) {
-                if (Math.abs(entity.vx) < Math.abs(other.vx)) {
-                    entity.x -= entity.vx * Engine.tick;
-
-                } else {
-                    other.x -= other.vx * Engine.tick;
-
-                }
-
-                entity.vx   = 0;
-                other.vx    = 0;
-
-            } else {
-                entity.x = vector.x > 0 ? other.x - entity.width : other.x + other.width;
-
-            }
-        }
-
-        if (vector.y) {
-            entity.y = vector.y > 0 ? other.y + other.height : other.y - entity.height;
-
-            // Resolve Y with gravity
-            entity.standing = vector.y < 0;
-            entity.falling  = vector.y > 0;
-
-            if (entity.standing) {
-                entity.vy = 0;
-            }
-
-            if (vector.y < 0 && other.vx) {
-                entity.x += other.vx * Engine.tick;
-            }
-        }
-    }
 
     /**
      * When tilemap change
      * @private
-     * @param {*} previousValue: previous value
-     * @returns {void}
+     * @param {*} tilemap: next Tilemap to render
+     * @returns {void|null} -
      */
-    _onTilemapChange (previousValue) {
+    setTilemap (tilemap) {
+        if (!tilemap) {
+            return null;
+        }
+
         const canvas    = document.createElement("canvas"),
             ctx         = canvas.getContext("2d"),
             image       = new Image();
 
-        if (previousValue && previousValue.sprite) {
-            this._container.removeChild(previousValue.sprite);
+        if (this.tilemap && this.tilemap.sprite) {
+            this._container.removeChild(this.tilemap.sprite);
         }
 
+        this.tilemap        = tilemap;
         this.tilemap.width  = 0;
         this.tilemap.height = 0;
 
@@ -339,5 +117,149 @@ export default class Scene extends Component {
         };
 
         image.src = this.tilemap.path;
+    }
+
+    /**
+     * Resolve all collision between entities children
+     * @returns {void}
+     */
+    updateCollisionBetweenEntities () {
+        const entities      = this.children.filter(x => x.mass !== x.MASS.NONE),
+            intersections   = [];
+
+        // 1st step - get all intersections
+        entities.forEach((entity, index) => {
+            for (let i = index + 1; i < entities.length; i++) {
+                const other         = entities[i],
+                    intersection    = entity.intersect(other);
+
+                if (intersection) {
+                    intersections.push([entity, other, intersection]);
+                }
+            }
+        });
+
+        // 2nd step - repositioning of entity by its collision
+
+        /*
+        intersections.forEach(intersection => {
+            const entity    = intersection[0],
+                other       = intersection[1],
+                vector      = intersection[2];
+
+            if (entity.moving || other.moving) {
+                const impact = this._getEntitiesImpactedByStrongerEntities(entity, intersections);
+
+                console.log(impact);
+                this._replaceEntityByIntersection(...intersection);
+            }
+        });
+        */
+
+        entities.filter(entity => entity.moving).forEach(entity => {
+            const impact    = this._getEntitiesImpactedByStrongerEntities(entity, intersections);
+
+            let lastEntity  = entity;
+
+            if (impact.moveable) {
+                impact.entities.forEach(other => {});
+            }
+        });
+
+        // 3rd step - call event onCollisionWith
+        intersections.forEach(intersection => {
+            intersection[0].onCollisionWith(intersection[1]);
+            intersection[1].onCollisionWith(intersection[0]);
+        });
+    }
+
+    /* PRIVATE */
+
+    /**
+     * Know all if entities in collision are weaker than other and must be moved
+     * @private
+     * @param {Entity} entity: entity
+     * @param {Array<[Entity, Entity, {x: number, y: number}]>} intersections: the current intersections object
+     * @param {{vector: {x: number, y: number}, moveable: boolean, entities: Array<Entity>}=} recursive: recursive object
+     * @returns {{vector: {x: number, y: number}, moveable: boolean, entities: Array<Entity>}} recursive object
+     */
+    _getEntitiesImpactedByStrongerEntities (entity, intersections, recursive) {
+        if (!recursive) {
+            const vectorVelocity = entity.getVectorVelocity();
+
+            recursive = { vector: {x: vectorVelocity.x, y: vectorVelocity.y || (!entity.collide.y && this.gravity ? 1 : 0)}, moveable: true, entities: [] };
+        }
+
+        if (recursive.entities.length && (entity.mass === entity.MASS.SOLID || (recursive.vector.x && entity.collide.y) || (recursive.vector.y && entity.collide.y))) {
+            recursive.moveable = false;
+
+            return recursive;
+        }
+
+        intersections.filter(intersection => intersection[0].id === entity.id || intersection[1].id === entity.id).forEach(intersection => {
+            const other = intersection[0].id === entity.id ? intersection[1] : intersection[0],
+                vector  = intersection[2];
+
+            if ((recursive.vector.x && recursive.vector.y) || (((vector.x === recursive.vector.x && vector.x === 0) || (vector.x !== recursive.vector.x && vector.x !== 0)) &&
+                ((vector.y === recursive.vector.y && vector.y === 0) || (vector.y !== recursive.vector.y && vector.y !== 0)))) {
+
+                recursive.entities.push(other);
+
+                if ((recursive.vector.x && recursive.vector.y) || (!recursive.vector.x && !recursive.vector.y)) {
+                    recursive.vector = {x: vector.x ? -vector.x : 0, y: vector.y ? -vector.y : 0};
+                }
+
+                return this._getEntitiesImpactedByStrongerEntities(other, intersections, recursive);
+            }
+        });
+
+        recursive.moveable = recursive.entities.length ? recursive.moveable : true;
+
+        return recursive;
+    }
+
+    /**
+     * Repositioning of entity by its vector collision
+     * @private
+     * @param {Entity} entity: the first entity
+     * @param {Entity} other: the second entity
+     * @param {{x: number, y: number}} vector: the vector collision related to the first entity
+     * @returns {void}
+     */
+    _replaceEntityByIntersection (entity, other, vector) {
+        if (vector.x) {
+            if (other.vx && entity.vx && ((entity.vx < 0 && other.vx > 0) || (entity.vx > 0 && other.vx < 0))) {
+                if (Math.abs(entity.vx) < Math.abs(other.vx)) {
+                    entity.x -= entity.vx * Engine.tick;
+
+                } else {
+                    other.x -= other.vx * Engine.tick;
+
+                }
+
+                entity.vx   = 0;
+                other.vx    = 0;
+
+            } else {
+                entity.x = vector.x > 0 ? other.x + other.width : other.x - entity.width;
+
+            }
+        }
+
+        if (vector.y) {
+            entity.y = vector.y > 0 ? other.y + other.height : other.y - entity.height;
+
+            // Resolve Y with gravity
+            entity.standing = vector.y < 0;
+            entity.falling  = vector.y > 0;
+
+            if (entity.standing) {
+                entity.vy = 0;
+            }
+
+            if (vector.y < 0 && other.vx) {
+                entity.x += other.vx * Engine.tick;
+            }
+        }
     }
 }

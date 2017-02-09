@@ -1,5 +1,6 @@
 import Entity from "./../Entity";
 import Shape from "./Shape";
+import Collision from "./../Mixin/Collision";
 
 
 export default class Sprite extends Entity {
@@ -13,6 +14,8 @@ export default class Sprite extends Entity {
         super();
 
         this.name       = "sprite";
+
+        this.mass       = this.MASS.WEAK;
 
         this._container = new PIXI.Sprite();
 
@@ -41,6 +44,16 @@ export default class Sprite extends Entity {
 
         this.reactivity.
             when("debug").change(this._onDebugChange);
+    }
+
+    /**
+     * @initialize
+     * @override
+     */
+    initialize (props) {
+        super.initialize(props);
+
+        this.mix(new Collision());
     }
 
     /**

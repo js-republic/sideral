@@ -1,5 +1,3 @@
-import Reactivity from "./Reactivity";
-
 export default class Mixin {
 
     /* LIFECYCLE */
@@ -31,13 +29,6 @@ export default class Mixin {
         this.parent = null;
 
         /**
-         * Define a flux of reactivity between attributes
-         * @readonly
-         * @type {Reactivity}
-         */
-        this.reactivity = new Reactivity(this);
-
-        /**
          * Array of mixins name
          * @readonly
          * @type {Array<String>}
@@ -50,21 +41,6 @@ export default class Mixin {
          * @type {boolean}
          */
         this.destroyed = false;
-
-        /**
-         * Get last value by reactivity
-         * @readonly
-         * @type {{}}
-         */
-        this.last = {};
-    }
-
-    /**
-     * Instance all your reactive props here
-     * @returns {void}
-     */
-    setReactivity () {
-
     }
 
     /**
@@ -82,8 +58,7 @@ export default class Mixin {
      * @returns {void}
      */
     initialize (props = {}) {
-        this.setReactivity();
-        this.set(props)
+        this.set(props);
     }
 
     /**
@@ -95,10 +70,26 @@ export default class Mixin {
     }
 
     /**
+     * Call just after update function
+     * @returns {void}
+     */
+    afterUpdate () {
+        this.mixins.forEach(mixin => this[mixin].afterUpdate());
+    }
+
+    /**
+     * Call before the new loop cycle
+     * @returns {void}
+     */
+    nextCycle () {
+        this.mixins.forEach(mixin => this[mixin].nextCycle());
+    }
+
+    /**
      * @kill
      * @returns {void}
      */
-    kill() {
+    kill () {
         this.destroyed  = true;
         this.parent     = null;
     }
@@ -146,7 +137,8 @@ export default class Mixin {
             delete this.prototype[name];
         }
 
-        this[name] = mixin;
+        this[name]      = mixin;
+        mixin.parent    = this;
         this.mixins.push(name);
 
         mixin.initialize(injectProps);
@@ -188,13 +180,15 @@ export default class Mixin {
 
     /**
      * Event when a new mixin is added
-     * @param mixin
+     * @param {Mixin} mixin: mixin to be changed
+     * @returns {void}
      */
     willReceiveMixin (mixin) { }
 
     /**
      * Event when mixin is removed
-     * @param mixin
+     * @param {Mixin} mixin: mixin to be changed
+     * @returns {void}
      */
     willLoseMixin (mixin) { }
 

@@ -16,9 +16,10 @@ export default class Arena extends Scene {
     initialize () {
         super.initialize();
 
-        this.tilemap    = tilemapArena;
         this.player     = new Player();
         window.player   = this.player;
+
+        this.setTilemap(tilemapArena);
 
         this.compose(this.player, { debug: true, z: 0 }).
             compose(new Ball(), { debug: true, x: 200, y: 100 });
