@@ -6,6 +6,7 @@ export default class Mixin {
      * @constructor
      */
     constructor () {
+        // readonly
 
         /**
          * Unique Id for the Comonent
@@ -41,6 +42,15 @@ export default class Mixin {
          * @type {boolean}
          */
         this.destroyed = false;
+
+        // private
+
+        /**
+         * List of all intercepted functions
+         * @type {{}}
+         * @private
+         */
+        this._interceptedFunctions = {};
     }
 
     /**
@@ -90,8 +100,11 @@ export default class Mixin {
      * @returns {void}
      */
     kill () {
-        this.destroyed  = true;
-        this.parent     = null;
+        Object.keys(this._interceptedFunctions).forEach(functionName => this.parent[functionName] = this._interceptedFunctions[functionName].bind(this.parent));
+
+        this._interceptedFunctions  = {};
+        this.destroyed              = true;
+        this.parent                 = null;
     }
 
     /* METHODS */
@@ -116,7 +129,7 @@ export default class Mixin {
     /**
      * Add a new feature with the mixin passed by parameter
      * @param {Mixin} mixin: feature to add to the component
-     * @param {{}=} injectProps: props to inject after parent created
+     * @param {*=} injectProps: props to inject after parent created
      * @param {*=} next: function callback after mixed
      * @returns {Mixin} the current Mixin instance
      */
@@ -176,6 +189,19 @@ export default class Mixin {
         }
 
         return this;
+    }
+
+    /**
+     * Intercept a parent function to change it with the next function passed in the second parameter
+     * @param {string} functionName: the name of the function to be intercepted
+     * @param {function} nextFunction: the substitute function
+     * @returns {void}
+     */
+    interceptFunction (functionName, nextFunction) {
+        if (this.parent && this.parent[functionName]) {
+            this._interceptedFunctions[functionName]    = this.parent[functionName];
+            this.parent[functionName]                   = nextFunction.bind(this);
+        }
     }
 
     /**

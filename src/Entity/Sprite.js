@@ -15,8 +15,6 @@ export default class Sprite extends Entity {
 
         this.name       = "sprite";
 
-        this.mass       = this.MASS.WEAK;
-
         this._container = new PIXI.Sprite();
 
         /**
@@ -31,6 +29,10 @@ export default class Sprite extends Entity {
          */
         this.debug = false;
 
+        // mix
+
+        this.mix(new Collision());
+
         // auto-binding
 
         this._onDebugChange     = this._onDebugChange.bind(this);
@@ -44,16 +46,6 @@ export default class Sprite extends Entity {
 
         this.reactivity.
             when("debug").change(this._onDebugChange);
-    }
-
-    /**
-     * @initialize
-     * @override
-     */
-    initialize (props) {
-        super.initialize(props);
-
-        this.mix(new Collision());
     }
 
     /**
@@ -88,10 +80,10 @@ export default class Sprite extends Entity {
     /**
      * Show or hide the debug mode
      * @private
-     * @param {Boolean} previousValue : the previous value of the attribute
+     * @param {Boolean} debug : the previous value of the attribute
      * @returns {void}
      */
-    _onDebugChange (previousValue) {
+    _onDebugChange ({ debug }) {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
@@ -102,10 +94,12 @@ export default class Sprite extends Entity {
                 fill    : "transparent"
             });
 
-        } else if (previousValue) {
+        } else if (debug) {
             this.decompose(this._debug);
 
         }
+
+        window._DEBUG = this._debug;
     }
 
     /**

@@ -26,6 +26,7 @@ export default class Reactivity extends Mixin {
 
         /**
          * All propagations object
+         * @readonly
          * @type {Array<{props: *, previousValues: {}, methods: Array<function>}>}
          */
         this.propagations       = [];
@@ -37,23 +38,27 @@ export default class Reactivity extends Mixin {
         this.currentPropagation = null;
 
         /**
-         * Current props to be added to the current propagation
-         * @type {Array<*>}
-         */
-        this.currentProps       = [];
-
-        /**
          * Get last value by reactivity
+         * @readonly
          * @type {{}}
          */
-        this.last = {};
+        this.last               = {};
+
+        // private
 
         /**
          * Last value of a props stocked temporarly
          * @type {{}}
          * @private
          */
-        this._lastTempProps = {};
+        this._lastTempProps     = {};
+
+        /**
+         * Check if reactivity flux is updated
+         * @type {boolean}
+         * @private
+         */
+        this._updated           = false;
     }
 
     /**
@@ -91,11 +96,12 @@ export default class Reactivity extends Mixin {
                 const previousValues = {};
 
                 propsChanged.forEach(prop => previousValues[prop] = this._lastTempProps[prop]);
-                propagation.methods.forEach(method => method(previousValues));
+                propagation.method(previousValues);
             }
         });
 
         lastProps.forEach(prop => this.last[prop] = this._lastTempProps[prop]);
+        this._updated = true;
     }
 
     /**
@@ -103,6 +109,10 @@ export default class Reactivity extends Mixin {
      * @override
      */
     nextCycle () {
+        if (!this._updated) {
+            this.afterUpdate();
+        }
+
         this._lastTempProps = {};
     }
 
@@ -127,8 +137,10 @@ export default class Reactivity extends Mixin {
     when (...names) {
         this.observe(...names);
 
-        this.currentProps       = names;
-        this.currentPropagation = null;
+        this.currentPropagation = {
+            props   : names,
+            method  : null
+        };
 
         return this;
     }
@@ -139,25 +151,44 @@ export default class Reactivity extends Mixin {
      * @returns {Reactivity} the current reactivity flux
      */
     change (method) {
-        this.currentPropagation = {
-            props           : this.currentProps,
-            methods         : [method.bind(this.parent)]
-        };
-
-        this.propagations.push(this.currentPropagation);
+        if (this.currentPropagation) {
+            this.currentPropagation.method = method.bind(this.parent);
+            this.propagations.push(this.currentPropagation);
+        }
 
         return this;
     }
 
     /**
-     * Add an other method of the propagation after the 'when' and 'change' operator
-     * @param {function} method: method to be called when the property value has changed
+     * Sort current propagation before propagation containing names
+     * @param {string} names: prop names
      * @returns {Reactivity} the current reactivity flux
      */
-    then (method) {
-        this.currentPropagation.methods.push(method.bind(this.parent));
+    before (...names) {
+        if (this.currentPropagation) {
+            const nextIndex = this.propagations.findIndex(propagation => Boolean(propagation.props.filter(prop => names.find(name => name === prop)))),
+                oldIndex    = this.propagations.findIndex(propagation => propagation.method === this.currentPropagation.method);
+
+            this.propagations.splice(nextIndex, 0, this.propagations.splice(oldIndex, 1)[0]);
+        }
 
         return this;
+    }
+
+    /**
+     * Sort current propagation after propagation containing names
+     * @param {string} names: prop names
+     * @returns {Reactivity} the current reactivity flux
+     */
+    after (...names) {
+        if (this.currentPropagation) {
+            if (this.currentPropagation) {
+                this.propagations.splice(this.propagations.findIndex(propagation => propagation.method === this.currentPropagation.method), 1);
+                this.propagations.splice(this.propagations.reverse().findIndex(propagation => Boolean(propagation.props.filter(prop => names.find(name => name === prop)))), 0, this.currentPropagation);
+            }
+
+            return this;
+        }
     }
 
     /**
@@ -166,19 +197,11 @@ export default class Reactivity extends Mixin {
      * @returns {Reactivity} the current reactivity flux
      */
     unbind (...names) {
-        this.propagations = this.propagations.filter((propagation) => {
-            return names.forEach((name) => {
-                if (propagation.props.find(prop => prop === name)) {
-                    return true;
-                }
-            });
-        });
+        this.propagations = this.propagations.
+            filter(propagation => names.
+                map(name => propagation.props.find(prop => prop === name)).length === propagation.props.length);
 
         return this;
-    }
-
-    unbindHasChanged (...names) {
-        // TODO
     }
 
     /**
@@ -211,12 +234,34 @@ export default class Reactivity extends Mixin {
 
             set (nextValue) {
                 if (!this.reactivity._lastTempProps[name]) {
-                    this.reactivity._lastTempProps[name] = this.reactivity.props[name];
+                    this.reactivity._lastTempProps[name]    = this.reactivity.props[name];
+                    this.reactivity.last[name]              = this.reactivity.props[name];
                 }
 
-                this.reactivity.last[name]  = this.reactivity.props[name];
                 this.reactivity.props[name] = nextValue;
+
+                /*
+                if (this.reactivity._immediatePropagation) {
+                    this.reactivity.propagations.filter(propagation => propagation.props.find(prop => prop === name)).
+                        forEach(propagation => propagation.method())
+                } */
             }
         });
+    }
+
+    /**
+     * Get previous values object for names prop that has been changed
+     * @private
+     * @param {string} names: prop names
+     * @returns {{}} the previous values object
+     */
+    _getPreviousValues (...names) {
+        const lastProps     = Object.keys(this._lastTempProps),
+            previousValues  = {};
+
+        names.filter(name => lastProps.find(prop => prop === name)).
+            forEach(name => previousValues[name] = this._lastTempProps[name]);
+
+        return previousValues;
     }
 }

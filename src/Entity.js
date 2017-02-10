@@ -18,12 +18,6 @@ export default class Entity extends Component {
         this._container = new PIXI.DisplayObject();
 
         /**
-         * Mass of the entity (collision)
-         * @type {number}
-         */
-        this.mass           = "none";
-
-        /**
          * Factor of gravity provided by the scene
          * @type {number}
          */
@@ -63,38 +57,11 @@ export default class Entity extends Component {
          * @type {boolean}
          */
         this.moving         = false;
-
-        /**
-         * Know if the entity is in collision with a wall
-         * @readonly
-         * @type {{x: boolean, y: boolean}}
-         */
-        this.collide        = {x: false, y: false};
-
-        /**
-         * Mass enumeration
-         * @readonly
-         * @type {{NONE: string, WEAK: string, SOLID: string}}
-         */
-        this.MASS = {
-            NONE    : "none",
-            WEAK    : "weak",
-            SOLID   : "solid"
-        };
-
-        // Auto-binding
-
-        this._onVelocityChange = this._onVelocityChange.bind(this);
     }
 
-    /**
-     * @override
-     */
-    setReactivity () {
-        super.setReactivity();
-
-        this.reactivity.
-            when("vx", "vy").change(this._onVelocityChange);
+    update () {
+        super.update();
+        this.updateVelocity();
     }
 
     /* METHODS */
@@ -104,28 +71,15 @@ export default class Entity extends Component {
      * @returns {void}
      */
     updateVelocity () {
-        this.getScene(scene => {
-            if (this.vx) {
-                const nextX = this.x + (this.vx * Engine.tick),
-                    realX   = scene.getLogicXAt(this.x, nextX, this.y, this.y + this.height, this.width);
+        this.moving     = this.vx || this.vy;
 
-                this.collide.x  = realX !== nextX;
-                this.x          = realX;
-            }
-
-            if (this.vy) {
-                const nextY = this.y + (this.vy * Engine.tick),
-                    realY   = scene.getLogicYAt(this.y, nextY, this.x, this.x + this.width, this.height);
-
-                this.collide.y  = realY !== nextY;
-                this.y          = realY;
-            }
-        });
+        this.x          += this.vx * Engine.tick;
+        this.y          += this.vy * Engine.tick;
     }
 
     /**
      * Find the first Scene into parent hierarchy
-     * @param {function=} callback: callback when the scene has been finded
+     * @param {function} callback: callback when the scene has been finded
      * @param {*=} recursive: recursive object to get scene
      * @returns {void}
      */
@@ -159,6 +113,7 @@ export default class Entity extends Component {
         if (staticIntersection) {
             return vector;
 
+            // TODO: move it to collision
         } else if (this.moving) {
             const lastVector    = this.lastVectorTo(entity),
                 lastDistance    = this.lastDistanceTo(entity),
@@ -248,20 +203,6 @@ export default class Entity extends Component {
      */
     onCollisionWith (other) {
 
-    }
-
-    /* PRIVATE */
-
-    /**
-     * When "vx" or "vy" change
-     * @private
-     * @returns {void}
-     */
-    _onVelocityChange () {
-        this.movig  = this.vx || this.vy;
-
-        this.x      += this.vx * Engine.tick;
-        this.y      += this.vy * Engine.tick;
     }
 
     /* STATIC */

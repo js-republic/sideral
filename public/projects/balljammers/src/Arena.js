@@ -48,7 +48,7 @@ export default class Arena extends Scene {
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_UP)) {
-            vy = -100;
+            vy -= 100;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_DOWN)) {

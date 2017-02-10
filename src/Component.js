@@ -7,6 +7,16 @@ export default class Component extends Mixin {
     /* LIFECYCLE */
 
     /**
+     * @initialize
+     * @override
+     */
+    initialize (props) {
+        this.mix(new Reactivity());
+        this.setReactivity();
+        super.initialize(props);
+    }
+
+    /**
      * @constructor
      */
     constructor () {
@@ -41,6 +51,13 @@ export default class Component extends Mixin {
          * @type {number}
          */
         this.width  = 10;
+
+        /**
+         * Reactivity mixin
+         * @readonly
+         * @type {Reactivity}
+         */
+        this.reactivity = null;
 
         /**
          * Size height
@@ -78,19 +95,9 @@ export default class Component extends Mixin {
 
         // auto-binding
 
-        this._onZChange                 = this._onZChange.bind(this);
-        this._whenPositionHasChanged    = this._whenPositionHasChanged.bind(this);
-        this._whenSizeHasChanged        = this._whenSizeHasChanged.bind(this);
-    }
-
-    /**
-     * @initialize
-     * @override
-     */
-    initialize (props) {
-        this.mix(new Reactivity());
-        this.setReactivity();
-        super.initialize(props);
+        this._onZChange         = this._onZChange.bind(this);
+        this._onPositionChange  = this._onPositionChange.bind(this);
+        this._onSizeChange      = this._onSizeChange.bind(this);
     }
 
     /**
@@ -98,8 +105,8 @@ export default class Component extends Mixin {
      */
     setReactivity () {
         this.reactivity.
-            when("x", "y").hasChanged(this._whenPositionHasChanged).
-            when("width", "height").hasChanged(this._whenSizeHasChanged).
+            when("x", "y").change(this._onPositionChange).
+            when("width", "height").change(this._onSizeChange).
             when("z").change(this._onZChange);
     }
 
@@ -113,14 +120,12 @@ export default class Component extends Mixin {
     }
 
     /**
-     * @render
+     * @afterUpdate
      * @override
      */
-    render () {
-        if (!this._container) {
-            return null;
-        }
-
+    afterUpdate () {
+        this.children.forEach(child => child.afterUpdate());
+        super.afterUpdate();
 
         if (this._sortChildrenRequested) {
             this._container.children    = this._container.children.sort((a, b) => (a.z || 0) - (b.z || 0));
@@ -178,7 +183,7 @@ export default class Component extends Mixin {
     /**
      * Compose a component and set it has a children of the current Component
      * @param {Component} component: child
-     * @param {{}=} injectProps: props to inject after parent created
+     * @param {*=} injectProps: props to inject after parent created
      * @param {*=} next: function callback
      * @returns {Component} current Component
      */
@@ -277,7 +282,7 @@ export default class Component extends Mixin {
      * @private
      * @returns {void}
      */
-    _whenPositionHasChanged () {
+    _onPositionChange () {
         this._container.position.set(this.x, this.y);
     }
 
@@ -286,7 +291,7 @@ export default class Component extends Mixin {
      * @private
      * @returns {void}
      */
-    _whenSizeHasChanged () {
+    _onSizeChange () {
         if (this._container && !this.children.length) {
             this._container.width   = this.width;
             this._container.height  = this.height;

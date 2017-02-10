@@ -78,7 +78,7 @@ class Engine extends Component {
         this.background = "#DDDDDD";
 
         // Auto-binding
-        this._whenSizeHasChanged = this._whenSizeHasChanged.bind(this);
+        this._onSizeChange = this._onSizeChange.bind(this);
 
         // Auto-initialization
         this.initialize();
@@ -89,7 +89,7 @@ class Engine extends Component {
      */
     setReactivity () {
         this.reactivity.
-            unbindHasChanged("x", "y").
+            unbind("x", "y").
             when("dom").change(this._onDOMChange.bind(this)).
             when("background").change(this._onBackgroundChange.bind(this));
     }
@@ -122,7 +122,6 @@ class Engine extends Component {
 
         super.update();
         super.afterUpdate();
-        super.render();
         super.nextCycle();
 
         // Render all Child
@@ -142,7 +141,7 @@ class Engine extends Component {
             throw new Error("Engine.start", "You must set 'width', 'height' and a 'dom' container");
         }
 
-        this._resize();
+        this._onSizeChange();
         this.restart();
     }
 
@@ -170,7 +169,7 @@ class Engine extends Component {
      * @private
      * @override
      */
-    _whenSizeHasChanged () {
+    _onSizeChange () {
         if (!this._container) {
             return null;
         }
