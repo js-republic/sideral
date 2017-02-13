@@ -164,6 +164,15 @@ export default class Mixin {
     }
 
     /**
+     * Check if a mixin exist
+     * @param {string} name: name of the mixin
+     * @returns {boolean} if the mixin exist
+     */
+    has (name) {
+        return Boolean(this.mixins.find(mixin => mixin === name));
+    }
+
+    /**
      * Unmix a mixin
      * @param {Mixin} mixin: mixin to remove
      * @param {*=} next: function callback

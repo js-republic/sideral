@@ -93,6 +93,13 @@ export default class Component extends Mixin {
          */
         this._sortChildrenRequested = false;
 
+        /**
+         * List of real children names
+         * @type {Array}
+         * @private
+         */
+        this._childrenNames         = [];
+
         // auto-binding
 
         this._onZChange         = this._onZChange.bind(this);
@@ -181,6 +188,16 @@ export default class Component extends Mixin {
     }
 
     /**
+     * Check if a mixin / component exist
+     * @override
+     * @param {string} name: name of the mixin or component
+     * @returns {boolean} if the mixin or component exists
+     */
+    has (name) {
+        return super.has(name) || Boolean(this._childrenNames.find(childrenName => childrenName === name));
+    }
+
+    /**
      * Compose a component and set it has a children of the current Component
      * @param {Component} component: child
      * @param {*=} injectProps: props to inject after parent created
@@ -197,6 +214,7 @@ export default class Component extends Mixin {
         }
 
         this.children.push(component);
+        this._childrenNames.push(component.name);
 
         component.parent = this;
         component.initialize(injectProps);

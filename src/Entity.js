@@ -101,19 +101,19 @@ export default class Entity extends Component {
     /**
      * Check if it intersect with the entity passed in parameter
      * @param {Entity} entity: other entity to check collision
+     * @param {boolean=} onlyStaticIntersection: check only with static intersection
      * @returns {null|{x: number, y: number}} return the vector if true, else retur null
      */
-    intersect (entity) {
+    intersect (entity, onlyStaticIntersection) {
         const staticIntersection = !(entity.x > (this.x + this.width) ||
             (entity.x + entity.width) < this.x ||
             entity.y > (this.y + this.height) ||
             (entity.y + entity.height) < this.y),
             vector = this.vectorTo(entity);
 
-        if (staticIntersection) {
+        if (staticIntersection || onlyStaticIntersection) {
             return vector;
 
-            // TODO: move it to collision
         } else if (this.moving) {
             const lastVector    = this.lastVectorTo(entity),
                 lastDistance    = this.lastDistanceTo(entity),
@@ -230,16 +230,16 @@ export default class Entity extends Component {
             colright    = targright - x;
 
         if (coltop < colbottom && coltop < colleft && coltop < colright) {
-            return {x: 0, y: -1};
-
-        } else if (colbottom < coltop && colbottom < colleft && colbottom < colright) {
             return {x: 0, y: 1};
 
+        } else if (colbottom < coltop && colbottom < colleft && colbottom < colright) {
+            return {x: 0, y: -1};
+
         } else if (colleft < colright && colleft < coltop && colleft < colbottom) {
-            return {x: -1, y: 0};
+            return {x: 1, y: 0};
 
         } else if (colright < colleft && colright < coltop && colright < colbottom) {
-            return {x: 1, y: 0};
+            return {x: -1, y: 0};
         }
 
         return {x: 0, y: 0};

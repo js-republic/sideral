@@ -19,7 +19,7 @@ export default class Collision extends Mixin {
          * Mass of the entity (collision)
          * @type {number}
          */
-        this.mass           = "none";
+        this.mass           = 2;
 
         /**
          * Know if the parent is in collision with wall within axis
@@ -33,9 +33,9 @@ export default class Collision extends Mixin {
          * @type {{NONE: string, WEAK: string, SOLID: string}}
          */
         this.MASS = {
-            NONE    : "none",
-            WEAK    : "weak",
-            SOLID   : "solid"
+            NONE    : 0,
+            WEAK    : 1,
+            SOLID   : 2
         };
     }
 
@@ -47,10 +47,13 @@ export default class Collision extends Mixin {
 
     /* OVERRIDES */
 
+    /**
+     * @override
+     */
     updateVelocity () {
-        const parent = this.parent;
+        const parent    = this.parent;
 
-        parent.moving = parent.vx || parent.vy;
+        parent.moving   = parent.vx || parent.vy;
 
         if (parent.moving) {
             this.resolveAll();
@@ -60,21 +63,36 @@ export default class Collision extends Mixin {
     /* METHODS */
 
     /**
-     * Resolve all collision (wall and between entities)
+     * Resolve all collision (wall and between entities) when entity is moving
      * @returns {void}
      */
     resolveAll () {
-        const entity = this.parent;
+        const entity    = this.parent;
 
         this.getEntities(entities => {
             // 1st step - resolve collisions with wall
             this.resolveWallCollision(entity);
 
             // 2nd step - get collisions with all entities moving (intersections of two lines)
-            this.resolveEntitiesCollision(entity, entities);
+            this.getEntitiesCollisions(entity, entities).forEach(collision => {
+                const { vector, other } = collision;
 
-            // 3rd step - get all chains of collisions to resolve shifting
-            // 4rd step - resolve shifting of impact by entities moving
+                if (this.isWeakerThan(other)) {
+                    if (vector.x) {
+                        entity.x = vector.x > 0 ? other.x - entity.width : other.x + other.width;
+                    } else if (vector.y) {
+                        entity.y = vector.y > 0 ? other.y - entity.height : other.y + other.height;
+                    }
+
+                } else {
+                    // 3rd step - get all chains of collisions to resolve shifting
+                    const chain = this.getChainCollision(collision.vector.x ? "x" : "y", [entity, collision.other], entities);
+
+                    // 4rd step - resolve shifting of impact by entities moving
+                    console.log(chain);
+                }
+            });
+
         });
     }
 
@@ -111,44 +129,13 @@ export default class Collision extends Mixin {
     }
 
     /**
-     * get all collision with entities in the scene
-     * @param {Entity} entity: current entity
-     * @param {Array<Entity>} entities: entities to check
-     * @returns {void|null} -
+     * Resolve the chain of collisions
+     * @param {string} axis: axis x or y
+     * @param {Array<Entity>} chain: chain of entity impacted by movement
+     * @returns {void}
      */
-    resolveEntitiesCollision (entity, entities = []) {
-        entities.forEach(other => {
-            if (entity.intersect(other)) {
-                console.log("intersection");
-            }
-        });
-    }
-
-    /**
-     * Check if two lines are intersected
-     * @param {{x: number, y: number}} line1Start - start coordinate of line 1
-     * @param {{x: number, y: number}} line1End - end coordinate of line 1
-     * @param {{x: number, y: number}} line2Start - start coordinate of line 2
-     * @param {{x: number, y: number}} line2End - end coordinate of line 2
-     * @returns {boolean} return true if the lines intersect each other
-     */
-    checkLineIntersection (line1Start, line1End, line2Start, line2End) {
-        const denominator = ((line2End.y - line2Start.y) * (line1End.x - line1Start.x)) - ((line2End.x - line2Start.x) * (line1End.y - line1Start.y));
-
-        if (denominator === 0) {
-            return false;
-        }
-
-        let a           = line1Start.y - line2Start.y,
-            b           = line1Start.x - line2Start.x;
-
-        const numerator1    = ((line2End.x - line2Start.x) * a) - ((line2End.y - line2Start.y) * b),
-            numerator2      = ((line1End.x - line1Start.x) * a) - ((line1End.y - line1Start.y) * b);
-
-        a = numerator1 / denominator;
-        b = numerator2 / denominator;
-
-        return a > 0 && a < 1 && b > 0 && b < 1;
+    resolveChainOfCollisions (axis, chain) {
+        // TODO
     }
 
     /**
@@ -175,11 +162,6 @@ export default class Collision extends Mixin {
 
         let cellY           = null;
 
-        const loopParameter = {
-            start: orientation > 0 ? cellXMax : cellXMin,
-            end: orientation > 0 ? cellXMin : cellXMax
-        };
-
         for (let y = cellYMin; y <= cellYMax; y++) {
             cellY = grid[y];
 
@@ -187,7 +169,7 @@ export default class Collision extends Mixin {
                 continue;
             }
 
-            for (let x = loopParameter.start; x !== (loopParameter.end + orientation); x += orientation) {
+            for (let x = cellXMin; x !== (cellXMax + orientation); x += orientation) {
                 if (cellY[x]) {
                     return orientation > 0 ? (x * scene.tilemap.tilewidth) - width : (x + 1) * scene.tilemap.tilewidth;
                 }
@@ -242,6 +224,68 @@ export default class Collision extends Mixin {
         }
 
         return nextY;
+    }
+
+    /**
+     * Check if the parent is weaker than other in mass
+     * @param {Entity} other: other entity
+     * @returns {boolean} is weaker than
+     */
+    isWeakerThan (other) {
+        return other.has("collision") && this.mass <= other.collision.mass;
+    }
+
+    /**
+     * Check if the parent is stronger than other in mass
+     * @param {Entity} other: other entity
+     * @returns {boolean} is stronger than
+     */
+    isStrongerThan (other) {
+        return other.has("collision") && this.mass > other.collision.mass;
+    }
+
+    /**
+     * Get all collision with other entities
+     * @param {Entity} entity: entity to check
+     * @param {Array<Entity>} entities: list of entities to check
+     * @returns {Array<{ vector: {x: number, y: number}, other: Entity}>} list of collisions
+     */
+    getEntitiesCollisions (entity, entities) {
+        const collisions = [];
+
+        entities.filter(other => other.has("collision")).forEach(other => {
+            const vector = entity.intersect(other);
+
+            if (vector) {
+                collisions.push({ vector: vector, other: other });
+            }
+        });
+
+        return collisions;
+    }
+
+    /**
+     * Provide an array with all entities which will be impacted by a movement (chain of collisions)
+     * @param {string} axis: axis x or y
+     * @param {Array<Entity>} chain: the start chain of entity impacted by a movement
+     * @param {Array<Entity>} entities: list of all entities to check
+     * @returns {Array<Entity>} the complete chain of entity which will be impacted by a movement on axis passed in parameter
+     */
+    getChainCollision (axis, chain, entities) {
+        const entity    = chain[chain.length - 1],
+            lastLength  = chain.length;
+
+        entities.filter(a => !chain.find(b => b.id === a.id)).some(other => {
+            const vector = entity.intersect(other, true);
+
+            if (vector && vector[axis]) {
+                chain.push(other);
+            }
+
+            return lastLength !== chain.length;
+        });
+
+        return lastLength === chain.length ? chain : this.getChainCollision(axis, chain, entities);
     }
 
     /**

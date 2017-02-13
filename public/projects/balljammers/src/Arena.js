@@ -22,7 +22,8 @@ export default class Arena extends Scene {
         this.setTilemap(tilemapArena);
 
         this.compose(this.player, { debug: true, z: 0 }).
-            compose(new Ball(), { debug: true, x: 200, y: 100 });
+            compose(new Ball(), { debug: true, x: 200, y: 100 }).
+            compose(new Ball(), { debug: true, x: 230, y: 100 });
     }
 
     /**
@@ -40,19 +41,19 @@ export default class Arena extends Scene {
             vy = 0;
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_RIGHT)) {
-            vx += 100;
+            vx += this.player.speed;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_LEFT)) {
-            vx -= 100;
+            vx -= this.player.speed;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_UP)) {
-            vy -= 100;
+            vy -= this.player.speed;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_DOWN)) {
-            vy += 100;
+            vy += this.player.speed;
         }
 
         if (this.player.vx !== vx) {

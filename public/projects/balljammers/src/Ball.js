@@ -11,7 +11,9 @@ export default class Ball extends Sprite {
     constructor () {
         super();
 
-        this.name = "ball";
+        this.name           = "ball";
+
+        // this.collision.mass = this.collision.MASS.WEAK;
 
         this.size(32, 32);
 
