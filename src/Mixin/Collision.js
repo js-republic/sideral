@@ -67,33 +67,111 @@ export default class Collision extends Mixin {
      * @returns {void}
      */
     resolveAll () {
-        const entity    = this.parent;
+        const entity    = this.parent,
+            scene       = entity.getScene(),
+            entities    = this.getEntities(scene),
+            nextX       = entity.x + (entity.vx * Engine.tick),
+            nextY       = entity.y + (entity.vy * Engine.tick);
 
-        this.getEntities(entities => {
-            // 1st step - resolve collisions with wall
-            this.resolveWallCollision(entity);
+        let result      = null;
 
-            // 2nd step - get collisions with all entities moving (intersections of two lines)
-            this.getEntitiesCollisions(entity, entities).forEach(collision => {
-                const { vector, other } = collision;
+        if (entity.y !== nextY) {
+            result = this.resolveY(entity, nextY, scene);
 
-                if (this.isWeakerThan(other)) {
-                    if (vector.x) {
-                        entity.x = vector.x > 0 ? other.x - entity.width : other.x + other.width;
-                    } else if (vector.y) {
-                        entity.y = vector.y > 0 ? other.y - entity.height : other.y + other.height;
-                    }
+            // entity.y            = result.value;
+            // this.collide.y    = result.collide;
+            entity.y = nextY;
+        }
 
-                } else {
-                    // 3rd step - get all chains of collisions to resolve shifting
-                    const chain = this.getChainCollision(collision.vector.x ? "x" : "y", [entity, collision.other], entities);
+        if (entity.x !== nextX) {
+            result = this.resolveX(entity, nextX, scene);
 
-                    // 4rd step - resolve shifting of impact by entities moving
-                    console.log(chain);
+            // entity.x            = result.value;
+            // this.collide.x    = result.collide;
+            // entity.x = nextX;
+        }
+
+        // 1st step - resolve collisions with wall
+        // this.resolveWallCollision(entity);
+
+         // });
+    }
+
+    resolveX (entity, nextX) {
+        const scene     = entity.getScene(),
+            onRight     = nextX > entity.x,
+            logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
+            entities    = this.getEntities(scene).filter(other => this.filterEntityByPositionY(other, entity.y, entity.y + entity.height)),
+            firstEntity = { entity: entity, moveable: true, value: nextX },
+            collisions  = entities.filter(other => this.filterEntityByPositionX(other, entity.x, logic.value + entity.width)).
+                sort((a, b) => {
+                    return onRight ? a.x - b.x : b.x - a.x;
+                }).
+                map(other => {
+                    return { entity: other, moveable: true, value: other.x, chain: [] };
+                });
+
+        // Chain of chain
+        collisions.forEach(collision => {
+            entities.forEach(other => {
+                if (other.x > (collision.value - other.width) && other.x < (collision.value + collision.entity.width)) {
+                    collision.chain.push({ entity: other, moveable: true, value: other.x });
                 }
             });
-
         });
+
+        // console.log("chain", chain);
+
+        // Theorical chain
+        collisions.forEach(collision => collision.chain.forEach((other, index, array) => {
+            const lastOther = index ? array[index - 1] : firstEntity;
+
+            lastOther.moveable  = onRight ? this.isWeakerThan(lastOther.entity, other.entity) : this.isWeakerThan(other.entity, lastOther.entity);
+            other.value         = onRight ? lastOther.entity.x + lastOther.entity.width : lastOther.entity.x - other.entity.width;
+        }));
+
+        if (collisions.length) {
+            collisions.forEach(collision => {
+                const chain = [firstEntity].concat(collision.chain),
+                    bloc    = chain.filter(other => other.entity.id !== entity.id).findIndex(other => !other.moveable);
+
+                if (bloc >= 0) {
+                    for (let i = bloc; i > 0; i--) {
+                        const other     = chain[i],
+                            lastOther   = chain[i - 1];
+
+                        lastOther.entity.x = onRight ? other.entity.x - lastOther.entity.width : other.entity.x + other.entity.width;
+                    }
+                } else {
+                    chain.forEach(other => other.entity.x = other.value);
+                }
+
+                console.log(bloc, chain);
+            });
+
+        } else {
+            entity.x = nextX;
+            console.log(0);
+        }
+
+/*
+        entities.forEach(other => {
+            if (entity.isStrongerThan(other)) {
+                let res = other.resolveX(other, onRight ? entity.x + entity.width : entity.x - other.width);
+
+            } else if (entity.isWeakerThan(other)) {
+                moveable = false;
+            }
+        });*/
+    }
+
+    resolveY (entity, nextY, scene) {
+        const logicY = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height);
+
+        return {
+            collide : logicY !== nextY,
+            value   : logicY
+        };
     }
 
     /**
@@ -128,6 +206,7 @@ export default class Collision extends Mixin {
         });
     }
 
+
     /**
      * Resolve the chain of collisions
      * @param {string} axis: axis x or y
@@ -146,7 +225,7 @@ export default class Collision extends Mixin {
      * @param {number} ymin: position Y Min
      * @param {number} ymax: position Y Max
      * @param {number} width: width of the object
-     * @returns {number} get the position x
+     * @returns {{collide: boolean, value: number}} get the position x
      */
     getLogicXAt (scene, posX, nextX, ymin, ymax, width) {
         if (!scene.tilemap || (scene.tilemap && !scene.tilemap.sprite)) {
@@ -158,7 +237,8 @@ export default class Collision extends Mixin {
             cellXMax        = orientation > 0 ? Math.floor((nextX + width) / scene.tilemap.tilewidth) : Math.floor(nextX / scene.tilemap.tileheight),
             cellYMin        = Math.floor(Math.abs(ymin) / scene.tilemap.tileheight),
             cellYMax        = Math.floor(Math.abs(ymax - 1) / scene.tilemap.tileheight),
-            grid            = scene.tilemap.grid.logic;
+            grid            = scene.tilemap.grid.logic,
+            result          = { collide: false, value: nextX };
 
         let cellY           = null;
 
@@ -171,12 +251,15 @@ export default class Collision extends Mixin {
 
             for (let x = cellXMin; x !== (cellXMax + orientation); x += orientation) {
                 if (cellY[x]) {
-                    return orientation > 0 ? (x * scene.tilemap.tilewidth) - width : (x + 1) * scene.tilemap.tilewidth;
+                    result.collide  = true;
+                    result.value    = orientation > 0 ? (x * scene.tilemap.tilewidth) - width : (x + 1) * scene.tilemap.tilewidth;
+
+                    return result;
                 }
             }
         }
 
-        return nextX;
+        return result;
     }
 
     /**
@@ -187,7 +270,7 @@ export default class Collision extends Mixin {
      * @param {number} xmin : X Min
      * @param {number} xmax : X Max
      * @param {number} height : height of the object
-     * @returns {number} get the position y
+     * @returns {{collide: boolean, value: number}} get the position y
      */
     getLogicYAt (scene, posY, nextY, xmin, xmax, height) {
         if (!scene.tilemap || (scene.tilemap && !scene.tilemap.sprite)) {
@@ -198,7 +281,8 @@ export default class Collision extends Mixin {
             cellYMin        = orientation > 0 ? Math.floor((posY + height) / scene.tilemap.tileheight) : Math.floor(nextY / scene.tilemap.tileheight),
             cellYMax        = orientation > 0 ? Math.floor((nextY + height) / scene.tilemap.tileheight) : Math.floor(posY / scene.tilemap.tileheight),
             cellXMin        = Math.floor(Math.abs(xmin) / scene.tilemap.tilewidth),
-            cellXMax        = Math.floor(Math.abs(xmax - 1) / scene.tilemap.tilewidth);
+            cellXMax        = Math.floor(Math.abs(xmax - 1) / scene.tilemap.tilewidth),
+            result          = { collide: false, value: nextY };
 
         let grid            = null;
 
@@ -216,32 +300,76 @@ export default class Collision extends Mixin {
 
             for (let x = cellXMin; x <= cellXMax; x++) {
                 if (grid[x]) {
-                    return orientation > 0
-                        ? (y * scene.tilemap.tileheight) - height
-                        : (y + 1) * scene.tilemap.tileheight;
+                    result.collide  = true;
+                    result.value    = orientation > 0 ? (y * scene.tilemap.tileheight) - height : (y + 1) * scene.tilemap.tileheight;
+
+                    return result;
                 }
             }
         }
 
-        return nextY;
+        return result;
     }
 
     /**
      * Check if the parent is weaker than other in mass
+     * @param {Entity} entity: entity to check
      * @param {Entity} other: other entity
      * @returns {boolean} is weaker than
      */
-    isWeakerThan (other) {
-        return other.has("collision") && this.mass <= other.collision.mass;
+    isWeakerThan (entity, other) {
+        return entity.has("collision") && other.has("collision") && entity.collision.mass <= other.collision.mass;
     }
 
     /**
      * Check if the parent is stronger than other in mass
+     * @param {Entity} entity: entity to check
      * @param {Entity} other: other entity
      * @returns {boolean} is stronger than
      */
-    isStrongerThan (other) {
-        return other.has("collision") && this.mass > other.collision.mass;
+    isStrongerThan (entity, other) {
+        return entity.has("collision") && other.has("collision") && entity.collision.mass > other.collision.mass;
+    }
+
+    /**
+     * Get all entities in same axis with min and max value of this axis
+     * @param {Array<Entity>} entities: entites to check
+     * @param {string} axis: axis x or y
+     * @param {number} min: min value of the axis
+     * @param {number} max: max value of the axis
+     * @returns {Array<Entity>} list of entities in the same axis
+     */
+    getEntitiesInAxis (entities, axis, min, max) {
+        const size  = axis === "x" ? "width" : "height";
+
+        return entities.filter(entity => {
+            const posMin    = entity[axis],
+                posMax      = posMin + entity[size];
+
+            return posMin <= max || posMax >= min;
+        });
+    }
+
+    filterEntityByPositionX (entity, xmin, xmax) {
+        return entity.x > (xmin - entity.width) && entity.x < xmax;
+    }
+
+    filterEntityByPositionY (entity, ymin, ymax) {
+        return entity.y > (ymin - entity.height) && entity.y < ymax;
+    }
+
+    /**
+     * Get position of an entity by axis passed in parameter
+     * @param {Entity} entity: entity to check
+     * @param {string} axis: axis x or y
+     * @returns {{axis: string, min: number, max: number}} get object of position by axis
+     */
+    getEntityPositionInAxis (entity, axis) {
+        return {
+            axis: axis,
+            min : entity[axis],
+            max : entity[axis] + entity[axis === "x" ? "width" : "height"]
+        };
     }
 
     /**
@@ -290,12 +418,10 @@ export default class Collision extends Mixin {
 
     /**
      * Get all entities from the scene
-     * @param {function} callback: callback when all entites has been finded
-     * @returns {void}
+     * @param {Scene} scene: Get entities from the current scene
+     * @returns {Array<Entity>} list of entities provided by the scene
      */
-    getEntities (callback) {
-        this.parent.getScene(scene => {
-            callback(scene.children.filter(child => child instanceof Entity && child.id !== this.parent.id));
-        });
+    getEntities (scene) {
+        return scene.children.filter(child => child instanceof Entity && child.id !== this.parent.id);
     }
 }

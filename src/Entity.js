@@ -79,23 +79,17 @@ export default class Entity extends Component {
 
     /**
      * Find the first Scene into parent hierarchy
-     * @param {function} callback: callback when the scene has been finded
      * @param {*=} recursive: recursive object to get scene
-     * @returns {void}
+     * @returns {Scene|null} get the current scene
      */
-    getScene (callback, recursive) {
+    getScene (recursive) {
         recursive = recursive || this;
 
         if (recursive.parent) {
-
-            if (recursive.parent instanceof Scene) {
-                callback(recursive.parent);
-
-            } else {
-                this.getScene(callback, recursive);
-
-            }
+            return recursive.parent instanceof Scene ? recursive.parent : this.getScene(recursive);
         }
+
+        return recursive;
     }
 
     /**
