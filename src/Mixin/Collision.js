@@ -39,10 +39,25 @@ export default class Collision extends Mixin {
         };
     }
 
+    /**
+     * @initialize
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
 
         this.interceptFunction("updateVelocity", this.updateVelocity);
+    }
+
+    /**
+     * @nextCycle
+     * @override
+     */
+    nextCycle () {
+        super.nextCycle();
+
+        this._entities  = null;
+        this._scene     = null;
     }
 
     /* OVERRIDES */
@@ -69,44 +84,93 @@ export default class Collision extends Mixin {
     resolveAll () {
         const entity    = this.parent,
             scene       = entity.getScene(),
-            entities    = this.getEntities(scene),
             nextX       = entity.x + (entity.vx * Engine.tick),
             nextY       = entity.y + (entity.vy * Engine.tick);
 
-        let result      = null;
+        if (entity.x !== nextX) {
+            this.resolveChain("x", this.shiftInX(entity, nextX));
+        }
 
         if (entity.y !== nextY) {
-            result = this.resolveY(entity, nextY, scene);
-
-            // entity.y            = result.value;
-            // this.collide.y    = result.collide;
-            entity.y = nextY;
+            this.resolveChain("y", this.shiftInY(entity, nextY));
         }
-
-        if (entity.x !== nextX) {
-            result = this.resolveX(entity, nextX, scene);
-
-            // entity.x            = result.value;
-            // this.collide.x    = result.collide;
-            // entity.x = nextX;
-        }
-
-        // 1st step - resolve collisions with wall
-        // this.resolveWallCollision(entity);
-
-         // });
     }
 
-    resolveX (entity, nextX) {
-        const scene     = entity.getScene(),
-            onRight     = nextX > entity.x,
+    shiftInX (entity, nextX, chains = []) {
+        const scene     = this.getScene(),
+            onLeft      = nextX < entity.x,
+            logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
+            lastChain   = chains[chains.length - 1],
+            moveable    = lastChain ? !this.isStrongerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
+
+        chains.push({ entity: entity, moveable: moveable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
+
+        this.getEntities(scene).
+            filter(ent => this.filterEntityByPositionY(ent, entity.y, entity.y + entity.height)).
+            filter(ent => this.filterEntityByPositionX(ent, logic.value, logic.value + entity.width)).
+            filter(ent => !chains.find(chain => chain.entity.id === ent.id) && ent.id !== entity.id).
+            forEach(ent => this.shiftInX(ent, onLeft ? logic.value - ent.width : logic.value + entity.width, chains));
+
+        return chains;
+    }
+
+    shiftInY (entity, nextY, chains = []) {
+        const scene     = this.getScene(),
+            onTop       = nextY > entity.y,
+            logic       = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height),
+            lastChain   = chains[chains.length - 1],
+            moveable    = lastChain ? !this.isStrongerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
+
+        chains.push({ entity: entity, moveable: moveable, nextPos: logic.value, collide: logic.collide, onTop: onTop });
+
+        this.getEntities(scene).
+            filter(ent => this.filterEntityByPositionX(ent, entity.x, entity.x + entity.width)).
+            filter(ent => this.filterEntityByPositionY(ent, logic.value, logic.value + entity.height)).
+            filter(ent => !chains.find(chain => chain.entity.id === ent.id) && ent.id !== entity.id).
+            forEach(ent => this.shiftInY(ent, onTop ? logic.value + entity.height : logic.value - ent.height, chains));
+
+        return chains;
+    }
+
+    resolveChain (axis, chains = []) {
+        const indexEntityBlocked = chains.findIndex(chain => !chain.moveable);
+
+        if (indexEntityBlocked >= 0) {
+            chains.splice(0, indexEntityBlocked).reverse().forEach((chain, index, array) => {
+                const nextChain = array[index + 1];
+
+                // TODO: finir
+                if (nextChain) {
+                    if (axis === "x") {
+                        chain.entity.x  = nextChain.onLeft ? nextChain.entity.x + nextChain.entity.width : nextChain.entity.x - chain.entity.x;
+
+                    } else {
+                        chain.entity.y  = nextChain.onTop ? chain.entity.y - nextChain.entity.y : chain.entity.y - chain.entity.height;
+
+                    }
+                }
+
+                chain.entity.collide    = true;
+            });
+
+        } else {
+            chains.forEach(chain => {
+                if (chain.moveable) {
+                    chain.entity[axis]                      = chain.nextPos;
+                    chain.entity.collision.collide[axis]    = chain.collide;
+                }
+            });
+        }
+    }
+
+    resolveX (entity, nextX, scene) {
+
+        /*
+        const onRight   = nextX > entity.x,
             logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
             entities    = this.getEntities(scene).filter(other => this.filterEntityByPositionY(other, entity.y, entity.y + entity.height)),
             firstEntity = { entity: entity, moveable: true, value: nextX },
             collisions  = entities.filter(other => this.filterEntityByPositionX(other, entity.x, logic.value + entity.width)).
-                sort((a, b) => {
-                    return onRight ? a.x - b.x : b.x - a.x;
-                }).
                 map(other => {
                     return { entity: other, moveable: true, value: other.x, chain: [] };
                 });
@@ -120,10 +184,8 @@ export default class Collision extends Mixin {
             });
         });
 
-        // console.log("chain", chain);
-
         // Theorical chain
-        collisions.forEach(collision => collision.chain.forEach((other, index, array) => {
+        collisions.forEach(collision => collision.chain.sort((a, b) => onRight ? a.entity.x - b.entity.x : b.entity.x - a.entity.x).forEach((other, index, array) => {
             const lastOther = index ? array[index - 1] : firstEntity;
 
             lastOther.moveable  = onRight ? this.isWeakerThan(lastOther.entity, other.entity) : this.isWeakerThan(other.entity, lastOther.entity);
@@ -145,33 +207,109 @@ export default class Collision extends Mixin {
                 } else {
                     chain.forEach(other => other.entity.x = other.value);
                 }
-
-                console.log(bloc, chain);
             });
 
         } else {
             entity.x = nextX;
-            console.log(0);
         }
+        */
 
-/*
-        entities.forEach(other => {
-            if (entity.isStrongerThan(other)) {
-                let res = other.resolveX(other, onRight ? entity.x + entity.width : entity.x - other.width);
+        const onLeft    = nextX < entity.x,
+            logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
+            entities    = this.getEntities(scene).filter(other => this.filterEntityByPositionY(other, entity.y, entity.y + entity.height));
 
-            } else if (entity.isWeakerThan(other)) {
-                moveable = false;
-            }
-        });*/
+        // Create collisions array
+        const collisions = entities.filter(other => this.filterEntityByPositionX(other, entity.x, logic.value + entity.width)).map(other => {
+            const currentEntity = { entity: other, moveable: true, nextX: onLeft ? logic.value - other.width : logic.value + entity.width };
+            let lastEntity      = currentEntity;
+
+            return [currentEntity].concat(entities.
+                filter(ent => this.filterEntityByPositionX(ent, nextX, nextX + other.width)).
+                sort((a, b) => onLeft ? b.x - a.x : a.x - b.x).
+                map(ent => {
+                    const nextEntity    = { entity: ent, moveable: true, nextX: onLeft ? lastEntity.nextX - ent.x : lastEntity.x + ent.width };
+
+                    lastEntity.moveable = !this.isStrongerThan(ent, lastEntity.entity);
+                    lastEntity          = nextEntity;
+
+                    return nextEntity;
+            }));
+        });
+
+        if (collisions.length) {
+
+            collisions.forEach(collision => {
+                const strongerEntityIndex = collision.findIndex(col => !col.moveable);
+
+                console.log(collision, strongerEntityIndex);
+
+                if (strongerEntityIndex >= 0) {
+                    collision.slice(strongerEntityIndex, 1).reverse().forEach((ent, index, array) => {
+                        const nextEntity = index === (array.length - 1) ? entity : array[index - 1].entity;
+
+                        nextEntity.x = onLeft ? ent.x - nextEntity.width : ent.x + ent.width;
+                    });
+
+                } else {
+                    collision.concat([{ entity: entity, moveable: true, nextX: logic.value }]).forEach(col => col.entity.x = col.nextX);
+                }
+            });
+
+        } else {
+            entity.x        = logic.value;
+            this.collide.x  = logic.collide;
+        }
     }
 
     resolveY (entity, nextY, scene) {
-        const logicY = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height);
+        const onTop     = nextY < entity.y,
+            logic       = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height),
+            entities    = this.getEntities(scene).filter(other => this.filterEntityByPositionX(other, entity.x, entity.x + entity.width)),
+            firstEntity = { entity: entity, moveable: true, value: nextY },
+            collisions  = entities.filter(other => this.filterEntityByPositionY(other, entity.y, logic.value + entity.height)).
+            map(other => {
+                return { entity: other, moveable: true, value: other.y, chain: [] };
+            });
 
-        return {
-            collide : logicY !== nextY,
-            value   : logicY
-        };
+        // Chain of chain
+        collisions.forEach(collision => {
+            entities.forEach(other => {
+                if (other.y > (collision.value - other.height) && other.y < (collision.value + collision.entity.height)) {
+                    collision.chain.push({ entity: other, moveable: true, value: other.y });
+                }
+            });
+        });
+
+        // Theorical chain
+        collisions.forEach(collision => collision.chain.sort((a, b) => onTop ? b.entity.y - a.entity.y : a.entity.y - b.entity.y).forEach((other, index, array) => {
+            const lastOther = index ? array[index - 1] : firstEntity;
+
+            lastOther.moveable  = onTop ? this.isWeakerThan(other.entity, lastOther.entity) : this.isWeakerThan(lastOther.entity, other.entity);
+            other.value         = onTop ? lastOther.entity.y - other.entity.height : lastOther.entity.y + lastOther.entity.height ;
+        }));
+
+        if (collisions.length) {
+            console.log(collisions);
+
+            collisions.forEach(collision => {
+                const chain = [firstEntity].concat(collision.chain),
+                    bloc    = chain.filter(other => other.entity.id !== entity.id).findIndex(other => !other.moveable);
+
+                if (bloc >= 0) {
+                    for (let i = bloc; i > 0; i--) {
+                        const other     = chain[i],
+                            lastOther   = chain[i - 1];
+
+                        lastOther.entity.y = onTop ? other.entity.y + other.entity.height : other.entity.y - lastOther.entity.height;
+                    }
+                } else {
+                    chain.forEach(other => other.entity.y = other.value);
+                }
+            });
+
+        } else {
+            entity.y = nextY;
+        }
     }
 
     /**
@@ -422,6 +560,22 @@ export default class Collision extends Mixin {
      * @returns {Array<Entity>} list of entities provided by the scene
      */
     getEntities (scene) {
-        return scene.children.filter(child => child instanceof Entity && child.id !== this.parent.id);
+        if (this._entities) {
+            return this._entities;
+        }
+
+        this._entities = scene.children.filter(child => child instanceof Entity && child.id !== this.parent.id);
+
+        return this._entities;
+    }
+
+    getScene () {
+        if (this._scene) {
+            return this._scene;
+        }
+
+        this._scene = this.parent.getScene();
+
+        return this._scene;
     }
 }
