@@ -22,7 +22,7 @@ export default class Arena extends Scene {
         this.setTilemap(tilemapArena);
 
         this.compose(this.player, { debug: true, z: 0 }).
-            compose(new Ball(), { debug: true, x: 200, y: 100 }).
+            // compose(new Ball(), { debug: true, x: 200, y: 100 }).
             compose(new Ball(), { debug: true, x: 250, y: 100 });
     }
 

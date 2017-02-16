@@ -77,6 +77,13 @@ export default class Component extends Mixin {
          */
         this.parent = null;
 
+        /**
+         * Check if this component must be collected by garbage
+         * @readonly
+         * @type {boolean}
+         */
+        this.destroyed = false;
+
         // private
 
         /**

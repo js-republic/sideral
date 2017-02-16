@@ -83,7 +83,6 @@ export default class Collision extends Mixin {
      */
     resolveAll () {
         const entity    = this.parent,
-            scene       = entity.getScene(),
             nextX       = entity.x + (entity.vx * Engine.tick),
             nextY       = entity.y + (entity.vy * Engine.tick);
 
@@ -101,7 +100,7 @@ export default class Collision extends Mixin {
             onLeft      = nextX < entity.x,
             logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
             lastChain   = chains[chains.length - 1],
-            moveable    = lastChain ? !this.isStrongerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
+            moveable    = lastChain ? this.isWeakerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
 
         chains.push({ entity: entity, moveable: moveable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
 
@@ -119,7 +118,7 @@ export default class Collision extends Mixin {
             onTop       = nextY > entity.y,
             logic       = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height),
             lastChain   = chains[chains.length - 1],
-            moveable    = lastChain ? !this.isStrongerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
+            moveable    = lastChain ? this.isWeakerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
 
         chains.push({ entity: entity, moveable: moveable, nextPos: logic.value, collide: logic.collide, onTop: onTop });
 
@@ -456,7 +455,7 @@ export default class Collision extends Mixin {
      * @returns {boolean} is weaker than
      */
     isWeakerThan (entity, other) {
-        return entity.has("collision") && other.has("collision") && entity.collision.mass <= other.collision.mass;
+        return entity.has("collision") && other.has("collision") && entity.collision.mass < other.collision.mass;
     }
 
     /**
@@ -466,7 +465,7 @@ export default class Collision extends Mixin {
      * @returns {boolean} is stronger than
      */
     isStrongerThan (entity, other) {
-        return entity.has("collision") && other.has("collision") && entity.collision.mass > other.collision.mass;
+        return entity.has("collision") && other.has("collision") && entity.collision.mass >= other.collision.mass;
     }
 
     /**
@@ -569,6 +568,10 @@ export default class Collision extends Mixin {
         return this._entities;
     }
 
+    /**
+     * Get current scene
+     * @returns {Scene} current scene
+     */
     getScene () {
         if (this._scene) {
             return this._scene;
