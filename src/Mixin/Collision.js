@@ -100,9 +100,9 @@ export default class Collision extends Mixin {
             onLeft      = nextX < entity.x,
             logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
             lastChain   = chains[chains.length - 1],
-            moveable    = lastChain ? this.isWeakerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
+            movable     = lastChain ? this.isMovable(entity, chains) && !logic.collide : !logic.collide;
 
-        chains.push({ entity: entity, moveable: moveable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
+        chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
 
         this.getEntities(scene).
             filter(ent => this.filterEntityByPositionY(ent, entity.y, entity.y + entity.height)).
@@ -118,9 +118,9 @@ export default class Collision extends Mixin {
             onTop       = nextY > entity.y,
             logic       = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height),
             lastChain   = chains[chains.length - 1],
-            moveable    = lastChain ? this.isWeakerThan(entity, lastChain.entity) && !logic.collide : !logic.collide;
+            movable    = lastChain ? this.isMovable(entity, chains) && !logic.collide : !logic.collide;
 
-        chains.push({ entity: entity, moveable: moveable, nextPos: logic.value, collide: logic.collide, onTop: onTop });
+        chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onTop: onTop });
 
         this.getEntities(scene).
             filter(ent => this.filterEntityByPositionX(ent, entity.x, entity.x + entity.width)).
@@ -132,19 +132,18 @@ export default class Collision extends Mixin {
     }
 
     resolveChain (axis, chains = []) {
-        const indexEntityBlocked = chains.findIndex(chain => !chain.moveable);
+        const indexEntityBlocked = chains.findIndex(chain => !chain.movable);
 
         if (indexEntityBlocked >= 0) {
-            chains.splice(0, indexEntityBlocked).reverse().forEach((chain, index, array) => {
+            chains.splice(0, indexEntityBlocked + 1).reverse().forEach((chain, index, array) => {
                 const nextChain = array[index + 1];
 
-                // TODO: finir
                 if (nextChain) {
-                    if (axis === "x") {
-                        chain.entity.x  = nextChain.onLeft ? nextChain.entity.x + nextChain.entity.width : nextChain.entity.x - chain.entity.x;
+                    if (axis === "x" && this.filterEntityByPositionY(nextChain.entity, chain.entity.y, chain.entity.y + chain.entity.height)) {
+                        nextChain.entity.x  = chain.onLeft ? chain.entity.x + chain.entity.width : chain.entity.x - nextChain.entity.width;
 
-                    } else {
-                        chain.entity.y  = nextChain.onTop ? chain.entity.y - nextChain.entity.y : chain.entity.y - chain.entity.height;
+                    } else if (axis === "y" && this.filterEntityByPositionX(nextChain.entity, chain.entity.x, chain.entity.x + chain.entity.width)) {
+                        nextChain.entity.y  = chain.onTop ? chain.entity.y - nextChain.entity.height : chain.entity.y + chain.entity.height;
 
                     }
                 }
@@ -154,10 +153,8 @@ export default class Collision extends Mixin {
 
         } else {
             chains.forEach(chain => {
-                if (chain.moveable) {
-                    chain.entity[axis]                      = chain.nextPos;
-                    chain.entity.collision.collide[axis]    = chain.collide;
-                }
+                chain.entity[axis]                      = chain.nextPos;
+                chain.entity.collision.collide[axis]    = chain.collide;
             });
         }
     }
@@ -449,23 +446,19 @@ export default class Collision extends Mixin {
     }
 
     /**
-     * Check if the parent is weaker than other in mass
-     * @param {Entity} entity: entity to check
-     * @param {Entity} other: other entity
-     * @returns {boolean} is weaker than
+     * Check if the entity is movable relative to other entity
+     * @param {Entity} entity : the entity
+     * @param {Array} chains : chains of collisions
+     * @returns {boolean} is movable
      */
-    isWeakerThan (entity, other) {
-        return entity.has("collision") && other.has("collision") && entity.collision.mass < other.collision.mass;
-    }
+    isMovable (entity, chains = []) {
+        if (!entity || (entity && !entity.has("collision"))) {
+            return false;
+        }
 
-    /**
-     * Check if the parent is stronger than other in mass
-     * @param {Entity} entity: entity to check
-     * @param {Entity} other: other entity
-     * @returns {boolean} is stronger than
-     */
-    isStrongerThan (entity, other) {
-        return entity.has("collision") && other.has("collision") && entity.collision.mass >= other.collision.mass;
+        return chains.length > 1
+            ? entity.collision.mass !== this.MASS.SOLID
+            : entity.collision.mass < chains[chains.length - 1].entity.collision.mass;
     }
 
     /**
