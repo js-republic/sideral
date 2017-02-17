@@ -1,4 +1,5 @@
 import Sprite from "src/Entity/Sprite";
+import Collision from "src/Mixin/Collision";
 
 
 export default class Player extends Sprite {
@@ -10,6 +11,14 @@ export default class Player extends Sprite {
      */
     constructor () {
         super();
+
+        this.name = "player";
+
+        /**
+         * Speed of the player
+         * @type {number}
+         */
+        this.speed = 250;
 
         this.size(64, 64);
 

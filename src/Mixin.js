@@ -1,5 +1,3 @@
-import Reactivity from "./Reactivity";
-
 export default class Mixin {
 
     /* LIFECYCLE */
@@ -8,30 +6,28 @@ export default class Mixin {
      * @constructor
      */
     constructor () {
+        // readonly
 
         /**
          * Unique Id for the Comonent
+         * @readonly
          * @type {string}
          */
         this.id = Mixin.generateId();
 
         /**
          * Name of the mixin
+         * @readonly
          * @type {string}
          */
         this.name = "mixin";
 
         /**
          * Owner of the current instance
+         * @readonly
          * @type {Component}
          */
         this.parent = null;
-
-        /**
-         * Define a flux of reactivity between attributes
-         * @type {Reactivity}
-         */
-        this.reactivity = new Reactivity(this);
 
         /**
          * Array of mixins name
@@ -46,14 +42,15 @@ export default class Mixin {
          * @type {boolean}
          */
         this.destroyed = false;
-    }
 
-    /**
-     * Instance all your reactive props here
-     * @returns {void}
-     */
-    setReactivity () {
+        // private
 
+        /**
+         * List of all intercepted functions
+         * @type {{}}
+         * @private
+         */
+        this._interceptedFunctions = {};
     }
 
     /**
@@ -71,8 +68,7 @@ export default class Mixin {
      * @returns {void}
      */
     initialize (props = {}) {
-        this.setReactivity();
-        this.set(props)
+        this.set(props);
     }
 
     /**
@@ -84,12 +80,31 @@ export default class Mixin {
     }
 
     /**
+     * Call just after update function
+     * @returns {void}
+     */
+    afterUpdate () {
+        this.mixins.forEach(mixin => this[mixin].afterUpdate());
+    }
+
+    /**
+     * Call before the new loop cycle
+     * @returns {void}
+     */
+    nextCycle () {
+        this.mixins.forEach(mixin => this[mixin].nextCycle());
+    }
+
+    /**
      * @kill
      * @returns {void}
      */
-    kill() {
-        this.destroyed  = true;
-        this.parent     = null;
+    kill () {
+        Object.keys(this._interceptedFunctions).forEach(functionName => this.parent[functionName] = this._interceptedFunctions[functionName].bind(this.parent));
+
+        this._interceptedFunctions  = {};
+        this.destroyed              = true;
+        this.parent                 = null;
     }
 
     /* METHODS */
@@ -114,7 +129,7 @@ export default class Mixin {
     /**
      * Add a new feature with the mixin passed by parameter
      * @param {Mixin} mixin: feature to add to the component
-     * @param {{}=} injectProps: props to inject after parent created
+     * @param {*=} injectProps: props to inject after parent created
      * @param {*=} next: function callback after mixed
      * @returns {Mixin} the current Mixin instance
      */
@@ -135,7 +150,8 @@ export default class Mixin {
             delete this.prototype[name];
         }
 
-        this[name] = mixin;
+        this[name]      = mixin;
+        mixin.parent    = this;
         this.mixins.push(name);
 
         mixin.initialize(injectProps);
@@ -145,6 +161,15 @@ export default class Mixin {
         }
 
         return this;
+    }
+
+    /**
+     * Check if a mixin exist
+     * @param {string} name: name of the mixin
+     * @returns {boolean} if the mixin exist
+     */
+    has (name) {
+        return Boolean(this.mixins.find(mixin => mixin === name));
     }
 
     /**
@@ -176,14 +201,29 @@ export default class Mixin {
     }
 
     /**
+     * Intercept a parent function to change it with the next function passed in the second parameter
+     * @param {string} functionName: the name of the function to be intercepted
+     * @param {function} nextFunction: the substitute function
+     * @returns {void}
+     */
+    interceptFunction (functionName, nextFunction) {
+        if (this.parent && this.parent[functionName]) {
+            this._interceptedFunctions[functionName]    = this.parent[functionName];
+            this.parent[functionName]                   = nextFunction.bind(this);
+        }
+    }
+
+    /**
      * Event when a new mixin is added
-     * @param mixin
+     * @param {Mixin} mixin: mixin to be changed
+     * @returns {void}
      */
     willReceiveMixin (mixin) { }
 
     /**
      * Event when mixin is removed
-     * @param mixin
+     * @param {Mixin} mixin: mixin to be changed
+     * @returns {void}
      */
     willLoseMixin (mixin) { }
 

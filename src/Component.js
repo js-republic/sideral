@@ -1,9 +1,20 @@
 import Mixin from "./Mixin";
+import Reactivity from "./Mixin/Reactivity";
 
 
 export default class Component extends Mixin {
 
     /* LIFECYCLE */
+
+    /**
+     * @initialize
+     * @override
+     */
+    initialize (props) {
+        this.mix(new Reactivity());
+        this.setReactivity();
+        super.initialize(props);
+    }
 
     /**
      * @constructor
@@ -42,6 +53,13 @@ export default class Component extends Mixin {
         this.width  = 10;
 
         /**
+         * Reactivity mixin
+         * @readonly
+         * @type {Reactivity}
+         */
+        this.reactivity = null;
+
+        /**
          * Size height
          * @type {number}
          */
@@ -59,6 +77,13 @@ export default class Component extends Mixin {
          */
         this.parent = null;
 
+        /**
+         * Check if this component must be collected by garbage
+         * @readonly
+         * @type {boolean}
+         */
+        this.destroyed = false;
+
         // private
 
         /**
@@ -75,19 +100,24 @@ export default class Component extends Mixin {
          */
         this._sortChildrenRequested = false;
 
+        /**
+         * List of real children names
+         * @type {Array}
+         * @private
+         */
+        this._childrenNames         = [];
+
         // auto-binding
 
+        this._onZChange         = this._onZChange.bind(this);
         this._onPositionChange  = this._onPositionChange.bind(this);
         this._onSizeChange      = this._onSizeChange.bind(this);
-        this._onZChange         = this._onZChange.bind(this);
     }
 
     /**
      * @override
      */
     setReactivity () {
-        super.setReactivity();
-
         this.reactivity.
             when("x", "y").change(this._onPositionChange).
             when("width", "height").change(this._onSizeChange).
@@ -99,24 +129,31 @@ export default class Component extends Mixin {
      * @override
      */
     update () {
-        super.update();
-
-        if (this._sortChildrenRequested) {
-            this._container.children    = this._container.children.sort((a, b) => a.z - b.z);
-            this._sortChildrenRequested = false;
-        }
-
         this.children.forEach(child => child.update());
+        super.update();
     }
 
     /**
-     * Render lifecycle
-     * @returns {void}
+     * @afterUpdate
+     * @override
      */
-    render () {
-        this.children.forEach(child => child.render());
+    afterUpdate () {
+        this.children.forEach(child => child.afterUpdate());
+        super.afterUpdate();
 
-        this.reactivity.update();
+        if (this._sortChildrenRequested) {
+            this._container.children    = this._container.children.sort((a, b) => (a.z || 0) - (b.z || 0));
+            this._sortChildrenRequested = false;
+        }
+    }
+
+    /**
+     * @nextCycle
+     * @override
+     */
+    nextCycle () {
+        this.children.forEach(child => child.nextCycle());
+        super.nextCycle();
     }
 
     /* METHODS */
@@ -158,9 +195,19 @@ export default class Component extends Mixin {
     }
 
     /**
+     * Check if a mixin / component exist
+     * @override
+     * @param {string} name: name of the mixin or component
+     * @returns {boolean} if the mixin or component exists
+     */
+    has (name) {
+        return super.has(name) || Boolean(this._childrenNames.find(childrenName => childrenName === name));
+    }
+
+    /**
      * Compose a component and set it has a children of the current Component
      * @param {Component} component: child
-     * @param {{}=} injectProps: props to inject after parent created
+     * @param {*=} injectProps: props to inject after parent created
      * @param {*=} next: function callback
      * @returns {Component} current Component
      */
@@ -174,6 +221,7 @@ export default class Component extends Mixin {
         }
 
         this.children.push(component);
+        this._childrenNames.push(component.name);
 
         component.parent = this;
         component.initialize(injectProps);
@@ -255,30 +303,28 @@ export default class Component extends Mixin {
     /* REACTIVITY */
 
     /**
-     * Replace the current component into the canvas
+     * When x or y attribute has changed
      * @private
      * @returns {void}
      */
     _onPositionChange () {
-        if (this._container) {
-            this._container.position.set(this.x, this.y);
-        }
+        this._container.position.set(this.x, this.y);
     }
 
     /**
-     * Replace the current size of the component
+     * When width or height attribute has changed
      * @private
      * @returns {void}
      */
     _onSizeChange () {
-        if (!this.children.length && this._container) {
+        if (this._container && !this.children.length) {
             this._container.width   = this.width;
             this._container.height  = this.height;
         }
     }
 
     /**
-     * When z attribute has changed
+     * When z attribute change
      * @private
      * @returns {void}
      */
