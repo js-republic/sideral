@@ -21,7 +21,7 @@ export default class Sprite extends Entity {
          * SpriteSheet of the Sprite
          * @type {string}
          */
-        this.spritesheet = { texture: null, width: 0, height: 0 };
+        this.spritesheet = { texture: null, width: 0, height: 0, animations: [] };
 
         /**
          * Display the debug mode
@@ -53,7 +53,7 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
-     * @return {void}
+     * @returns {void}
      */
     setSpritesheet (image, tilewidth, tileheight) {
         if (!image) {
@@ -80,10 +80,9 @@ export default class Sprite extends Entity {
     /**
      * Show or hide the debug mode
      * @private
-     * @param {Boolean} debug : the previous value of the attribute
      * @returns {void}
      */
-    _onDebugChange ({ debug }) {
+    _onDebugChange () {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
@@ -94,12 +93,10 @@ export default class Sprite extends Entity {
                 fill    : "transparent"
             });
 
-        } else if (debug) {
+        } else if (this.last.debug) {
             this.decompose(this._debug);
 
         }
-
-        window._DEBUG = this._debug;
     }
 
     /**
