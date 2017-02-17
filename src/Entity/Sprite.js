@@ -1,5 +1,6 @@
 import Entity from "./../Entity";
 import Shape from "./Shape";
+import Collision from "./../Mixin/Collision";
 
 
 export default class Sprite extends Entity {
@@ -28,6 +29,10 @@ export default class Sprite extends Entity {
          */
         this.debug = false;
 
+        // mix
+
+        this.mix(new Collision());
+
         // auto-binding
 
         this._onDebugChange     = this._onDebugChange.bind(this);
@@ -48,19 +53,17 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
-<<<<<<< HEAD
-     * @return {void}
-=======
      * @returns {void}
->>>>>>> master
      */
     setSpritesheet (image, tilewidth, tileheight) {
         if (!image) {
             throw new Error("Sprite.setSpritesheet", "image is not defined.");
         }
 
-        PIXI.loader.add(image).load(() => {
-            const texture           = PIXI.loader.resources[image].texture;
+        const loader = new PIXI.loaders.Loader();
+
+        loader.add(image).load(() => {
+            const texture           = loader.resources[image].texture;
 
             this.spritesheet        = { image: image, tilewidth: tilewidth, tileheight: tileheight };
 
@@ -77,10 +80,9 @@ export default class Sprite extends Entity {
     /**
      * Show or hide the debug mode
      * @private
-     * @param {*} previousValue: previous value of debug
      * @returns {void}
      */
-    _onDebugChange (previousValue) {
+    _onDebugChange () {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
@@ -91,7 +93,7 @@ export default class Sprite extends Entity {
                 fill    : "transparent"
             });
 
-        } else if (previousValue) {
+        } else if (this.last.debug) {
             this.decompose(this._debug);
 
         }

@@ -77,6 +77,9 @@ class Engine extends Component {
          */
         this.background = "#DDDDDD";
 
+        // Auto-binding
+        this._onSizeChange = this._onSizeChange.bind(this);
+
         // Auto-initialization
         this.initialize();
     }
@@ -86,8 +89,7 @@ class Engine extends Component {
      */
     setReactivity () {
         this.reactivity.
-            unbind("x", "y", "width", "height").
-            when("width", "height").change(this._resize.bind(this)).
+            unbind("x", "y").
             when("dom").change(this._onDOMChange.bind(this)).
             when("background").change(this._onBackgroundChange.bind(this));
     }
@@ -119,7 +121,8 @@ class Engine extends Component {
         this.tick       = this.tick < 0 ? 0 : this.tick;
 
         super.update();
-        super.render();
+        super.afterUpdate();
+        super.nextCycle();
 
         // Render all Child
         this.children.forEach(child => this._container.render(child._container));
@@ -138,7 +141,7 @@ class Engine extends Component {
             throw new Error("Engine.start", "You must set 'width', 'height' and a 'dom' container");
         }
 
-        this._resize();
+        this._onSizeChange();
         this.restart();
     }
 
@@ -164,9 +167,9 @@ class Engine extends Component {
     /**
      * Resize the pixi renderer
      * @private
-     * @returns {void|null} -
+     * @override
      */
-    _resize () {
+    _onSizeChange () {
         if (!this._container) {
             return null;
         }

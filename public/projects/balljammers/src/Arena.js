@@ -2,6 +2,7 @@ import Engine from "src/Engine";
 import Scene from "src/Scene";
 
 import Player from "./Player";
+import Ball from "./Ball";
 import tilemapArena from "./../tilemaps/arena";
 
 
@@ -15,11 +16,14 @@ export default class Arena extends Scene {
     initialize () {
         super.initialize();
 
-        this.tilemap    = tilemapArena;
         this.player     = new Player();
         window.player   = this.player;
 
-        this.compose(this.player, { debug: true, z: 0 });
+        this.setTilemap(tilemapArena);
+
+        this.compose(this.player, { debug: true, x: 100, y: 100, z: 0 }).
+            compose(new Ball(), { debug: true, x: 200, y: 100 }).
+            compose(new Ball(), { debug: true, x: 250, y: 100 }, ball => ball.collision.mass = ball.collision.MASS.SOLID);
     }
 
     /**
@@ -37,19 +41,19 @@ export default class Arena extends Scene {
             vy = 0;
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_RIGHT)) {
-            vx += 100;
+            vx += this.player.speed;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_LEFT)) {
-            vx -= 100;
+            vx -= this.player.speed;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_UP)) {
-            vy = -100;
+            vy -= this.player.speed;
         }
 
         if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_DOWN)) {
-            vy += 100;
+            vy += this.player.speed;
         }
 
         if (this.player.vx !== vx) {
