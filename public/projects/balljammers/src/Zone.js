@@ -66,3 +66,33 @@ export default class Zone extends Sprite {
         this._onExtendedChange();
     }
 }
+
+
+export class ZoneGoal extends Zone {
+
+    /* CONSTRUCTOR */
+
+    constructor () {
+        super();
+
+        this.extended   = true;
+        this.color      = "#FF0000";
+    }
+
+}
+
+
+export class ZoneFilet extends Zone {
+
+    /* CONSTRUCTOR */
+
+    constructor () {
+        super();
+
+        this.extended   = true;
+        this.color      = "#0000FF";
+
+        this.collision.mass = this.collision.MASS.NONE;
+    }
+
+}
