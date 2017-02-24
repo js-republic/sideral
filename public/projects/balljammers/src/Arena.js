@@ -24,7 +24,7 @@ export default class Arena extends Scene {
 
         this.compose(this.player, { debug: true, x: 100, y: 100, z: 0 }).
             compose(new Ball(), { debug: true, x: 200, y: 100 }).
-            compose(new Ball(), { debug: true, x: 250, y: 100 }).
+            // compose(new Ball(), { debug: true, x: 250, y: 100 }).
             compose(new ZoneGoal(), { debug: true, x: 0, y: 32 }).
             compose(new ZoneGoal(), { debug: true, x: this.width - 32, y: 32 }).
             compose(new ZoneFilet(), { debug: true, x: (this.width / 2) - 16, y: 32 });
