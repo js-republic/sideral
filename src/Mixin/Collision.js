@@ -22,10 +22,10 @@ export default class Collision extends Mixin {
         this.mass           = 2;
 
         /**
-         * If true, the weak mass will be bouncing
-         * @type {boolean}
+         * Set the current factor of bounce when entering in collision
+         * @type {number}
          */
-        this.bounce         = false;
+        this.bouncing       = 0;
 
         /**
          * Know if the parent is in collision with wall within axis
@@ -53,18 +53,6 @@ export default class Collision extends Mixin {
         super.initialize(props);
 
         this.interceptFunction("updateVelocity", this.updateVelocity);
-    }
-
-    afterUpdate () {
-        super.afterUpdate();
-
-        if (this.collide.x && this.parent.vx) {
-            this.parent.vx *= -1;
-        }
-
-        if (this.collide.y && this.parent.vy) {
-            this.parent.vy *= -1;
-        }
     }
 
     /**
@@ -185,8 +173,10 @@ export default class Collision extends Mixin {
         const indexEntityBlocked = chains.findIndex(chain => !chain.movable);
 
         if (indexEntityBlocked >= 0) {
+            console.log("--next-- KEBLOTED");
             chains.slice(0, indexEntityBlocked + 1).reverse().forEach((chain, index, array) => {
-                const nextChain = array.slice(index + 1).find(x => !x.ghost);
+                const nextChain     = array.slice(index + 1).find(x => !x.ghost),
+                    lastChain       = index && array[index - 1];
 
                 if (nextChain) {
                     if (axis === "x" && this.filterEntityByPositionY(nextChain.entity, chain.entity.y, chain.entity.y + chain.entity.height)) {
@@ -199,12 +189,47 @@ export default class Collision extends Mixin {
                 }
 
                 chain.entity.collision.collide[axis] = chain.collide;
+
+                /*
+                if (chain.entity.collision.bouncing !== 0 && !nextChain && chain.collide && currentVelocity) {
+                    chain.entity["v" + axis] = -currentVelocity;
+                }
+
+                if (nextChain && nextChain.entity.collision.bouncing !== 0) {
+                    nextChain.entity["v" + axis] = currentVelocity
+                        ? chain.entity["v" + axis] * nextChain.entity.collision.bouncing
+                        : -nextChain.entity["v" + axis] * nextChain.entity.collision.bouncing;
+                }*/
+
+                console.log(chain.entity.name);
+                this.resolveBouncing(chain, nextChain && nextChain.entity);
             });
 
         } else {
-            chains.filter(chain => !chain.ghost).forEach(chain => {
+            chains.filter(chain => !chain.ghost).forEach((chain, index, array) => {
                 chain.entity[axis]                      = chain.nextPos;
                 chain.entity.collision.collide[axis]    = chain.collide;
+
+                /*
+                if (chain.entity.collision.bouncing !== 0 && (chain.collide || array.length > 1)) {
+                    const lastChain     = index && array[index - 1],
+                        lastVelocity    = lastChain && lastChain.entity["v" + axis],
+                        currentVelocity = chain.entity["v" + axis];
+
+                    if (lastVelocity) {
+                        chain.entity["v" + axis] = lastVelocity * chain.entity.collision.bouncing;
+
+                    } else if (chain.collide && currentVelocity) {
+                        chain.entity["v" + axis] = -currentVelocity * chain.entity.collision.bouncing;
+
+                    }
+                }*/
+
+                const lastChain = index && array[index - 1];
+
+                if (lastChain) {
+                    this.resolveBouncing(chain, lastChain.entity);
+                }
             });
         }
 
@@ -221,6 +246,44 @@ export default class Collision extends Mixin {
                 chain.entity.onCollisionWith(nextChain.entity);
             }
         });
+    }
+
+    resolveBouncing (chain, other) {
+        if (typeof chain.onLeft !== "undefined") {
+            this.resolveBouncingX(chain.entity, other, chain.collide, chain.onLeft);
+
+        } else {
+            this.resolveBouncingY(chain.entity, other, chain.collide, chain.onTop);
+
+        }
+    }
+
+    resolveBouncingX (entity, other, collide, onLeft) {
+        const tendance = onLeft ? 1 : -1;
+
+        // console.log(entity, other);
+
+        if ((!other && collide) || (other && !other.vx)) {
+            entity.vx = Math.abs(entity.vx) * tendance * entity.collision.bouncing;
+
+        } else if (other && other.vx * tendance > 0) {
+            entity.vx = Math.abs(other.vx) * tendance * entity.collision.bouncing;
+
+        }
+    }
+
+    resolveBouncingY (entity, other, collide, onTop) {
+        const tendance = onTop ? -1 : 1;
+
+        if ((!other && collide) || (other && !other.vy)) {
+            entity.vy = Math.abs(entity.vy) * tendance * entity.collision.bouncing;
+
+        } else if (other && other.vy * tendance > 0) {
+            entity.vy = Math.abs(other.vy) * tendance * entity.collision.bouncing;
+
+        }
+
+        // console.log(entity.name, entity.vy, other, other.vy, collide, onTop);
     }
 
     /**

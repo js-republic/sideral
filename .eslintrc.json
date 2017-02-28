@@ -147,7 +147,6 @@
         "prefer-const": "error",
         "prefer-numeric-literals": "error",
         "prefer-spread": "error",
-        "prefer-template": "error",
         "quotes": "error",
         "radix": "error",
         "require-jsdoc": "error",
