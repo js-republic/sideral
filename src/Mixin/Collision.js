@@ -201,8 +201,13 @@ export default class Collision extends Mixin {
                         : -nextChain.entity["v" + axis] * nextChain.entity.collision.bouncing;
                 }*/
 
-                console.log(chain.entity.name);
-                this.resolveBouncing(chain, nextChain && nextChain.entity);
+                if (nextChain) {
+                    this.resolveBouncing(nextChain, chain.entity);
+
+                } else if (array.length === 1) {
+                    this.resolveBouncing(chain);
+
+                }
             });
 
         } else {
@@ -259,31 +264,29 @@ export default class Collision extends Mixin {
     }
 
     resolveBouncingX (entity, other, collide, onLeft) {
-        const tendance = onLeft ? 1 : -1;
-
-        // console.log(entity, other);
+        const tendance = onLeft ? -1 : 1;
 
         if ((!other && collide) || (other && !other.vx)) {
-            entity.vx = Math.abs(entity.vx) * tendance * entity.collision.bouncing;
+            entity.vx = Math.abs(entity.vx) * -tendance * entity.collision.bouncing;
 
         } else if (other && other.vx * tendance > 0) {
             entity.vx = Math.abs(other.vx) * tendance * entity.collision.bouncing;
 
         }
+
     }
 
     resolveBouncingY (entity, other, collide, onTop) {
-        const tendance = onTop ? -1 : 1;
+        const tendance = onTop ? 1 : -1;
 
         if ((!other && collide) || (other && !other.vy)) {
-            entity.vy = Math.abs(entity.vy) * tendance * entity.collision.bouncing;
+            entity.vy = Math.abs(entity.vy) * -tendance * entity.collision.bouncing;
 
         } else if (other && other.vy * tendance > 0) {
             entity.vy = Math.abs(other.vy) * tendance * entity.collision.bouncing;
 
         }
 
-        // console.log(entity.name, entity.vy, other, other.vy, collide, onTop);
     }
 
     /**
