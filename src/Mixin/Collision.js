@@ -170,13 +170,12 @@ export default class Collision extends Mixin {
      * @returns {void}
      */
     resolveChain (axis, chains = []) {
-        const indexEntityBlocked = chains.findIndex(chain => !chain.movable);
+        const indexEntityBlocked    = chains.findIndex(chain => !chain.movable);
+        let lastChain               = null;
 
         if (indexEntityBlocked >= 0) {
-            console.log("--next-- KEBLOTED");
             chains.slice(0, indexEntityBlocked + 1).reverse().forEach((chain, index, array) => {
-                const nextChain     = array.slice(index + 1).find(x => !x.ghost),
-                    lastChain       = index && array[index - 1];
+                const nextChain     = array.slice(index + 1).find(x => !x.ghost);
 
                 if (nextChain) {
                     if (axis === "x" && this.filterEntityByPositionY(nextChain.entity, chain.entity.y, chain.entity.y + chain.entity.height)) {
@@ -190,24 +189,9 @@ export default class Collision extends Mixin {
 
                 chain.entity.collision.collide[axis] = chain.collide;
 
-                /*
-                if (chain.entity.collision.bouncing !== 0 && !nextChain && chain.collide && currentVelocity) {
-                    chain.entity["v" + axis] = -currentVelocity;
-                }
+                this.resolveBouncing(chain, lastChain && lastChain.entity);
 
-                if (nextChain && nextChain.entity.collision.bouncing !== 0) {
-                    nextChain.entity["v" + axis] = currentVelocity
-                        ? chain.entity["v" + axis] * nextChain.entity.collision.bouncing
-                        : -nextChain.entity["v" + axis] * nextChain.entity.collision.bouncing;
-                }*/
-
-                if (nextChain) {
-                    this.resolveBouncing(nextChain, chain.entity);
-
-                } else if (array.length === 1) {
-                    this.resolveBouncing(chain);
-
-                }
+                lastChain = chain;
             });
 
         } else {
@@ -215,33 +199,17 @@ export default class Collision extends Mixin {
                 chain.entity[axis]                      = chain.nextPos;
                 chain.entity.collision.collide[axis]    = chain.collide;
 
-                /*
-                if (chain.entity.collision.bouncing !== 0 && (chain.collide || array.length > 1)) {
-                    const lastChain     = index && array[index - 1],
-                        lastVelocity    = lastChain && lastChain.entity["v" + axis],
-                        currentVelocity = chain.entity["v" + axis];
+                lastChain = index && array[index - 1];
 
-                    if (lastVelocity) {
-                        chain.entity["v" + axis] = lastVelocity * chain.entity.collision.bouncing;
-
-                    } else if (chain.collide && currentVelocity) {
-                        chain.entity["v" + axis] = -currentVelocity * chain.entity.collision.bouncing;
-
-                    }
-                }*/
-
-                const lastChain = index && array[index - 1];
-
-                if (lastChain) {
-                    this.resolveBouncing(chain, lastChain.entity);
-                }
+                this.resolveBouncing(chain, lastChain && lastChain.entity);
             });
         }
 
         // Call event onCollisionWith
         chains.forEach((chain, index, array) => {
-            const nextChain = array[index + 1],
-                lastChain   = array[index - 1];
+            const nextChain = array[index + 1];
+
+            lastChain       = array[index - 1];
 
             if (lastChain) {
                 chain.entity.onCollisionWith(lastChain.entity);
@@ -254,7 +222,7 @@ export default class Collision extends Mixin {
     }
 
     resolveBouncing (chain, other) {
-        if (typeof chain.onLeft !== "undefined") {
+        if (typeof chain.onTop === "undefined") {
             this.resolveBouncingX(chain.entity, other, chain.collide, chain.onLeft);
 
         } else {
@@ -264,29 +232,23 @@ export default class Collision extends Mixin {
     }
 
     resolveBouncingX (entity, other, collide, onLeft) {
-        const tendance = onLeft ? -1 : 1;
-
-        if ((!other && collide) || (other && !other.vx)) {
-            entity.vx = Math.abs(entity.vx) * -tendance * entity.collision.bouncing;
-
-        } else if (other && other.vx * tendance > 0) {
-            entity.vx = Math.abs(other.vx) * tendance * entity.collision.bouncing;
-
+        if (!entity.collision.bouncing || entity.collision.mass === this.MASS.SOLID) {
+            return null;
         }
 
+        entity.vx = other
+            ? Math.abs(other.vx || entity.vx) * (other.x < entity.x ? 1 : -1) * entity.collision.bouncing
+            : (collide ? Math.abs(entity.vx) * (onLeft ? 1 : -1) * entity.collision.bouncing : entity.vx);
     }
 
     resolveBouncingY (entity, other, collide, onTop) {
-        const tendance = onTop ? 1 : -1;
-
-        if ((!other && collide) || (other && !other.vy)) {
-            entity.vy = Math.abs(entity.vy) * -tendance * entity.collision.bouncing;
-
-        } else if (other && other.vy * tendance > 0) {
-            entity.vy = Math.abs(other.vy) * tendance * entity.collision.bouncing;
-
+        if (!entity.collision.bouncing || entity.collision.mass === this.MASS.SOLID) {
+            return null;
         }
 
+        entity.vy = other
+            ? Math.abs(other.vy || entity.vy) * (other.y < entity.y ? 1 : -1) * entity.collision.bouncing
+            : (collide ? Math.abs(entity.vy) * (onTop ? -1 : 1) * entity.collision.bouncing : entity.vy);
     }
 
     /**
@@ -394,9 +356,22 @@ export default class Collision extends Mixin {
             return false;
         }
 
-        return chains.length > 1
-            ? entity.collision.mass !== this.MASS.SOLID
-            : entity.collision.mass < chains[chains.length - 1].entity.collision.mass;
+        const mass = entity.collision.mass;
+
+        if (chains.length > 1) {
+            return mass !== this.MASS.SOLID;
+        }
+
+        const lastChain     = chains[chains.length - 1],
+            lastEntity      = chains[chains.length - 1].entity,
+            lastEntityMass  = lastEntity.collision.mass;
+
+        // Weak === Weak
+        if (lastEntityMass - mass === 0) {
+            return !(lastEntity["v" + lastChain.axis] || entity["v" + lastChain.axis]);
+        }
+
+        return mass < lastEntityMass;
     }
 
     /**
