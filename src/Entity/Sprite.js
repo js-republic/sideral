@@ -55,7 +55,7 @@ export default class Sprite extends Entity {
      * @param {number=} tileheight: tileheight of the spritesheet
      * @returns {void}
      */
-    setSpritesheet (image, tilewidth, tileheight) {
+    setSpritesheet (image, tilewidth, tileheight ) {
         if (!image) {
             throw new Error("Sprite.setSpritesheet", "image is not defined.");
         }
@@ -86,6 +86,8 @@ export default class Sprite extends Entity {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
+                x       : this.offset.x,
+                y       : this.offset.y,
                 type    : Shape.TYPE.RECTANGLE,
                 width   : this.width,
                 height  : this.height,

@@ -47,10 +47,30 @@ export default class Component extends Mixin {
         this.z      = -1;
 
         /**
+         * Offset of the component related to its pixi container
+         * @type {{x: number, y: number}}
+         */
+        this.offset = {x: 0, y: 0};
+
+        /**
          * Size width
          * @type {number}
          */
         this.width  = 10;
+
+        /**
+         * Visible into the scene or not
+         * @type {boolean}
+         */
+        this.visible = true;
+
+        /**
+         * Size height
+         * @type {number}
+         */
+        this.height = 10;
+
+        // read-only
 
         /**
          * Reactivity mixin
@@ -58,12 +78,6 @@ export default class Component extends Mixin {
          * @type {Reactivity}
          */
         this.reactivity = null;
-
-        /**
-         * Size height
-         * @type {number}
-         */
-        this.height = 10;
 
         /**
          * List of all components children
@@ -112,6 +126,7 @@ export default class Component extends Mixin {
         this._onZChange         = this._onZChange.bind(this);
         this._onPositionChange  = this._onPositionChange.bind(this);
         this._onSizeChange      = this._onSizeChange.bind(this);
+        this._onVisibleChange   = this._onVisibleChange.bind(this);
     }
 
     /**
@@ -121,7 +136,8 @@ export default class Component extends Mixin {
         this.reactivity.
             when("x", "y").change(this._onPositionChange).
             when("width", "height").change(this._onSizeChange).
-            when("z").change(this._onZChange);
+            when("z").change(this._onZChange).
+            when("visible").change(this._onVisibleChange);
     }
 
     /**
@@ -308,7 +324,7 @@ export default class Component extends Mixin {
      * @returns {void}
      */
     _onPositionChange () {
-        this._container.position.set(this.x, this.y);
+        this._container.position.set(this.x - this.offset.x, this.y - this.offset.y);
     }
 
     /**
@@ -334,5 +350,16 @@ export default class Component extends Mixin {
         }
 
         this._container.z = this.z;
+    }
+
+    /**
+     * When visible attribute change
+     * @private
+     * @returns {void}
+     */
+    _onVisibleChange () {
+        console.log(this._container, this.visible);
+
+        this._container.visible = this.visible;
     }
 }

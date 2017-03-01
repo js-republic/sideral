@@ -67,6 +67,22 @@ export default class Entity extends Component {
     /* METHODS */
 
     /**
+     * Set a new velocity for the current entity
+     * @param {number=} vx: velocity in x axis
+     * @param {number=} vy: velocity in y axis
+     * @returns {void}
+     */
+    velocity (vx, vy) {
+        if (typeof vx !== "undefined") {
+            this.vx = vx;
+        }
+
+        if (typeof vy !== "undefined") {
+            this.vy = vy;
+        }
+    }
+
+    /**
      * Update the position with velocity and check if there is not a collision wall
      * @returns {void}
      */

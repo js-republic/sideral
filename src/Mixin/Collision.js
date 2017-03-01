@@ -239,6 +239,10 @@ export default class Collision extends Mixin {
         entity.vx = other
             ? Math.abs(other.vx || entity.vx) * (other.x < entity.x ? 1 : -1) * entity.collision.bouncing
             : (collide ? Math.abs(entity.vx) * (onLeft ? 1 : -1) * entity.collision.bouncing : entity.vx);
+
+        if (other && !entity.vy && other.vy) {
+            entity.vy = other.vy * entity.collision.bouncing;
+        }
     }
 
     resolveBouncingY (entity, other, collide, onTop) {
@@ -366,8 +370,7 @@ export default class Collision extends Mixin {
             lastEntity      = chains[chains.length - 1].entity,
             lastEntityMass  = lastEntity.collision.mass;
 
-        // Weak === Weak
-        if (lastEntityMass - mass === 0) {
+        if (lastEntityMass === this.MASS.WEAK && lastEntityMass === mass) {
             return !(lastEntity["v" + lastChain.axis] || entity["v" + lastChain.axis]);
         }
 

@@ -75,6 +75,7 @@ export class ZoneGoal extends Zone {
     constructor () {
         super();
 
+        this.name       = "goal";
         this.extended   = true;
         this.color      = "#FF0000";
     }
@@ -89,6 +90,7 @@ export class ZoneFilet extends Zone {
     constructor () {
         super();
 
+        this.name       = "filet";
         this.extended   = true;
         this.color      = "#0000FF";
 
