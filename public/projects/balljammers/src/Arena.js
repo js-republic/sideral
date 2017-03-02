@@ -17,18 +17,18 @@ export default class Arena extends Scene {
     initialize () {
         super.initialize();
 
-        this.spawnX     = 47;
+        this.spawnX     = 57;
         this.player     = new Player();
         this.enemy      = new Player();
 
         this.setTilemap(tilemapArena);
 
-        this.compose(this.player, { name: "player", debug: true, x: this.spawnX, y: this.height / 2 }).
-            compose(this.enemy, { name: "enemy", debug: true, x: this.width - this.spawnX, y: this.height / 2 }).
+        this.compose(this.player, { name: "player", debug: true, x: this.spawnX, y: this.height / 2, onLeft: true }).
+            compose(this.enemy, { name: "enemy", debug: true, x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
             compose(new Ball(), { debug: true, x: 200, y: 100 }, ball => window.ball = ball).
             compose(new ZoneGoal(), { debug: true, x: 0, y: 32 }).
             compose(new ZoneGoal(), { debug: true, x: this.width - 32, y: 32 }).
-            compose(new ZoneFilet(), { debug: true, x: (this.width / 2) - 16, y: 32 });
+            compose(new ZoneFilet(), { debug: false, x: (this.width / 2) - 16, y: 32 });
     }
 
     /**
@@ -73,6 +73,10 @@ export default class Arena extends Scene {
         if (this.player.vy !== vy) {
             this.player.vy = vy;
         }
+
+        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.M)) {
+            this.player.attack();
+        }
     }
 
     updateEnemyKeyboard () {
@@ -105,6 +109,10 @@ export default class Arena extends Scene {
 
         if (this.enemy.vy !== vy) {
             this.enemy.vy = vy;
+        }
+
+        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.C)) {
+            this.enemy.attack();
         }
     }
 }

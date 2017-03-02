@@ -212,7 +212,6 @@ export default class Entity extends Component {
      * @returns {void}
      */
     onCollisionWith (other) {
-
     }
 
     /* STATIC */

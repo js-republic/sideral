@@ -113,6 +113,12 @@ export default class Reactivity extends Mixin {
             this.afterUpdate();
         }
 
+        for (const i in this.last) {
+            if (this.last.hasOwnProperty(i)) {
+                this.last[i] = this.parent[i];
+            }
+        }
+
         this._lastTempProps = {};
     }
 

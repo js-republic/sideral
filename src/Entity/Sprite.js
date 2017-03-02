@@ -75,6 +75,19 @@ export default class Sprite extends Entity {
         });
     }
 
+    setFrame (frame) {
+        if (!this.spritesheet) {
+            return null;
+        }
+
+        const { tilewidth, tileheight } = this.spritesheet;
+
+        this._container.texture.frame = new PIXI.Rectangle(
+            Math.floor(frame * tilewidth) % this.spritesheet.image.width,
+            Math.floor(frame * tilewidth / this.spritesheet.image.width) * tileheight,
+            tilewidth, tileheight);
+    }
+
     /* REACTIVITY */
 
     /**
