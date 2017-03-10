@@ -57,7 +57,6 @@ export default class Scene extends Component {
 
     /**
      * When tilemap change
-     * @private
      * @param {*} tilemap: next Tilemap to render
      * @returns {void|null} -
      */

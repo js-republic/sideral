@@ -14,7 +14,7 @@ export default class Ball extends Sprite {
         this.name               = "ball";
         this.visible            = false;
         this.collision.mass     = this.collision.MASS.WEAK;
-        this.collision.bouncing = 0;
+        this.collision.bouncing = 1;
 
         this.size(32, 32);
 

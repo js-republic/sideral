@@ -23,12 +23,12 @@ export default class Arena extends Scene {
 
         this.setTilemap(tilemapArena);
 
-        this.compose(this.player, { name: "player", debug: true, x: this.spawnX, y: this.height / 2, onLeft: true }).
-            compose(this.enemy, { name: "enemy", debug: true, x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
-            compose(new Ball(), { debug: true, x: 200, y: 100 }, ball => window.ball = ball).
-            compose(new ZoneGoal(), { debug: true, x: 0, y: 32 }).
-            compose(new ZoneGoal(), { debug: true, x: this.width - 32, y: 32 }).
-            compose(new ZoneFilet(), { debug: false, x: (this.width / 2) - 16, y: 32 });
+        this.compose(this.player, { name: "player", x: this.spawnX, y: this.height / 2, onLeft: true }).
+            compose(this.enemy, { name: "enemy", x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
+            compose(new Ball(), { x: 200, y: 100 }, ball => window.ball = ball).
+            compose(new ZoneGoal(), { x: 0, y: 32 }).
+            compose(new ZoneGoal(), { x: this.width - 32, y: 32 }).
+            compose(new ZoneFilet(), { x: (this.width / 2) - 16, y: 32 });
     }
 
     /**
