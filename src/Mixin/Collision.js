@@ -22,6 +22,12 @@ export default class Collision extends Mixin {
         this.mass           = 2;
 
         /**
+         * Set the current factor of bounce when entering in collision
+         * @type {number}
+         */
+        this.bouncing       = 0;
+
+        /**
          * Know if the parent is in collision with wall within axis
          * @type {{x: boolean, y: boolean}}
          */
@@ -37,6 +43,10 @@ export default class Collision extends Mixin {
             WEAK    : 1,
             SOLID   : 2
         };
+
+        // private
+
+        this._resolved = false;
     }
 
     /**
@@ -58,6 +68,7 @@ export default class Collision extends Mixin {
 
         this._entities  = null;
         this._scene     = null;
+        this._resolved  = false;
     }
 
     /* OVERRIDES */
@@ -66,11 +77,9 @@ export default class Collision extends Mixin {
      * @override
      */
     updateVelocity () {
-        const parent    = this.parent;
+        this.parent.moving = this.parent.vx || this.parent.vy;
 
-        parent.moving   = parent.vx || parent.vy;
-
-        if (parent.moving) {
+        if (!this._resolved) {
             this.resolveAll();
         }
     }
@@ -84,15 +93,43 @@ export default class Collision extends Mixin {
     resolveAll () {
         const entity    = this.parent,
             nextX       = entity.x + (entity.vx * Engine.tick),
-            nextY       = entity.y + (entity.vy * Engine.tick);
+            nextY       = entity.y + (entity.vy * Engine.tick),
+            scene       = this.getScene();
 
-        if (entity.x !== nextX) {
-            this.resolveChain("x", this.shiftInX(entity, nextX));
+
+        if (!entity.moving) {
+            this.getEntitiesInCollision(entity.x, entity.x + entity.width, entity.y, entity.y + entity.height, { scene: scene, id: entity.id }).forEach(ent => entity.onCollisionWith(ent));
+
+        } else {
+            if (entity.x !== nextX) {
+                this.resolveChain("x", this.shiftInX(entity, nextX));
+            }
+
+            if (entity.y !== nextY) {
+                this.resolveChain("y", this.shiftInY(entity, nextY));
+            }
         }
 
-        if (entity.y !== nextY) {
-            this.resolveChain("y", this.shiftInY(entity, nextY));
-        }
+        this._resolved = true;
+    }
+
+    /**
+     * Get all entities in contact
+     * @param {number} xmin: position x min
+     * @param {number} xmax: position x max
+     * @param {number} ymin: position y min
+     * @param {number} ymax: position y max
+     * @param {Scene=} scene: scene to get all entities
+     * @param {string=} id: id to filter
+     * @param {Entity=} entities: entities to check
+     * @returns {Array.<Entity>} array of entities in collision
+     */
+    getEntitiesInCollision (xmin, xmax, ymin, ymax, { scene, id, entities }) {
+        entities = (entities || this.getEntities(scene)).
+            filter(ent => this.filterEntityByPositionY(ent, ymin - 1, ymax + 1)).
+            filter(ent => this.filterEntityByPositionX(ent, xmin - 1, xmax + 1));
+
+        return id ? entities.filter(ent => ent.id !== id) : entities;
     }
 
     /**
@@ -103,6 +140,16 @@ export default class Collision extends Mixin {
      * @returns {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean}>} chains of collisions
      */
     shiftInX (entity, nextX, chains = []) {
+        if (chains.find(chain => chain.entity.id === entity.id)) {
+            return chains;
+        }
+
+        if (this.isGhost(entity)) {
+            chains.push({ entity: entity, movable: true, nextPos: entity.x, collide: entity.collide, onLeft: true, ghost: true });
+
+            return chains;
+        }
+
         const scene     = this.getScene(),
             onLeft      = nextX < entity.x,
             logic       = this.getLogicXAt(scene, entity.x, nextX, entity.y, entity.y + entity.height, entity.width),
@@ -114,7 +161,7 @@ export default class Collision extends Mixin {
         this.getEntities(scene).
             filter(ent => this.filterEntityByPositionY(ent, entity.y, entity.y + entity.height)).
             filter(ent => this.filterEntityByPositionX(ent, logic.value, logic.value + entity.width)).
-            filter(ent => !chains.find(chain => chain.entity.id === ent.id) && ent.id !== entity.id).
+            filter(ent => !chains.find(chain => chain.entity.id === ent.id)).
             forEach(ent => this.shiftInX(ent, onLeft ? logic.value - ent.width : logic.value + entity.width, chains));
 
         return chains;
@@ -125,9 +172,15 @@ export default class Collision extends Mixin {
      * @param {Entity} entity: current entity
      * @param {number} nextY: next position
      * @param {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onTop: boolean}>} chains: current chains of collisions
-     * @returns {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onTop: boolean}>} chains of collisions
+     * @returns {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onTop: boolean, ghost: boolean}>} chains of collisions
      */
     shiftInY (entity, nextY, chains = []) {
+        if (this.isGhost(entity)) {
+            chains.push({ entity: entity, movable: true, nextPos: entity.y, collide: entity.collide, onTop: true, ghost: true });
+
+            return chains;
+        }
+
         const scene     = this.getScene(),
             onTop       = nextY > entity.y,
             logic       = this.getLogicYAt(scene, entity.y, nextY, entity.x, entity.x + entity.width, entity.height),
@@ -148,15 +201,16 @@ export default class Collision extends Mixin {
     /**
      * Resolve all chains of collisions
      * @param {string} axis: axis x or y
-     * @param {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean, onTop: boolean}>} chains: current chains of collisions
+     * @param {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean, onTop: boolean, ghost: boolean}>} chains: current chains of collisions
      * @returns {void}
      */
     resolveChain (axis, chains = []) {
-        const indexEntityBlocked = chains.findIndex(chain => !chain.movable);
+        const indexEntityBlocked    = chains.findIndex(chain => !chain.movable);
+        let lastChain               = null;
 
         if (indexEntityBlocked >= 0) {
-            chains.splice(0, indexEntityBlocked + 1).reverse().forEach((chain, index, array) => {
-                const nextChain = array[index + 1];
+            chains.slice(0, indexEntityBlocked + 1).reverse().forEach((chain, index, array) => {
+                const nextChain     = array.slice(index + 1).find(x => !x.ghost);
 
                 if (nextChain) {
                     if (axis === "x" && this.filterEntityByPositionY(nextChain.entity, chain.entity.y, chain.entity.y + chain.entity.height)) {
@@ -168,15 +222,86 @@ export default class Collision extends Mixin {
                     }
                 }
 
-                chain.entity.collide    = true;
+                chain.entity.collision.collide[axis] = chain.collide;
+
+                this.resolveBouncing(chain, lastChain && lastChain.entity);
+
+                lastChain = chain;
             });
 
         } else {
-            chains.forEach(chain => {
+            chains.filter(chain => !chain.ghost).forEach((chain, index, array) => {
                 chain.entity[axis]                      = chain.nextPos;
                 chain.entity.collision.collide[axis]    = chain.collide;
+
+                lastChain = index && array[index - 1];
+
+                this.resolveBouncing(chain, lastChain && lastChain.entity);
             });
         }
+
+        // Call event onCollisionWith
+        chains.forEach((chain, index, array) => {
+            if (chain.ghost) {
+                this.getEntitiesInCollision(chain.entity.x, chain.entity.x + chain.entity.width, chain.entity.y, chain.entity.y + chain.entity.height, { id: chain.entity.id, entities: chains.map(x => x.entity) }).
+                    forEach(other => {
+                        chain.entity.onCollisionWith(other);
+                        other.onCollisionWith(chain.entity)
+                    }
+                );
+
+            } else {
+                const nextChain = array[index + 1];
+
+                lastChain       = array[index - 1];
+
+                if (lastChain && !lastChain.ghost) {
+                    chain.entity.onCollisionWith(lastChain.entity);
+                }
+
+                if (nextChain && !nextChain.ghost) {
+                    chain.entity.onCollisionWith(nextChain.entity);
+                }
+            }
+
+            if (chain.entity.collision) {
+                chain.entity.collision._resolved = true;
+            }
+        });
+    }
+
+    resolveBouncing (chain, other) {
+        if (typeof chain.onTop === "undefined") {
+            this.resolveBouncingX(chain.entity, other, chain.collide, chain.onLeft);
+
+        } else {
+            this.resolveBouncingY(chain.entity, other, chain.collide, chain.onTop);
+
+        }
+    }
+
+    resolveBouncingX (entity, other, collide, onLeft) {
+        if (!entity.collision.bouncing || entity.collision.mass === this.MASS.SOLID) {
+            return null;
+        }
+
+        entity.vx = other
+            ? Math.abs(other.vx || entity.vx) * (other.x < entity.x ? 1 : -1) * entity.collision.bouncing
+            : (collide ? Math.abs(entity.vx) * (onLeft ? 1 : -1) * entity.collision.bouncing : entity.vx);
+
+        if (other && !entity.vy && other.vy) {
+            entity.vy = other.vy * entity.collision.bouncing;
+        }
+    }
+
+    resolveBouncingY (entity, other, collide, onTop) {
+        if (!entity.collision.bouncing || entity.collision.mass === this.MASS.SOLID) {
+            return null;
+        }
+
+        entity.vy = other
+            ? Math.abs(other.vy || entity.vy) * (other.y < entity.y ? 1 : -1) * entity.collision.bouncing
+            : (collide ? Math.abs(entity.vy) * (onTop ? -1 : 1) * entity.collision.bouncing : entity.vy);
     }
 
     /**
@@ -284,9 +409,34 @@ export default class Collision extends Mixin {
             return false;
         }
 
-        return chains.length > 1
-            ? entity.collision.mass !== this.MASS.SOLID
-            : entity.collision.mass < chains[chains.length - 1].entity.collision.mass;
+        const mass = entity.collision.mass;
+
+        if (chains.length > 1) {
+            return mass !== this.MASS.SOLID;
+        }
+
+        const lastChain     = chains[chains.length - 1],
+            lastEntity      = chains[chains.length - 1].entity,
+            lastEntityMass  = lastEntity.collision.mass;
+
+        if (lastEntityMass === this.MASS.WEAK && lastEntityMass === mass) {
+            return !(lastEntity["v" + lastChain.axis] || entity["v" + lastChain.axis]);
+        }
+
+        return mass < lastEntityMass;
+    }
+
+    /**
+     * Check if the entity passed in parameter is a ghost (mass === NONE)
+     * @param {Entity} entity: entity to check
+     * @returns {boolean} return true if the entity is a ghost
+     */
+    isGhost (entity) {
+        if (!entity) {
+            return true;
+        }
+
+        return !entity.has("collision") || (entity.has("collision") && entity.collision.mass === this.MASS.NONE);
     }
 
     /**

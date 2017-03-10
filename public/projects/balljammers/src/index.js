@@ -6,7 +6,7 @@ import Arena from "./Arena";
 
 Engine.set({
     width       : 608,
-    height      : 306,
+    height      : 332,
     dom         : document.getElementById("sideral-app")
 }).start();
 

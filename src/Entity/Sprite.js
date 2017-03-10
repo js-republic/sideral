@@ -55,7 +55,7 @@ export default class Sprite extends Entity {
      * @param {number=} tileheight: tileheight of the spritesheet
      * @returns {void}
      */
-    setSpritesheet (image, tilewidth, tileheight) {
+    setSpritesheet (image, tilewidth, tileheight ) {
         if (!image) {
             throw new Error("Sprite.setSpritesheet", "image is not defined.");
         }
@@ -75,6 +75,19 @@ export default class Sprite extends Entity {
         });
     }
 
+    setFrame (frame) {
+        if (!this.spritesheet) {
+            return null;
+        }
+
+        const { tilewidth, tileheight } = this.spritesheet;
+
+        this._container.texture.frame = new PIXI.Rectangle(
+            Math.floor(frame * tilewidth) % this.spritesheet.image.width,
+            Math.floor(frame * tilewidth / this.spritesheet.image.width) * tileheight,
+            tilewidth, tileheight);
+    }
+
     /* REACTIVITY */
 
     /**
@@ -86,6 +99,8 @@ export default class Sprite extends Entity {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
+                x       : this.offset.x,
+                y       : this.offset.y,
                 type    : Shape.TYPE.RECTANGLE,
                 width   : this.width,
                 height  : this.height,
