@@ -21,12 +21,33 @@ export default class Ball extends Sprite {
         this.setSpritesheet("images/ball.png", this.width, this.height);
     }
 
+    /**
+     * @initialize
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
+
+        this.pivx = 16;
+        this.pivy = 16;
 
         this.respawn();
     }
 
+    /**
+     * @update
+     * @override
+     */
+    update () {
+        super.update();
+
+        this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
+    }
+
+    /**
+     * @onCollisionWith
+     * @override
+     */
     onCollisionWith (entity) {
         super.onCollisionWith(entity);
 

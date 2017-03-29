@@ -35,6 +35,18 @@ export default class Entity extends Component {
          */
         this.vy             = 0;
 
+        /**
+         * Pivot X
+         * @type {number}
+         */
+        this.pivx           = 0;
+
+        /**
+         * Pivot Y
+         * @type {number}
+         */
+        this.pivy           = 0;
+
         // read-only
 
         /**
@@ -57,14 +69,77 @@ export default class Entity extends Component {
          * @type {boolean}
          */
         this.moving         = false;
+
+        // Private
+
+        /**
+         * Cooldown manager
+         * @type {{}}
+         * @private
+         */
+        this._timers  = {};
+
+        // Auto-binding
+
+        this._onPivxChange  = this._onPivxChange.bind(this);
+        this._onPivyChange  = this._onPivyChange.bind(this);
+        this.updateTimer    = this.updateTimer.bind(this);
     }
 
     update () {
         super.update();
         this.updateVelocity();
+
+        Object.keys(this._timers).forEach(this.updateTimer);
+    }
+
+    setReactivity () {
+        super.setReactivity();
+
+        this.reactivity.
+            when("pivx").change(this._onPivxChange).
+            when("pivy").change(this._onPivyChange);
     }
 
     /* METHODS */
+
+    /**
+     * Update a cooldown
+     * @param {string} name: name of the timer
+     * @returns {void|null} -
+     */
+    updateTimer (name) {
+        const timer = this._timers[name];
+
+        if (!timer) {
+            return null;
+        }
+
+        timer.value--;
+
+        if (timer.value <= 0) {
+            if (timer.reload > 0) {
+                timer.reload--;
+                timer.value = timer.initialValue;
+
+            } else if (!timer.reload && timer.end) {
+                timer.end();
+                delete this._timers[name];
+
+            }
+        }
+    }
+
+    /**
+     * Add a new internal timer
+     * @param {string} name: name of the timer
+     * @param {number} initialValue: initial value of the number
+     * @param {function=} onEnd: function when timer is ending
+     * @returns {void}
+     */
+    addTimer (name, initialValue, onEnd) {
+        this._timers[name] = { name: name, initialValue: Math.abs(initialValue), value: initialValue, end: onEnd };
+    }
 
     /**
      * Set a new velocity for the current entity
@@ -212,6 +287,24 @@ export default class Entity extends Component {
      * @returns {void}
      */
     onCollisionWith (other) {
+    }
+
+    /* PRIVATE */
+
+    /**
+     * When pivy attribute changes
+     * @private
+     */
+    _onPivxChange () {
+        this._container.pivot.x = this.pivx;
+    }
+
+    /**
+     * When pivx attribute changes
+     * @private
+     */
+    _onPivyChange () {
+        this._container.pivot.y = this.pivy;
     }
 
     /* STATIC */

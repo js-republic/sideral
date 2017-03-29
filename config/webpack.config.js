@@ -38,6 +38,10 @@ module.exports = {
         ]
     },
 
+    devServer: {
+
+    },
+
     plugins: [
         new webpack.ProvidePlugin({
             PIXI: path.join(__dirname, "../node_modules/pixi.js")
