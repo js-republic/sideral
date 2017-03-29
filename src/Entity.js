@@ -35,6 +35,18 @@ export default class Entity extends Component {
          */
         this.vy             = 0;
 
+        /**
+         * Pivot X
+         * @type {number}
+         */
+        this.pivx           = 0;
+
+        /**
+         * Pivot Y
+         * @type {number}
+         */
+        this.pivy           = 0;
+
         // read-only
 
         /**
@@ -57,11 +69,24 @@ export default class Entity extends Component {
          * @type {boolean}
          */
         this.moving         = false;
+
+        // Auto-binding
+
+        this._onPivxChange = this._onPivxChange.bind(this);
+        this._onPivyChange = this._onPivyChange.bind(this);
     }
 
     update () {
         super.update();
         this.updateVelocity();
+    }
+
+    setReactivity () {
+        super.setReactivity();
+
+        this.reactivity.
+            when("pivx").change(this._onPivxChange).
+            when("pivy").change(this._onPivyChange);
     }
 
     /* METHODS */
@@ -212,6 +237,24 @@ export default class Entity extends Component {
      * @returns {void}
      */
     onCollisionWith (other) {
+    }
+
+    /* PRIVATE */
+
+    /**
+     * When pivy attribute changes
+     * @private
+     */
+    _onPivxChange () {
+        this._container.pivot.x = this.pivx;
+    }
+
+    /**
+     * When pivx attribute changes
+     * @private
+     */
+    _onPivyChange () {
+        this._container.pivot.y = this.pivy;
     }
 
     /* STATIC */

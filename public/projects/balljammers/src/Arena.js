@@ -3,7 +3,7 @@ import Scene from "src/Scene";
 
 import Player from "./Player";
 import Ball from "./Ball";
-import { ZoneGoal, ZoneFilet } from "./Zone";
+import { ZoneGoal } from "./Zone";
 import tilemapArena from "./../tilemaps/arena";
 
 
@@ -24,12 +24,11 @@ export default class Arena extends Scene {
 
         this.setTilemap(tilemapArena);
 
-        this.compose(this.player, { name: "player", x: this.spawnX, y: this.height / 2, onLeft: true, ball: this.ball }).
+        this.compose(this.player, { debug: true, name: "player", x: this.spawnX, y: this.height / 2, onLeft: true, ball: this.ball }).
             compose(this.enemy, { name: "enemy", x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
             compose(this.ball, { x: 200, y: 100 }, ball => window.ball = ball).
             compose(new ZoneGoal(), { x: 0, y: 32 }).
-            compose(new ZoneGoal(), { x: this.width - 32, y: 32 }); //.
-            // compose(new ZoneFilet(), { x: (this.width / 2) - 16, y: 32 });
+            compose(new ZoneGoal(), { x: this.width - 32, y: 32 });
     }
 
     /**
@@ -48,36 +47,15 @@ export default class Arena extends Scene {
             return null;
         }
 
-        const pressLeft = Engine.keyboard.isPressed(Engine.keyboard.KEY[keyLeft]),
-            pressRight  = Engine.keyboard.isPressed(Engine.keyboard.KEY[keyRight]),
-            pressTop    = Engine.keyboard.isPressed(Engine.keyboard.KEY[keyUp]),
-            pressDown   = Engine.keyboard.isPressed(Engine.keyboard.KEY[keyDown]),
-            releaseLeft = Engine.keyboard.isReleased(Engine.keyboard.KEY[keyLeft]),
-            releaseRight= Engine.keyboard.isReleased(Engine.keyboard.KEY[keyRight]),
-            releaseTop  = Engine.keyboard.isReleased(Engine.keyboard.KEY[keyUp]),
-            releaseDown = Engine.keyboard.isReleased(Engine.keyboard.KEY[keyDown]);
+        const left  = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyLeft]) ? -1 : 0,
+            right   = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyRight]) ? 1 : 0,
+            top     = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyUp]) ? -1 : 0,
+            down    = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyDown]) ? 1 : 0,
+            x       = left + right,
+            y       = top + down;
 
-        if (pressLeft || pressRight || pressTop || pressDown || releaseLeft || releaseRight || releaseDown || releaseTop) {
-            let xfactor = 0,
-                yfactor = 0;
-
-            if (pressLeft) {
-                xfactor--;
-            }
-
-            if (pressRight) {
-                xfactor++;
-            }
-
-            if (pressTop) {
-                yfactor--;
-            }
-
-            if (pressDown) {
-                yfactor++;
-            }
-
-            player.move(xfactor, yfactor);
+        if (player.currentMove.x !== x || player.currentMove.y !== y) {
+            player.move(x, y);
         }
 
         if (Engine.keyboard.isPressed(Engine.keyboard.KEY[keyFire])) {

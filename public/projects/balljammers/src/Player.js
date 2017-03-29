@@ -34,7 +34,7 @@ export default class Player extends Sprite {
     update () {
         super.update();
 
-        const speedDash = this.doubleDash > 0 ? 1 : 1;
+        const speedDash = this.doubleDash > 0 ? 10 : 1;
 
         this.vx = this.currentMove.x * this.speed * speedDash;
         this.vy = this.currentMove.y * this.speed * speedDash;
@@ -70,19 +70,25 @@ export default class Player extends Sprite {
     /* METHODS */
 
     move (factorX = 0, factorY = 0) {
-        this.lastMove.x = this.currentMove.x;
-        this.lastMove.y = this.currentMove.y;
+        if (this.currentMove.x || this.currentMove.y) {
+            this.lastMove.x = this.currentMove.x;
+            this.lastMove.y = this.currentMove.y;
+        }
 
         this.currentMove = {x: factorX, y: factorY};
 
-        if (!this.doubleDash && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
-            this.doubleDash = 600;
+        if (!this.doubleDash && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
+            this.doubleDash = 3;
+
+        } else if (this.doubleDash && (this.currentMove.x !== this.lastMove.x || this.currentMove.y !== this.lastMove.y || (factorX && factorY))) {
+            this.doubleDash = 0;
+
         }
     }
 
     attack () {
         if (!this.hasAttacked) {
-            this.hasAttacked    = 10;
+            this.hasAttacked    = 50;
             this.attackCooldown = 0;
         }
     }
