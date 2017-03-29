@@ -42,7 +42,6 @@ export default class Player extends Sprite {
         if (this.doubleDash > 0) {
             console.log("double dash");
             this.doubleDash--;
-
         }
 
         if (this.attackCooldown) {
@@ -69,6 +68,12 @@ export default class Player extends Sprite {
 
     /* METHODS */
 
+    /**
+     * move function
+     * @param {number} factorX
+     * @param {number} factorY
+     * @returns {void}
+     */
     move (factorX = 0, factorY = 0) {
         if (this.currentMove.x || this.currentMove.y) {
             this.lastMove.x = this.currentMove.x;
@@ -77,8 +82,9 @@ export default class Player extends Sprite {
 
         this.currentMove = {x: factorX, y: factorY};
 
-        if (!this.doubleDash && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
+        if (!this.doubleDash && !this._timers["dash"] && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
             this.doubleDash = 3;
+            this.addTimer("dash", 30, () => this.lastMove = {x: 0, y: 0});
 
         } else if (this.doubleDash && (this.currentMove.x !== this.lastMove.x || this.currentMove.y !== this.lastMove.y || (factorX && factorY))) {
             this.doubleDash = 0;
