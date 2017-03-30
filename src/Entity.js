@@ -162,10 +162,12 @@ export default class Entity extends Component {
      * @returns {void}
      */
     updateVelocity () {
+        const scene     = this.getScene();
+
         this.moving     = this.vx || this.vy;
 
         this.x          += this.vx * Engine.tick;
-        this.y          += this.vy * Engine.tick;
+        this.y          += (this.vy + (scene ? scene.gravity : 0)) * Engine.tick;
     }
 
     /**
@@ -177,7 +179,7 @@ export default class Entity extends Component {
         recursive = recursive || this;
 
         if (recursive.parent) {
-            return recursive.parent instanceof Scene ? recursive.parent : this.getScene(recursive);
+            return recursive.parent instanceof Scene ? recursive.parent : this.getScene(recursive.parent);
         }
 
         return recursive;

@@ -14,7 +14,7 @@ export default class Ball extends Sprite {
         this.name               = "ball";
         this.visible            = false;
         this.collision.mass     = this.collision.MASS.WEAK;
-        this.collision.bouncing = 1;
+        this.collision.bouncing = 0.4;
 
         this.size(32, 32);
 
@@ -28,8 +28,8 @@ export default class Ball extends Sprite {
     initialize (props) {
         super.initialize(props);
 
-        this.pivx = 16;
-        this.pivy = 16;
+        // this.pivx = 16;
+        // this.pivy = 16;
 
         this.respawn();
     }
@@ -41,7 +41,7 @@ export default class Ball extends Sprite {
     update () {
         super.update();
 
-        this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
+        // this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
     }
 
     /**

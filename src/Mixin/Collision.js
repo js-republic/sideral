@@ -28,6 +28,12 @@ export default class Collision extends Mixin {
         this.bouncing       = 0;
 
         /**
+         * Chain of gravity for each loop
+         * @type {number}
+         */
+        this.gravityChain   = 0;
+
+        /**
          * Know if the parent is in collision with wall within axis
          * @type {{x: boolean, y: boolean}}
          */
@@ -69,6 +75,10 @@ export default class Collision extends Mixin {
         this._entities  = null;
         this._scene     = null;
         this._resolved  = false;
+
+        if (!this.parent.moving || this.collide.y || this.parent.standing) {
+            this.gravityChain = 0;
+        }
     }
 
     /* OVERRIDES */
@@ -77,7 +87,15 @@ export default class Collision extends Mixin {
      * @override
      */
     updateVelocity () {
-        this.parent.moving = this.parent.vx || this.parent.vy;
+        const scene         = this.getScene();
+
+        if (scene) {
+            this.gravityChain += scene.gravity * Engine.tick;
+        }
+
+        // this.parent.vy      += scene.gravity * Engine.tick;
+        this.parent.vy      += this.gravityChain;
+        this.parent.moving  = this.parent.vx || this.parent.vy;
 
         if (!this._resolved) {
             this.resolveAll();
@@ -92,9 +110,9 @@ export default class Collision extends Mixin {
      */
     resolveAll () {
         const entity    = this.parent,
+            scene       = this.getScene(),
             nextX       = entity.x + (entity.vx * Engine.tick),
-            nextY       = entity.y + (entity.vy * Engine.tick),
-            scene       = this.getScene();
+            nextY       = entity.y + (entity.vy * Engine.tick);
 
 
         if (!entity.moving) {
@@ -234,6 +252,10 @@ export default class Collision extends Mixin {
                 chain.entity[axis]                      = chain.nextPos;
                 chain.entity.collision.collide[axis]    = chain.collide;
 
+                if (axis === "y") {
+                    chain.entity.standing               = chain.collide;
+                }
+
                 lastChain = index && array[index - 1];
 
                 this.resolveBouncing(chain, lastChain && lastChain.entity);
@@ -299,9 +321,11 @@ export default class Collision extends Mixin {
             return null;
         }
 
+        const bouncing = entity.collision.bouncing;
+
         entity.vy = other
             ? Math.abs(other.vy || entity.vy) * (other.y < entity.y ? 1 : -1) * entity.collision.bouncing
-            : (collide ? Math.abs(entity.vy) * (onTop ? -1 : 1) * entity.collision.bouncing : entity.vy);
+            : (collide ? Math.abs(entity.vy) * (onTop ? -bouncing : bouncing) : entity.vy);
     }
 
     /**
