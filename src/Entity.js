@@ -21,7 +21,7 @@ export default class Entity extends Component {
          * Factor of gravity provided by the scene
          * @type {number}
          */
-        this.gravityFactor  = 0;
+        this.gravityFactor  = 1;
 
         /**
          * Velocity X
@@ -295,6 +295,7 @@ export default class Entity extends Component {
 
     /**
      * When pivy attribute changes
+     * @returns {void}
      * @private
      */
     _onPivxChange () {
@@ -303,6 +304,7 @@ export default class Entity extends Component {
 
     /**
      * When pivx attribute changes
+     * @returns {void}
      * @private
      */
     _onPivyChange () {

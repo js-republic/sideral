@@ -8,7 +8,8 @@ export default class Player extends Sprite {
     constructor () {
         super();
 
-        this.size(30, 30);
+        // this.size(30, 30);
+        this.size(65, 65);
 
         this.name           = "player";
         this.speed          = 250;
@@ -16,12 +17,12 @@ export default class Player extends Sprite {
         this.hasAttacked    = 0;
         this.attackCooldown = 0;
         this.onLeft         = false;
-        this.offset         = {x: 17, y: 34};
+        // this.offset         = {x: 17, y: 34};
         this.doubleDash     = 0;
         this.currentMove    = {x: 0, y: 0};
         this.lastMove       = {x: 0, y: 0};
 
-        this.setSpritesheet("images/characters/chris.png", 64, 64);
+        this.setSpritesheet("images/characters/cat.png", 65, 65);
     }
 
     initialize (props) {
@@ -82,7 +83,7 @@ export default class Player extends Sprite {
 
         this.currentMove = {x: factorX, y: factorY};
 
-        if (!this.doubleDash && !this._timers["dash"] && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
+        if (!this.doubleDash && !this._timers.dash && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
             this.doubleDash = 3;
             this.addTimer("dash", 30, () => this.lastMove = {x: 0, y: 0});
 

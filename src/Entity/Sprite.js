@@ -18,10 +18,22 @@ export default class Sprite extends Entity {
         this._container = new PIXI.Sprite();
 
         /**
+         * Flip the spritesheet
+         * @type {boolean}
+         */
+        this.flip = false;
+
+        /**
          * Define the rotation of the sprite
          * @type {number}
          */
         this.rotation   = 0;
+
+        /**
+         * Offset of the hitbox related to the spritesheet
+         * @type {{x: number, y: number}}
+         */
+        this.offset     = {x: 0, y: 0};
 
         /**
          * SpriteSheet of the Sprite
@@ -43,6 +55,7 @@ export default class Sprite extends Entity {
 
         this._onDebugChange     = this._onDebugChange.bind(this);
         this._onRotationChange  = this._onRotationChange.bind(this);
+        this._onFlipChange      = this._onFlipChange.bind(this);
     }
 
     /**
@@ -53,7 +66,8 @@ export default class Sprite extends Entity {
 
         this.reactivity.
             when("debug").change(this._onDebugChange).
-            when("rotation").change(this._onRotationChange);
+            when("rotation").change(this._onRotationChange).
+            when("flip").change(this._onFlipChange);
     }
 
     /**
@@ -61,9 +75,10 @@ export default class Sprite extends Entity {
      * @param {string} image: url of the image
      * @param {number=} tilewidth: tilewidth of the spritesheet
      * @param {number=} tileheight: tileheight of the spritesheet
+     * @param {{x: number, y: number}=} offset: offset of the spritesheet related to the sprite
      * @returns {void}
      */
-    setSpritesheet (image, tilewidth, tileheight ) {
+    setSpritesheet (image, tilewidth, tileheight, offset = {}) {
         if (!image) {
             throw new Error("Sprite.setSpritesheet", "image is not defined.");
         }
@@ -79,7 +94,15 @@ export default class Sprite extends Entity {
                 texture.frame = new PIXI.Rectangle(0, 0, tilewidth, tileheight);
             }
 
-            this._container.texture = texture;
+            this._container.texture     = texture;
+
+            if (offset.x) {
+                this._container.anchor.x = offset.x / this.width;
+            }
+
+            if (offset.y) {
+                this._container.anchor.y = offset.y / this.height;
+            }
         });
     }
 
@@ -141,5 +164,15 @@ export default class Sprite extends Entity {
         if (this.debug) {
             this._debug.size(this.width, this.height);
         }
+    }
+
+    /**
+     * When "flip" attribute change
+     * @returns {void}
+     * @private
+     */
+    _onFlipChange () {
+        this._container.scale.x     = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1);
+        this._container.anchor.x    = this.flip ? 1 : 0.5;
     }
 }

@@ -7,16 +7,6 @@ export default class Component extends Mixin {
     /* LIFECYCLE */
 
     /**
-     * @initialize
-     * @override
-     */
-    initialize (props) {
-        this.mix(new Reactivity());
-        this.setReactivity();
-        super.initialize(props);
-    }
-
-    /**
      * @constructor
      */
     constructor () {
@@ -121,12 +111,29 @@ export default class Component extends Mixin {
          */
         this._childrenNames         = [];
 
+        /**
+         * Objet to compose before the next cycle
+         * @type {Array}
+         * @private
+         */
+        this._willCompose           = [];
+
         // auto-binding
 
         this._onZChange         = this._onZChange.bind(this);
         this._onPositionChange  = this._onPositionChange.bind(this);
         this._onSizeChange      = this._onSizeChange.bind(this);
         this._onVisibleChange   = this._onVisibleChange.bind(this);
+    }
+
+    /**
+     * @initialize
+     * @override
+     */
+    initialize (props) {
+        this.mix(new Reactivity());
+        this.setReactivity();
+        super.initialize(props);
     }
 
     /**
@@ -170,6 +177,8 @@ export default class Component extends Mixin {
     nextCycle () {
         this.children.forEach(child => child.nextCycle());
         super.nextCycle();
+
+        this._runComposition();
     }
 
     /* METHODS */
@@ -217,7 +226,7 @@ export default class Component extends Mixin {
      * @returns {boolean} if the mixin or component exists
      */
     has (name) {
-        return super.has(name) || Boolean(this._childrenNames.find(childrenName => childrenName === name));
+        return super.has(name) || Boolean(this._childrenNames.find(childrenName => childrenName === name));
     }
 
     /**
@@ -236,28 +245,7 @@ export default class Component extends Mixin {
             return this;
         }
 
-        this.children.push(component);
-        this._childrenNames.push(component.name);
-
-        component.parent = this;
-        component.initialize(injectProps);
-        this.willReceiveChild(component);
-
-        const name = component.name;
-
-        if (this.prototype) {
-            delete this.prototype[name];
-        }
-
-        Object.defineProperty(this, name, {
-            value           : component,
-            writable        : false,
-            configurable    : true
-        });
-
-        if (next) {
-            next(component);
-        }
+        this._willCompose.push({ component: component, props: injectProps, next: next });
 
         return this;
     }
@@ -358,8 +346,42 @@ export default class Component extends Mixin {
      * @returns {void}
      */
     _onVisibleChange () {
-        console.log(this._container, this.visible);
-
         this._container.visible = this.visible;
+    }
+
+    /* PRIVATE */
+
+    /**
+     * run all component to be composed
+     * @private
+     * @returns {void}
+     */
+    _runComposition () {
+        this._willCompose.forEach(composer => {
+            this.children.push(composer.component);
+            this._childrenNames.push(composer.component.name);
+
+            composer.component.parent = this;
+            composer.component.initialize(composer.props);
+            this.willReceiveChild(composer.component);
+
+            const name = composer.component.name;
+
+            if (this.prototype) {
+                delete this.prototype[name];
+            }
+
+            Object.defineProperty(this, name, {
+                value           : composer.component,
+                writable        : false,
+                configurable    : true
+            });
+
+            if (composer.next) {
+                composer.next(composer.component);
+            }
+        });
+
+        this._willCompose = [];
     }
 }

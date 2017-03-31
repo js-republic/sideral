@@ -90,11 +90,12 @@ export default class Collision extends Mixin {
         const scene         = this.getScene();
 
         if (scene) {
-            this.gravityChain += scene.gravity * Engine.tick;
+            this.gravityChain   += this.parent.gravityFactor * scene.gravity * Engine.tick;
+            this.parent.vy      += scene.gravity  * Engine.tick;
         }
 
         // this.parent.vy      += scene.gravity * Engine.tick;
-        this.parent.vy      += this.gravityChain;
+
         this.parent.moving  = this.parent.vx || this.parent.vy;
 
         if (!this._resolved) {
@@ -321,10 +322,10 @@ export default class Collision extends Mixin {
             return null;
         }
 
-        const bouncing = entity.collision.bouncing;
+        const bouncing      = entity.collision.bouncing;
 
         entity.vy = other
-            ? Math.abs(other.vy || entity.vy) * (other.y < entity.y ? 1 : -1) * entity.collision.bouncing
+            ? Math.abs(other.vy || entity.vy) * (other.y < entity.y ? 1 : -1) * bouncing
             : (collide ? Math.abs(entity.vy) * (onTop ? -bouncing : bouncing) : entity.vy);
     }
 
