@@ -1,9 +1,11 @@
 import Engine from "src/Engine";
 import Scene from "src/Scene";
 
-import Player from "./Player";
 import Ball from "./Ball";
 import Goal from "./Goal";
+
+import PlayerCat from "./Player/Cat";
+
 import tilemapGrass from "./../tilemaps/grass.json";
 
 
@@ -20,14 +22,13 @@ export default class Arena extends Scene {
         this.gravity    = 2000;
 
         this.spawnX     = 100;
-        this.player     = new Player();
-        this.enemy      = new Player();
+        this.player     = new PlayerCat();
+        window.player   = this.player;
 
         this.setTilemap(tilemapGrass, () => {
-
-            this.compose(new Goal(), { x: 0, y: 310 }).
-                compose(new Goal(), { x: this.width - 45, y: 310, flip: true }).
-                compose(new Ball()).
+            this.compose(new Goal(), { debug: true, x: 0, y: 310 }).
+                compose(new Goal(), { debug: true, x: this.width - 45, y: 310, flip: true }).
+                compose(new Ball(), { debug: true }).
                 compose(this.player, { debug: true, name: "player", x: this.spawnX, y: this.height / 2, onLeft: true });
 
             /*

@@ -8,21 +8,15 @@ export default class Player extends Sprite {
     constructor () {
         super();
 
-        // this.size(30, 30);
-        this.size(65, 65);
-
         this.name           = "player";
         this.speed          = 250;
         this.power          = 100;
         this.hasAttacked    = 0;
         this.attackCooldown = 0;
         this.onLeft         = false;
-        // this.offset         = {x: 17, y: 34};
         this.doubleDash     = 0;
         this.currentMove    = {x: 0, y: 0};
         this.lastMove       = {x: 0, y: 0};
-
-        this.setSpritesheet("images/characters/cat.png", 65, 65);
     }
 
     initialize (props) {
@@ -41,7 +35,6 @@ export default class Player extends Sprite {
         this.vy = this.currentMove.y * this.speed * speedDash;
 
         if (this.doubleDash > 0) {
-            console.log("double dash");
             this.doubleDash--;
         }
 

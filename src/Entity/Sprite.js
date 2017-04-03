@@ -130,8 +130,8 @@ export default class Sprite extends Entity {
         if (this.debug) {
             this.compose(new Shape(), {
                 name    : "_debug",
-                x       : this.offset.x,
-                y       : this.offset.y,
+                x       : 0,
+                y       : 0,
                 type    : Shape.TYPE.RECTANGLE,
                 width   : this.width,
                 height  : this.height,
@@ -159,9 +159,7 @@ export default class Sprite extends Entity {
      * @private
      */
     _onSizeChange () {
-        super._onSizeChange();
-
-        if (this.debug) {
+        if (this.debug && this._debug) {
             this._debug.size(this.width, this.height);
         }
     }
@@ -172,7 +170,16 @@ export default class Sprite extends Entity {
      * @private
      */
     _onFlipChange () {
-        this._container.scale.x     = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1);
-        this._container.anchor.x    = this.flip ? 1 : 0.5;
+        const scaleX    = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1),
+            anchorX     = this.flip ? 1 : 0.5;
+
+        this._container.scale.x     = scaleX;
+        this._container.anchor.x    = anchorX;
+
+        if (this._debug) {
+            this._debug._container.scale.x  = scaleX;
+            this._debug._container.anchor.x = anchorX;
+        }
+
     }
 }

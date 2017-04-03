@@ -47,6 +47,7 @@ export default class Shape extends Entity {
             when("type", "fill", "stroke").change(this._renderShape);
     }
 
+
     /* REACTIVITY */
 
     /**
@@ -76,8 +77,8 @@ export default class Shape extends Entity {
      */
     _drawShape () {
         const withStroke = this.stroke !== "transparent",
-            x = withStroke ? this.x : this.x,
-            y = withStroke ? this.y : this.y,
+            x = withStroke ? 1 : 0,
+            y = withStroke ? 1 : 0,
             width = withStroke ? this.width - 1 : this.width,
             height = withStroke ? this.height - 1 : this.height;
 

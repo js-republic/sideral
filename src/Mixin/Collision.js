@@ -28,12 +28,6 @@ export default class Collision extends Mixin {
         this.bouncing       = 0;
 
         /**
-         * Chain of gravity for each loop
-         * @type {number}
-         */
-        this.gravityChain   = 0;
-
-        /**
          * Know if the parent is in collision with wall within axis
          * @type {{x: boolean, y: boolean}}
          */
@@ -75,10 +69,6 @@ export default class Collision extends Mixin {
         this._entities  = null;
         this._scene     = null;
         this._resolved  = false;
-
-        if (!this.parent.moving || this.collide.y || this.parent.standing) {
-            this.gravityChain = 0;
-        }
     }
 
     /* OVERRIDES */
@@ -90,11 +80,8 @@ export default class Collision extends Mixin {
         const scene         = this.getScene();
 
         if (scene) {
-            this.gravityChain   += this.parent.gravityFactor * scene.gravity * Engine.tick;
-            this.parent.vy      += scene.gravity  * Engine.tick;
+            this.parent.vy      += scene.gravity * Engine.tick;
         }
-
-        // this.parent.vy      += scene.gravity * Engine.tick;
 
         this.parent.moving  = this.parent.vx || this.parent.vy;
 

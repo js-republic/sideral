@@ -142,7 +142,6 @@ export default class Component extends Mixin {
     setReactivity () {
         this.reactivity.
             when("x", "y").change(this._onPositionChange).
-            when("width", "height").change(this._onSizeChange).
             when("z").change(this._onZChange).
             when("visible").change(this._onVisibleChange);
     }
@@ -320,12 +319,7 @@ export default class Component extends Mixin {
      * @private
      * @returns {void}
      */
-    _onSizeChange () {
-        if (this._container && !this.children.length) {
-            this._container.width   = this.width;
-            this._container.height  = this.height;
-        }
-    }
+    _onSizeChange () { }
 
     /**
      * When z attribute change

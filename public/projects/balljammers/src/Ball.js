@@ -18,7 +18,7 @@ export default class Ball extends Sprite {
 
         this.size(32, 32);
 
-        this.setSpritesheet("images/ball.png", this.width, this.height, { x: 0, y: -5 });
+        this.setSpritesheet("images/ball.png", this.width, this.height, { x: 0, y: -2 });
     }
 
     /**
