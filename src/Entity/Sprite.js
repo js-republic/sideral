@@ -137,6 +137,10 @@ export default class Sprite extends Entity {
                 height  : this.height,
                 stroke  : "#FF0000",
                 fill    : "transparent"
+
+            }, shape => {
+                shape.flip = this.flip;
+
             });
 
         } else if (this.last.debug) {
@@ -170,16 +174,11 @@ export default class Sprite extends Entity {
      * @private
      */
     _onFlipChange () {
-        const scaleX    = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1),
-            anchorX     = this.flip ? 1 : 0.5;
-
-        this._container.scale.x     = scaleX;
-        this._container.anchor.x    = anchorX;
+        this._container.scale.x     = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1);
+        this._container.anchor.x    = this.flip ? 1 : 0.5;
 
         if (this._debug) {
-            this._debug._container.scale.x  = scaleX;
-            this._debug._container.anchor.x = anchorX;
+            this._debug.flip = this.flip;
         }
-
     }
 }

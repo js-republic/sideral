@@ -34,9 +34,16 @@ export default class Shape extends Entity {
          */
         this.type       = null;
 
+        /**
+         * Flip the shape
+         * @type {boolean}
+         */
+        this.flip       = false;
+
         // auto-binding
 
-        this._renderShape = this._renderShape.bind(this);
+        this._renderShape   = this._renderShape.bind(this);
+        this._onFlipChange  = this._onFlipChange.bind(this);
     }
 
     /**
@@ -44,7 +51,8 @@ export default class Shape extends Entity {
      */
     setReactivity () {
         this.reactivity.
-            when("type", "fill", "stroke").change(this._renderShape);
+            when("type", "fill", "stroke").change(this._renderShape).
+            when("flip").change(this._onFlipChange);
     }
 
 
@@ -87,6 +95,15 @@ export default class Shape extends Entity {
             this._container.drawRect(x, y, width, height);
             break;
         }
+    }
+
+    /**
+     * when flip attributes change
+     * @private
+     * @returns {void}
+     */
+    _onFlipChange () {
+        this._container.scale.x = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1);
     }
 }
 
