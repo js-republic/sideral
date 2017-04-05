@@ -18,7 +18,11 @@ Engine.mix(new Keyboard()).
 window.Engine = Engine;
 */
 
-import SideralObject from "src/SideralObject";
+
+import Game from "src/Game";
+import Scene from "src/Scene";
 
 
-window.sid = new SideralObject();
+window.game = Game.start(608, 302);
+
+Game.addScene(new Scene());

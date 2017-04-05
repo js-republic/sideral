@@ -84,8 +84,9 @@ export default class Util {
         }
 
         return Util.hexToDecimal(
-            (color instanceof Array) || (typeof color === "string" && color.toLowerCase().indexOf("rgb") > -1) ?
-                Util.rgbToHex(color) : color
+            (color instanceof Array) || (typeof color === "string" && color.toLowerCase().indexOf("rgb") > -1)
+                ? Util.rgbToHex(color)
+                : color
         );
     }
 }
