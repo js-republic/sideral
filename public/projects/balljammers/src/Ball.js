@@ -14,11 +14,11 @@ export default class Ball extends Sprite {
         this.name               = "ball";
         this.visible            = false;
         this.collision.mass     = this.collision.MASS.WEAK;
-        this.collision.bouncing = 1;
+        this.collision.bouncing = 0.7;
 
         this.size(32, 32);
 
-        this.setSpritesheet("images/ball.png", this.width, this.height);
+        this.setSpritesheet("images/ball.png", this.width, this.height, { x: 0, y: -2 });
     }
 
     /**
@@ -28,8 +28,8 @@ export default class Ball extends Sprite {
     initialize (props) {
         super.initialize(props);
 
-        this.pivx = 16;
-        this.pivy = 16;
+        // this.pivx = 16;
+        // this.pivy = 16;
 
         this.respawn();
     }
@@ -41,7 +41,7 @@ export default class Ball extends Sprite {
     update () {
         super.update();
 
-        this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
+        // this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
     }
 
     /**
@@ -62,10 +62,7 @@ export default class Ball extends Sprite {
     respawn () {
         const scene = this.getScene();
 
-        this.position(
-            (scene.width / 2) - 200 + Math.floor(Math.random() * 400),
-            (scene.height / 2) - 25 + Math.floor(Math.random() * 50)
-        );
+        this.position((scene.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
 
         this.velocity(0, 0);
     }

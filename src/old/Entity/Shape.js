@@ -34,9 +34,16 @@ export default class Shape extends Entity {
          */
         this.type       = null;
 
+        /**
+         * Flip the shape
+         * @type {boolean}
+         */
+        this.flip       = false;
+
         // auto-binding
 
-        this._renderShape = this._renderShape.bind(this);
+        this._renderShape   = this._renderShape.bind(this);
+        this._onFlipChange  = this._onFlipChange.bind(this);
     }
 
     /**
@@ -44,8 +51,10 @@ export default class Shape extends Entity {
      */
     setReactivity () {
         this.reactivity.
-            when("type", "fill", "stroke").change(this._renderShape);
+            when("type", "fill", "stroke").change(this._renderShape).
+            when("flip").change(this._onFlipChange);
     }
+
 
     /* REACTIVITY */
 
@@ -76,16 +85,25 @@ export default class Shape extends Entity {
      */
     _drawShape () {
         const withStroke = this.stroke !== "transparent",
-            x = withStroke ? this.x + 1 : this.x,
-            y = withStroke ? this.y + 1 : this.y,
-            width = withStroke ? this.width - 2 : this.width,
-            height = withStroke ? this.height - 2 : this.height;
+            x = withStroke ? 1 : 0,
+            y = withStroke ? 1 : 0,
+            width = withStroke ? this.width - 1 : this.width,
+            height = withStroke ? this.height - 1 : this.height;
 
         switch (this.type) {
         default:
             this._container.drawRect(x, y, width, height);
             break;
         }
+    }
+
+    /**
+     * when flip attributes change
+     * @private
+     * @returns {void}
+     */
+    _onFlipChange () {
+        this._container.scale.x = Math.abs(this._container.scale.x) * (this.flip ? -1 : 1);
     }
 }
 
