@@ -87,7 +87,8 @@
     "react-tap-event-plugin": "^2.0.1",
     "redux": "^3.6.0",
     "serve-favicon": "^2.3.0",
-    "transform-loader": "^0.2.3"
+    "transform-loader": "^0.2.3",
+    "webpack-dev-server": "^2.4.2"
   },
   "config": {
     "commitizen": {

@@ -17,6 +17,9 @@ export default class Player extends Sprite {
         this.attackCooldown = 0;
         this.onLeft         = false;
         this.offset         = {x: 17, y: 34};
+        this.doubleDash     = 0;
+        this.currentMove    = {x: 0, y: 0};
+        this.lastMove       = {x: 0, y: 0};
 
         this.setSpritesheet("images/characters/chris.png", 64, 64);
     }
@@ -30,6 +33,16 @@ export default class Player extends Sprite {
 
     update () {
         super.update();
+
+        const speedDash = this.doubleDash > 0 ? 10 : 1;
+
+        this.vx = this.currentMove.x * this.speed * speedDash;
+        this.vy = this.currentMove.y * this.speed * speedDash;
+
+        if (this.doubleDash > 0) {
+            console.log("double dash");
+            this.doubleDash--;
+        }
 
         if (this.attackCooldown) {
             this.attackCooldown--;
@@ -48,9 +61,6 @@ export default class Player extends Sprite {
         super.onCollisionWith(entity);
 
         switch (entity.name) {
-        case "filet": this.x = entity.x < this.x ? entity.x + entity.width : entity.x - this.width;
-            break;
-
         case "ball": this.onCollisionWithBall(entity);
             break;
         }
@@ -58,9 +68,33 @@ export default class Player extends Sprite {
 
     /* METHODS */
 
+    /**
+     * move function
+     * @param {number} factorX
+     * @param {number} factorY
+     * @returns {void}
+     */
+    move (factorX = 0, factorY = 0) {
+        if (this.currentMove.x || this.currentMove.y) {
+            this.lastMove.x = this.currentMove.x;
+            this.lastMove.y = this.currentMove.y;
+        }
+
+        this.currentMove = {x: factorX, y: factorY};
+
+        if (!this.doubleDash && !this._timers["dash"] && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
+            this.doubleDash = 3;
+            this.addTimer("dash", 30, () => this.lastMove = {x: 0, y: 0});
+
+        } else if (this.doubleDash && (this.currentMove.x !== this.lastMove.x || this.currentMove.y !== this.lastMove.y || (factorX && factorY))) {
+            this.doubleDash = 0;
+
+        }
+    }
+
     attack () {
         if (!this.hasAttacked) {
-            this.hasAttacked    = 10;
+            this.hasAttacked    = 50;
             this.attackCooldown = 0;
         }
     }

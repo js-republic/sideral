@@ -18,6 +18,12 @@ export default class Sprite extends Entity {
         this._container = new PIXI.Sprite();
 
         /**
+         * Define the rotation of the sprite
+         * @type {number}
+         */
+        this.rotation   = 0;
+
+        /**
          * SpriteSheet of the Sprite
          * @type {string}
          */
@@ -36,6 +42,7 @@ export default class Sprite extends Entity {
         // auto-binding
 
         this._onDebugChange     = this._onDebugChange.bind(this);
+        this._onRotationChange  = this._onRotationChange.bind(this);
     }
 
     /**
@@ -45,7 +52,8 @@ export default class Sprite extends Entity {
         super.setReactivity();
 
         this.reactivity.
-            when("debug").change(this._onDebugChange);
+            when("debug").change(this._onDebugChange).
+            when("rotation").change(this._onRotationChange);
     }
 
     /**
@@ -112,6 +120,15 @@ export default class Sprite extends Entity {
             this.decompose(this._debug);
 
         }
+    }
+
+    /**
+     * Set the new angle of rotation
+     * @private
+     * @returns {void}
+     */
+    _onRotationChange () {
+        this._container.rotation = this.rotation;
     }
 
     /**
