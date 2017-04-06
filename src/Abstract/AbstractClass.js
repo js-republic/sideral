@@ -1,4 +1,4 @@
-import Signal from "./../Module/Signal";
+import Signal from "./../Command/Signal";
 
 
 export default class AbstractClass {
@@ -30,7 +30,7 @@ export default class AbstractClass {
 
         /**
          * Children of AbstractClass
-         * @type {Array<AbstractClass>}
+         * @type {Array<Object>}
          */
         this.children   = [];
 
@@ -45,8 +45,19 @@ export default class AbstractClass {
          * @type {{}}
          */
         this.SIGNAL     = {
-            VALUE_CHANGE: properties => new Signal("VALUE_CHANGE", properties)
+            VALUE_CHANGE: properties    => new Signal("VALUE_CHANGE", properties),
+            UPDATE      : ()            => new Signal("UPDATE")
         };
+    }
+
+    /**
+     * When initialized by a parent
+     * @lifecycle
+     * @param {Object} props: properties to merge
+     * @returns {void}
+     */
+    initialize (props = {}) {
+        Object.keys(props).forEach(key => this.props[key] = props[key]);
     }
 
     /**
@@ -69,6 +80,7 @@ export default class AbstractClass {
      */
     update () {
         this.children.forEach(child => child.update());
+        this.trigger(this.SIGNAL.UPDATE());
     }
 
     /**
@@ -86,6 +98,9 @@ export default class AbstractClass {
 
             this.last[key] = this.props[key];
         });
+
+        // reset trigger of signals
+        this.signals.forEach(signal => signal.triggered = false);
     }
 
 
@@ -93,13 +108,39 @@ export default class AbstractClass {
 
     /**
      * Set new properties to the object
-     * @param {{}} props: properties to merge
+     * @param {Object} props: properties to merge
      * @returns {*} current instance
      */
     setProps (props) {
         Object.keys(props).forEach(key => this.last[key] = this.props[key] = props[key]);
 
         return this;
+    }
+
+    /**
+     * Add an item to the current object
+     * @param {Object} item: an AbstractClass inheritance item
+     * @param {Object=} settings: props to merge to the item
+     * @param {number=} index: set an index position for the item
+     * @returns {Object} the item initialized
+     */
+    add (item, settings = {}, index) {
+        if (!(item instanceof AbstractClass)) {
+            throw new Error("AbstractClass.add : item must be an instance of Sideral Abstract Class");
+        }
+
+        this.children.push(item);
+        item.initialize(settings);
+
+        if (item.container && this.container) {
+            if (typeof index !== "undefined") {
+                this.container.addChildAt(item.container, index);
+            } else {
+                this.container.addChild(item.container);
+            }
+        }
+
+        return item;
     }
 
     /**
@@ -134,7 +175,7 @@ export default class AbstractClass {
     /**
      * Trigger a signal
      * @param {Signal} signalReference: signal to trigger
-     * @param {*} value: value of the changement
+     * @param {*=} value: value of the changement
      * @returns {void}
      */
     trigger (signalReference, value) {

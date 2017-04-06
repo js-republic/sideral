@@ -1,6 +1,6 @@
 import AbstractClass from "./Abstract/AbstractClass";
-import Util from "./Module/Util";
-import Signal from "./Module/Signal";
+import Util from "./Command/Util";
+import Signal from "./Command/Signal";
 import Scene from "./Scene";
 
 
@@ -18,24 +18,23 @@ class Game extends AbstractClass {
             width       : 10,
             height      : 10,
             dom         : document.getElementById("sideral"),
-            background  : "#DDDDDD",
-
-            fps         : 60,
-            latency     : 0,
-            tick        : 1,
-            lastUpdate  : 0,
-            stopped     : true
+            background  : "#DDDDDD"
         });
 
         this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true });
         this.inputs     = {};
         this._inputs    = {};
+        this.fps        = 60;
+        this.latency    = 0;
+        this.tick       = 1;
+        this.lastUpdate = 0;
+        this.stopped    = true;
 
         this.SIGNAL.KEY_PRESS = property => new Signal("KEY_PRESS", property);
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("dom"), this._attachGame.bind(this));
-        this.bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this._resizeGame.bind(this));
-        this.bind(this.SIGNAL.VALUE_CHANGE("background"), this._backgroundChange.bind(this));
+        this.bind(this.SIGNAL.VALUE_CHANGE("dom"), this._attachGame.bind(this)).
+            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this._resizeGame.bind(this)).
+            bind(this.SIGNAL.VALUE_CHANGE("background"), this._backgroundChange.bind(this));
 
         window.addEventListener("keydown", this._onKeydown.bind(this));
         window.addEventListener("keyup", this._onKeyup.bind(this));
@@ -68,10 +67,10 @@ class Game extends AbstractClass {
         requestAnimationFrame(this.update.bind(this));
 
         // 100ms latency max
-        this.props.latency    = Math.min(performance - this.props.lastUpdate, 100);
-        this.props.fps        = Math.floor(1000 / this.props.latency);
-        this.props.tick       = 1000 / (this.props.fps * 1000);
-        this.props.tick       = this.props.tick < 0 ? 0 : this.props.tick;
+        this.latency    = Math.min(performance - this.lastUpdate, 100);
+        this.fps        = Math.floor(1000 / this.latency);
+        this.tick       = 1000 / (this.fps * 1000);
+        this.tick       = this.tick < 0 ? 0 : this.tick;
 
         this._updateInputs();
 
@@ -80,27 +79,27 @@ class Game extends AbstractClass {
 
         this.nextCycle();
 
-        this.props.lastUpdate = window.performance.now();
+        this.lastUpdate = window.performance.now();
     }
 
 
     /* METHODS */
 
     /**
-     * Add a new Sideral Object
-     * @param {*} item: item to add to the lifecycle
+     * Add a new Sideral Scene
+     * @param {*} scene: item to add to the lifecycle
      * @param {{}=} props: properties to pass to the object
      * @returns {*} current item
      */
-    addScene (item, props) {
-        if (!(item instanceof Scene)) {
+    addScene (scene, props) {
+        if (!(scene instanceof Scene)) {
             throw new Error("Game.add : object must be an instance of Sideral Scene Class.");
         }
 
-        this.children.push(item);
-        item.initialize(props);
+        this.children.push(scene);
+        scene.initialize(props);
 
-        return item;
+        return scene;
     }
 
     /**
@@ -121,6 +120,7 @@ class Game extends AbstractClass {
             throw new Error("Engine.start: You must set 'width', 'height' and a 'dom' container");
         }
 
+        this.stopped = false;
         this._attachGame();
         this._resizeGame();
         this.update();
@@ -172,7 +172,7 @@ class Game extends AbstractClass {
 
                 }
 
-                // Released
+            // Released
             } else if (_input === RELEASED) {
                 if (!input) {
                     this.inputs[key] = PRESSED;

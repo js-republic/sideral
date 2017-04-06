@@ -3,13 +3,14 @@ export default class Signal {
     /**
      * @constructor
      * @param {string} name: name of the signal
-     * @param {Array<*>|*} properties: property or array of properties
+     * @param {Array<*>|*=} properties: property or array of properties
      * @param {function=} onTrigger: event when the signal is triggered
      */
     constructor (name, properties, onTrigger) {
-        this.properties = [].concat(properties);
+        this.properties = [].concat(properties || []);
         this.onTrigger  = onTrigger;
         this.name       = name;
+        this.triggered  = false;
 
         this.actions    = [];
     }
@@ -29,6 +30,10 @@ export default class Signal {
      * @returns {void|null} -
      */
     trigger (value) {
+        if (this.triggered) {
+            return null;
+        }
+
         if (this.onTrigger) {
             this.onTrigger(this, value);
 
@@ -36,6 +41,8 @@ export default class Signal {
             this.callActions(value);
 
         }
+
+        this.triggered = true;
     }
 
     /**
@@ -52,6 +59,6 @@ export default class Signal {
             }
         });
 
-        return hasMatched;
+        return hasMatched || (properties.length === this.properties.length && this.properties.length === 0);
     }
 }

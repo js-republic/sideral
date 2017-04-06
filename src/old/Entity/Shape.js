@@ -76,10 +76,10 @@ export default class Shape extends Entity {
      */
     _drawShape () {
         const withStroke = this.stroke !== "transparent",
-            x = withStroke ? this.x : this.x,
-            y = withStroke ? this.y : this.y,
-            width = withStroke ? this.width - 1 : this.width,
-            height = withStroke ? this.height - 1 : this.height;
+            x = withStroke ? this.x + 1 : this.x,
+            y = withStroke ? this.y + 1 : this.y,
+            width = withStroke ? this.width - 2 : this.width,
+            height = withStroke ? this.height - 2 : this.height;
 
         switch (this.type) {
         default:
