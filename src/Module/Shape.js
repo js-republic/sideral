@@ -47,7 +47,7 @@ export default class Shape extends AbstractModule {
             this.container.lineStyle(1, stroke, 1);
         }
 
-        this.container.beginFill(fill, this.fill === "transparent" ? 0 : 1);
+        this.container.beginFill(fill, this.props.fill === "transparent" ? 0 : 1);
         this._drawShape();
         this.container.endFill();
     }
@@ -59,8 +59,8 @@ export default class Shape extends AbstractModule {
      */
     _drawShape () {
         const withStroke = this.props.stroke !== "transparent",
-            x = withStroke ? this.props.x : this.props.x,
-            y = withStroke ? this.props.y : this.props.y,
+            x = withStroke ? this.props.x + 1 : this.props.x,
+            y = withStroke ? this.props.y + 1 : this.props.y,
             width = withStroke ? this.props.width - 1 : this.props.width,
             height = withStroke ? this.props.height - 1 : this.props.height;
 

@@ -1,7 +1,7 @@
-import Sprite from "src/Entity/Sprite";
+import Entity from "src/Entity";
 
 
-export default class Ball extends Sprite {
+export default class Ball extends Entity {
 
     /* LIFECYCLE */
 
@@ -11,14 +11,15 @@ export default class Ball extends Sprite {
     constructor () {
         super();
 
-        this.name               = "ball";
-        this.visible            = false;
-        this.collision.mass     = this.collision.MASS.WEAK;
-        this.collision.bouncing = 0.7;
+        this.setProps({
+            mass        : Entity.MASS.WEAK,
+            bouncing    : 0.7,
+            width       : 32,
+            height      : 32,
+            gravityFactor: 0.2
+        });
 
-        this.size(32, 32);
-
-        this.setSpritesheet("images/ball.png", this.width, this.height, { x: 0, y: -2 });
+        this.addSprite("images/ball.png", this.props.width, this.props.height);
     }
 
     /**
@@ -60,10 +61,7 @@ export default class Ball extends Sprite {
     /* METHODS */
 
     respawn () {
-        const scene = this.getScene();
-
-        this.position((scene.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
-
+        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
         this.velocity(0, 0);
     }
 }

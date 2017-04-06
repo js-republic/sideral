@@ -1,18 +1,35 @@
-import Sprite from "src/Entity/Sprite";
+import Entity from "src/Entity";
 
 
-export default class Goald extends Sprite {
+export default class Goald extends Entity {
 
     /* LIFECYCLE */
 
+    /**
+     * @constructor
+     */
     constructor () {
         super();
 
-        this.size(45, 140);
+        this.setProps({
+            width           : 45,
+            height          : 140,
+            gravityFactor   : 0,
+            flip            : false,
+            mass            : Entity.MASS.SOLID
+        });
 
-        this.gravityFactor  = 0;
-        this.collision.mass = this.collision.MASS.SOLID;
+        this.bind(this.SIGNAL.VALUE_CHANGE("flip"), () => this.spritesheet && (this.spritesheet.props.flip = this.props.flip));
+    }
 
-        this.setSpritesheet("images/goal.png", this.width, this.height);
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
+    initialize (props) {
+        super.initialize(props);
+
+        this.spritesheet = this.addSprite("images/goal.png", this.props.width, this.props.height);
     }
 }

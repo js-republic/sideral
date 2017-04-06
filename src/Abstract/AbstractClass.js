@@ -11,6 +11,12 @@ export default class AbstractClass {
     constructor () {
 
         /**
+         * Unique id for the current object
+         * @type {string}
+         */
+        this.id = AbstractClass.generateId();
+
+        /**
          * Properties of the class
          * @type {{}}
          */
@@ -35,6 +41,12 @@ export default class AbstractClass {
         this.children   = [];
 
         /**
+         * Parent of the object
+         * @type {*}
+         */
+        this.parent     = null;
+
+        /**
          * PIXI Container
          * @type {*}
          */
@@ -45,8 +57,8 @@ export default class AbstractClass {
          * @type {{}}
          */
         this.SIGNAL     = {
-            VALUE_CHANGE: properties    => new Signal("VALUE_CHANGE", properties),
-            UPDATE      : ()            => new Signal("UPDATE")
+            VALUE_CHANGE    : properties    => new Signal("VALUE_CHANGE", properties),
+            UPDATE          : ()            => new Signal("UPDATE")
         };
     }
 
@@ -69,7 +81,7 @@ export default class AbstractClass {
         this.children.forEach(child => child.kill());
 
         if (this.container) {
-            this.container.destroy();
+            this.container.destroy(true);
         }
     }
 
@@ -118,6 +130,32 @@ export default class AbstractClass {
     }
 
     /**
+     * Swap the current PIXI container to another PIXI container
+     * @param {*} nextContainer: PIXI Container
+     * @returns {void|null} -
+     */
+    swapContainer (nextContainer) {
+        if (!this.parent || (this.parent && !this.parent.container)) {
+            return null;
+        }
+
+        const containerIndex    = this.parent.container.children.findIndex(child => child === this.container),
+            children            = this.container.children.slice(0);
+
+        this.parent.container.removeChild(this.container);
+        this.container.destroy();
+
+        if (containerIndex > -1) {
+            this.parent.container.addChildAt(nextContainer, containerIndex);
+        } else {
+            this.parent.container.addChild(nextContainer);
+        }
+
+        this.container = nextContainer;
+        children.forEach(child => this.container.addChild(child));
+    }
+
+    /**
      * Add an item to the current object
      * @param {Object} item: an AbstractClass inheritance item
      * @param {Object=} settings: props to merge to the item
@@ -128,6 +166,8 @@ export default class AbstractClass {
         if (!(item instanceof AbstractClass)) {
             throw new Error("AbstractClass.add : item must be an instance of Sideral Abstract Class");
         }
+
+        item.parent = this;
 
         this.children.push(item);
         item.initialize(settings);
@@ -184,5 +224,15 @@ export default class AbstractClass {
         if (signal) {
             signal.trigger(value);
         }
+    }
+
+    /* STATICS */
+
+    /**
+     * Generate an unique id
+     * @returns {string} return the unique id
+     */
+    static generateId () {
+        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
 }

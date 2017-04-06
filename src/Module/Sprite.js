@@ -12,13 +12,15 @@ export default class Sprite extends AbstractModule {
         super();
 
         this.setProps({
-            imagePath   : null
+            imagePath   : null,
+            flip        : false
         });
 
         this.image      = null;
         this.container  = new PIXI.Sprite();
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("imagePath"), this.onImagePathChange.bind(this));
+        this.bind(this.SIGNAL.VALUE_CHANGE("imagePath"), this.onImagePathChange.bind(this)).
+            bind(this.SIGNAL.VALUE_CHANGE("flip"), this.onFlipChange.bind(this));
     }
 
 
@@ -37,5 +39,14 @@ export default class Sprite extends AbstractModule {
             texture.frame = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
             this.container.texture = texture;
         });
+    }
+
+    /**
+     * when flip attributes change
+     * @returns {void}
+     */
+    onFlipChange () {
+        this.container.scale.x      = Math.abs(this.container.scale.x) * (this.props.flip ? -1 : 1);
+        this.container.anchor.x     = this.props.flip ? 1 : 0.5;
     }
 }

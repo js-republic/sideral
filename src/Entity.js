@@ -1,6 +1,10 @@
 import AbstractModule from "./Abstract/AbstractModule";
+
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
+
+import Collision from "./Command/Collision";
+
 import Game from "./Game";
 
 
@@ -15,6 +19,8 @@ export default class Entity extends AbstractModule {
             gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
+            bouncing        : 0,
+            mass            : Entity.MASS.NONE,
             debug           : false
         });
 
@@ -22,6 +28,8 @@ export default class Entity extends AbstractModule {
         this.standing   = false;
         this.moving     = false;
         this.scene      = null;
+        this.collide    = {x: false, y: false};
+        this.collision  = new Collision(this);
 
         this._debug     = null;
 
@@ -49,6 +57,22 @@ export default class Entity extends AbstractModule {
         return this.add(new Sprite(), settings, index);
     }
 
+    /**
+     * Set a new velocity for the current entity
+     * @param {number=} vx: velocity in x axis
+     * @param {number=} vy: velocity in y axis
+     * @returns {void}
+     */
+    velocity (vx, vy) {
+        if (typeof vx !== "undefined") {
+            this.props.vx = vx;
+        }
+
+        if (typeof vy !== "undefined") {
+            this.props.vy = vy;
+        }
+    }
+
 
     /* EVENTS */
 
@@ -74,9 +98,24 @@ export default class Entity extends AbstractModule {
             this.props.vy += gravity * this.props.gravityFactor * Game.tick;
         }
 
-        this.props.x += this.props.vx * Game.tick;
-        this.props.y += this.props.vy * Game.tick;
+        this.moving = this.props.vx || this.props.vy;
+
+        if (this.collision) {
+            this.collision.resolveAll();
+
+        } else {
+            this.props.x += this.props.vx * Game.tick;
+            this.props.y += this.props.vy * Game.tick;
+
+        }
     }
+
+    /**
+     * Event triggered when the current entity enter in collision with another entity
+     * @param {*} entity: target entity (instance of Sideral Entity class)
+     * @returns {void}
+     */
+    onCollisionWith (entity) { }
 
 
     /* PRIVATE */
@@ -103,3 +142,9 @@ export default class Entity extends AbstractModule {
         }
     }
 }
+
+Entity.MASS = {
+    NONE    : 0,
+    WEAK    : 1,
+    SOLID   : 2
+};

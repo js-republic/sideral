@@ -1,6 +1,7 @@
 import AbstractClass from "./Abstract/AbstractClass";
 import Tilemap from "./Module/Tilemap";
 import Game from "./Game";
+import Entity from "./Entity";
 
 
 export default class Scene extends AbstractClass {
@@ -55,5 +56,13 @@ export default class Scene extends AbstractClass {
         this.tilemap.setData(data);
 
         return this.tilemap;
+    }
+
+    /**
+     * Get all children instance of Entity
+     * @returns {Array<*>} array of all entities
+     */
+    getEntities () {
+        return this.children.filter(child => child instanceof Entity);
     }
 }

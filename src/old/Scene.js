@@ -52,8 +52,8 @@ export default class Scene extends Component {
         this.tilemap    = null;
     }
 
-    /* METHODS */
 
+    /* METHODS */
 
     /**
      * When tilemap change

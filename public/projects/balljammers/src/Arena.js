@@ -1,10 +1,9 @@
-import Engine from "src/Engine";
 import Scene from "src/Scene";
 
 import Ball from "./Ball";
 import Goal from "./Goal";
 
-import PlayerCat from "./Player/Cat";
+// import PlayerCat from "./Player/Cat";
 
 import tilemapGrass from "./../tilemaps/grass.json";
 
@@ -16,36 +15,25 @@ export default class Arena extends Scene {
     /**
      * @constructor
      */
-    initialize () {
-        super.initialize();
+    constructor () {
+        super();
 
-        this.gravity    = 2000;
-
-        this.spawnX     = 100;
-        this.player     = new PlayerCat();
-        window.player   = this.player;
-
-        this.setTilemap(tilemapGrass, () => {
-            this.compose(new Goal(), { debug: true, x: 0, y: 310 }).
-                compose(new Goal(), { debug: true, x: this.width - 45, y: 310, flip: true }).
-                compose(new Ball(), { debug: true }).
-                compose(this.player, { debug: true, name: "player", x: this.spawnX, y: this.height / 2, onLeft: true });
-
-            /*
-            this.compose(this.player, { debug: true, name: "player", x: this.spawnX, y: this.height / 2, onLeft: true, ball: this.ball }).
-                compose(this.enemy, { name: "enemy", x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
-                compose(this.ball, { x: 200, y: 100, debug: true }, ball => window.ball = ball).
-                compose(new ZoneGoal(), { x: 0, y: 32 }).
-                compose(new ZoneGoal(), { x: this.width - 32, y: 32 });
-            */
-
+        this.setProps({
+            gravity : 2000,
+            spawnX  : 100
         });
     }
 
-    /**
-     * @update
-     * @override
-     */
+    initialize (props) {
+        super.initialize(props);
+
+        this.setTilemap(tilemapGrass);
+        this.addEntity(new Ball(), 0, 0, { debug: true });
+        this.addEntity(new Goal(), this.props.width - 45, 310, { flip: true });
+        this.addEntity(new Goal(), 0, 310);
+    }
+
+    /*
     update () {
         super.update();
 
@@ -73,4 +61,5 @@ export default class Arena extends Scene {
             player.attack();
         }
     }
+    */
 }
