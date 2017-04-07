@@ -21,7 +21,7 @@ export default class Signal {
      * @returns {void}
      */
     callActions (value) {
-        this.actions.forEach(action => action(value));
+        this.actions.forEach(action => action.method(value));
     }
 
     /**

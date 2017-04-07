@@ -3,7 +3,7 @@ import Scene from "src/Scene";
 import Ball from "./Ball";
 import Goal from "./Goal";
 
-// import PlayerCat from "./Player/Cat";
+import PlayerCat from "./Player/Cat";
 
 import tilemapGrass from "./../tilemaps/grass.json";
 
@@ -24,13 +24,24 @@ export default class Arena extends Scene {
         });
     }
 
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
 
         this.setTilemap(tilemapGrass);
         this.addEntity(new Ball(), 0, 0, { debug: true });
-        this.addEntity(new Goal(), this.props.width - 45, 310, { flip: true });
-        this.addEntity(new Goal(), 0, 310);
+        this.addEntity(new Goal(), this.props.width - 45, 320, { flip: true });
+        this.addEntity(new Goal(), 0, 320);
+
+        window.player = this.player = this.addEntity(new PlayerCat(), this.props.spawnX, 320);
+        this.enemy = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX, 320);
+
+        this.player.setPlayerLeft();
+        this.enemy.setPlayerRight();
     }
 
     /*

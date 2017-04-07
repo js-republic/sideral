@@ -13,13 +13,13 @@ export default class Ball extends Entity {
 
         this.setProps({
             mass        : Entity.MASS.WEAK,
-            bouncing    : 0.7,
+            bouncing    : 0.55,
             width       : 32,
             height      : 32,
-            gravityFactor: 0.2
+            gravityFactor: 1
         });
 
-        this.addSprite("images/ball.png", this.props.width, this.props.height);
+        this.addSprite("images/ball.png", this.props.width, this.props.height, { y: 5 });
     }
 
     /**

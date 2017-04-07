@@ -1,4 +1,5 @@
 import Signal from "./../Command/Signal";
+import Timer from "./../Command/Timer";
 
 
 export default class AbstractClass {
@@ -39,6 +40,12 @@ export default class AbstractClass {
          * @type {Array<Object>}
          */
         this.children   = [];
+
+        /**
+         * List of current timers
+         * @type {Array<Timer>}
+         */
+        this.timers     = [];
 
         /**
          * Parent of the object
@@ -93,6 +100,9 @@ export default class AbstractClass {
     update () {
         this.children.forEach(child => child.update());
         this.trigger(this.SIGNAL.UPDATE());
+
+        this.timers.forEach(timer => timer.update());
+        this.timers = this.timers.filter(timer => !timer.finished);
     }
 
     /**
@@ -184,12 +194,31 @@ export default class AbstractClass {
     }
 
     /**
+     * Add a new timer
+     * @param {number} duration: duration of the timer
+     * @param {function} onComplete: callback function when finished
+     * @param {*=} options: options to implement to the timer
+     * @returns {Timer} the timer created
+     */
+    addTimer (duration, onComplete, options = {}) {
+        const timer = new Timer(duration, onComplete, options);
+
+        this.timers.push(timer);
+
+        return timer;
+    }
+
+    /**
      * Bind a signal to an action
      * @param {Signal} signal: Signal to bind
-     * @param {function} action: action to bind into the Signal
+     * @param {*} action: action to bind into the Signal
      * @returns {*} Current object
      */
     bind (signal, action) {
+        if (!action.id && !action.method) {
+            throw new Error(`Error bind for Signal with name ${signal.name} : action must be created with 'createAction' method.`);
+        }
+
         let currentSignal = this.findSignal(signal.name, signal.properties);
 
         if (!currentSignal) {
@@ -200,6 +229,38 @@ export default class AbstractClass {
         currentSignal.actions.push(action);
 
         return this;
+    }
+
+    /**
+     * Unbind an action from a signal
+     * @param {Signal} signal: Signal target
+     * @param {*} action: action to unbind into the Signal
+     * @returns {*} Current object
+     */
+    unbind (signal, action) {
+        if (!action.id && !action.method) {
+            throw new Error(`Error bind for Signal with name ${signal.name} : action must be created with 'createAction' method.`);
+        }
+
+        const currentSignal = this.findSignal(signal.name, signal.properties);
+
+        if (currentSignal) {
+            currentSignal.actions = currentSignal.actions.filter(x => !(x.method.toString() === action.method.toString() && x.id === action.id));
+        }
+
+        return this;
+    }
+
+    /**
+     * Create an action for a bind
+     * @param {*} method: method to bind
+     * @returns {{id: string, action: *}} object action
+     */
+    createAction (method) {
+        return {
+            id      : this.id,
+            method  : method.hasOwnProperty("prototype") ? method.bind(this) : method
+        };
     }
 
     /**

@@ -18,8 +18,8 @@ export default class AbstractModule extends AbstractClass {
             height  : 10
         });
 
-        this.bind(this.SIGNAL.VALUE_CHANGE(["x", "y"]), this.onPositionChange.bind(this)).
-            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this.onSizeChange.bind(this));
+        this.bind(this.SIGNAL.VALUE_CHANGE(["x", "y"]), this.createAction(this.onPositionChange)).
+            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this.createAction(this.onSizeChange));
     }
 
 

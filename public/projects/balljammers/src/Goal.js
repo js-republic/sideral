@@ -13,13 +13,13 @@ export default class Goald extends Entity {
 
         this.setProps({
             width           : 45,
-            height          : 140,
+            height          : 130,
             gravityFactor   : 0,
             flip            : false,
             mass            : Entity.MASS.SOLID
         });
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("flip"), () => this.spritesheet && (this.spritesheet.props.flip = this.props.flip));
+        this.bind(this.SIGNAL.VALUE_CHANGE("flip"), this.createAction(() => this.spritesheet && (this.spritesheet.props.flip = this.props.flip)));
     }
 
     /**

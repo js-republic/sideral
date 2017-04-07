@@ -19,12 +19,12 @@ export default class Entity extends AbstractModule {
             gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
+            max             : { vx: 2000, vy: 2000 },
             bouncing        : 0,
-            mass            : Entity.MASS.NONE,
+            mass            : Entity.MASS.WEAK,
             debug           : false
         });
 
-        this.falling    = false;
         this.standing   = false;
         this.moving     = false;
         this.scene      = null;
@@ -33,8 +33,8 @@ export default class Entity extends AbstractModule {
 
         this._debug     = null;
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this._onDebugChange.bind(this)).
-            bind(this.SIGNAL.UPDATE(), this.updateVelocity.bind(this));
+        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange)).
+            bind(this.SIGNAL.UPDATE(), this.createAction(this.updateVelocity));
     }
 
 
@@ -98,7 +98,9 @@ export default class Entity extends AbstractModule {
             this.props.vy += gravity * this.props.gravityFactor * Game.tick;
         }
 
-        this.moving = this.props.vx || this.props.vy;
+        this.props.vy   = Math.min(this.props.max.vy, Math.max(-this.props.max.vy, this.props.vy));
+        this.props.vx   = Math.min(this.props.max.vx, Math.max(-this.props.max.vx, this.props.vx));
+        this.moving     = this.props.vx || this.props.vy;
 
         if (this.collision) {
             this.collision.resolveAll();
@@ -107,6 +109,10 @@ export default class Entity extends AbstractModule {
             this.props.x += this.props.vx * Game.tick;
             this.props.y += this.props.vy * Game.tick;
 
+        }
+
+        if (this.standing) {
+            this.props.vy = 0;
         }
     }
 

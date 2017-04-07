@@ -5,12 +5,24 @@ export default class PlayerCat extends Player {
 
     /* LIFECYCLE */
 
+    /**
+     * @constructor
+     */
+    constructor () {
+        super();
+
+        this.size(25, 45);
+    }
+
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
 
-        this.name   = "cat";
-
-        this.size(25, 45);
-        this.setSpritesheet("images/characters/cat.png", 65, 65, { x: 5, y: 7 });
+        this.props.debug = true;
+        this.spritesheet = this.addSprite("images/characters/cat.png", 65, 65, { x: -15, y: -7 });
     }
 }

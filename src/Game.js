@@ -32,9 +32,9 @@ class Game extends AbstractClass {
 
         this.SIGNAL.KEY_PRESS = property => new Signal("KEY_PRESS", property);
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("dom"), this._attachGame.bind(this)).
-            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this._resizeGame.bind(this)).
-            bind(this.SIGNAL.VALUE_CHANGE("background"), this._backgroundChange.bind(this));
+        this.bind(this.SIGNAL.VALUE_CHANGE("dom"), this.createAction(this._attachGame)).
+            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this.createAction(this._resizeGame)).
+            bind(this.SIGNAL.VALUE_CHANGE("background"), this.createAction(this._backgroundChange));
 
         window.addEventListener("keydown", this._onKeydown.bind(this));
         window.addEventListener("keyup", this._onKeyup.bind(this));

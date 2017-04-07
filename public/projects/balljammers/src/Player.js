@@ -1,31 +1,134 @@
-import Sprite from "src/Entity/Sprite";
+import Entity from "src/Entity";
+import Game from "src/Game";
 
 
-export default class Player extends Sprite {
+export default class Player extends Entity {
 
     /* LIFECYCLE */
 
+    /**
+     * @constructor
+     */
     constructor () {
         super();
 
-        this.name           = "player";
-        this.speed          = 250;
-        this.power          = 100;
-        this.hasAttacked    = 0;
-        this.attackCooldown = 0;
-        this.onLeft         = false;
-        this.doubleDash     = 0;
-        this.currentMove    = {x: 0, y: 0};
-        this.lastMove       = {x: 0, y: 0};
+        this.setProps({
+            speed       : 250,
+            power       : 100,
+            side        : Player.SIDE.NONE,
+            doubleDash  : false,
+            doubleJump  : false,
+            mass        : Entity.MASS.SOLID,
+            vxFactor    : 0,
+            holdLeft    : false,
+            holdRight   : false
+        });
     }
 
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
-
-        this.x -= this.width / 2;
-        this.y -= this.height / 2;
     }
 
+    /**
+     * @override
+     */
+    updateVelocity () {
+        this.props.vx = this.props.vxFactor * this.props.speed;
+        super.updateVelocity()
+    }
+
+
+    /* METHODS */
+
+    /**
+     * Set the current player like a playable character with left keyboard keys
+     * @returns {void}
+     */
+    setPlayerLeft () {
+        Game.unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(this.onPressLeft)).
+            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(this.onPressRight)).
+            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_UP), this.createAction(this.onPressJump));
+
+        Game.bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Q), this.createAction(this.onPressLeft)).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.D), this.createAction(this.onPressRight)).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Z), this.createAction(this.onPressJump));
+    }
+
+    /**
+     * Set the current player like a playable character with right keyboard keys
+     * @returns {void}
+     */
+    setPlayerRight () {
+        Game.unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.Q), this.createAction(this.onPressLeft)).
+            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.D), this.createAction(this.onPressRight)).
+            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.Z), this.createAction(this.onPressJump));
+
+        Game.bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(this.onPressLeft)).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_RIGHT), this.createAction(this.onPressRight)).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_UP), this.createAction(this.onPressJump));
+    }
+
+    /**
+     * @event key left
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    onPressLeft (pressed) {
+        this.props.holdLeft = pressed;
+
+        if (pressed && !this.props.vxFactor) {
+            this.props.vxFactor = -1;
+
+        } else if ((pressed && this.props.vxFactor === 1) || (!pressed && this.props.vxFactor === -1)) {
+            this.props.vxFactor = 0;
+
+        } else if (!pressed && this.props.holdRight) {
+            this.props.vxFactor = 1;
+
+        }
+    }
+
+    /**
+     * @event key right
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    onPressRight (pressed) {
+        this.props.holdRight = pressed;
+
+        if (pressed && !this.props.vxFactor) {
+            this.props.vxFactor = 1;
+
+        } else if ((pressed && this.props.vxFactor === -1) || (!pressed && this.props.vxFactor === 1)) {
+            this.props.vxFactor = 0;
+
+        } else if (!pressed && this.props.holdLeft) {
+            this.props.vxFactor = -1;
+
+        }
+    }
+
+    /**
+     * @event key jump
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    onPressJump (pressed) {
+        if (pressed) {
+            console.log(this.standing);
+        }
+
+        if (pressed && this.standing) {
+            this.props.vy = -1000;
+        }
+    }
+
+    /*
     update () {
         super.update();
 
@@ -60,14 +163,6 @@ export default class Player extends Sprite {
         }
     }
 
-    /* METHODS */
-
-    /**
-     * move function
-     * @param {number} factorX
-     * @param {number} factorY
-     * @returns {void}
-     */
     move (factorX = 0, factorY = 0) {
         if (this.currentMove.x || this.currentMove.y) {
             this.lastMove.x = this.currentMove.x;
@@ -110,4 +205,11 @@ export default class Player extends Sprite {
             ball.vy = 0;
         }
     }
+    */
 }
+
+Player.SIDE = {
+    LEFT    : -1,
+    RIGHT   : 1,
+    NONE    : 0
+};

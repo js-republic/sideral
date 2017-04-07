@@ -19,8 +19,8 @@ export default class Sprite extends AbstractModule {
         this.image      = null;
         this.container  = new PIXI.Sprite();
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("imagePath"), this.onImagePathChange.bind(this)).
-            bind(this.SIGNAL.VALUE_CHANGE("flip"), this.onFlipChange.bind(this));
+        this.bind(this.SIGNAL.VALUE_CHANGE("imagePath"), this.createAction(this.onImagePathChange)).
+            bind(this.SIGNAL.VALUE_CHANGE("flip"), this.createAction(this.onFlipChange));
     }
 
 

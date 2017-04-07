@@ -47,6 +47,7 @@ export default class Collision {
             }
         }
 
+
         this._resolved = true;
     }
 
@@ -62,7 +63,7 @@ export default class Collision {
      * @returns {Array.<Entity>} array of entities in collision
      */
     getEntitiesInCollision (xmin, xmax, ymin, ymax, { scene, id, entities }) {
-        entities = (entities || scene.children).
+        entities = (entities || scene.getEntities()).
             filter(ent => this.filterEntityByPositionY(ent, ymin - 1, ymax + 1)).
             filter(ent => this.filterEntityByPositionX(ent, xmin - 1, xmax + 1));
 
@@ -95,7 +96,7 @@ export default class Collision {
 
         chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
 
-        scene.children.
+        scene.getEntities().
             filter(ent => this.filterEntityByPositionY(ent, entity.props.y, entity.props.y + entity.props.height)).
             filter(ent => this.filterEntityByPositionX(ent, logic.value, logic.value + entity.props.width)).
             filter(ent => !chains.find(chain => chain.entity.id === ent.id)).
@@ -118,15 +119,15 @@ export default class Collision {
             return chains;
         }
 
-        const scene     = this.getScene(),
-            onTop       = nextY > entity.y,
+        const scene     = entity.scene,
+            onTop       = nextY < entity.y,
             logic       = this.getLogicYAt(scene, entity.props.y, nextY, entity.props.x, entity.props.x + entity.props.width, entity.props.height),
             lastChain   = chains[chains.length - 1],
             movable    = lastChain ? this.isMovable(entity, chains) && !logic.collide : !logic.collide;
 
         chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onTop: onTop });
 
-        scene.children.
+        scene.getEntities().
             filter(ent => this.filterEntityByPositionX(ent, entity.props.x, entity.props.x + entity.props.width)).
             filter(ent => this.filterEntityByPositionY(ent, logic.value, logic.value + entity.props.height)).
             filter(ent => !chains.find(chain => chain.entity.id === ent.id) && ent.id !== entity.id).
@@ -159,8 +160,12 @@ export default class Collision {
                     }
                 }
 
-                console.log(chain.entity, chain.entity.collide);
                 chain.entity.collide[axis] = chain.collide;
+
+                if (axis === "y") {
+                    chain.entity.standing = chain.collide;
+                    chain.entity.props.vy = chain.collide ? 0 : chain.entity.props.vy;
+                }
 
                 this.resolveBouncing(chain, lastChain && lastChain.entity);
 
@@ -173,7 +178,8 @@ export default class Collision {
                 chain.entity.collide[axis]  = chain.collide;
 
                 if (axis === "y") {
-                    chain.entity.standing   = chain.collide;
+                    chain.entity.standing = chain.collide;
+                    chain.entity.props.vy = chain.collide ? 0 : chain.entity.props.vy;
                 }
 
                 lastChain = index && array[index - 1];
@@ -231,7 +237,7 @@ export default class Collision {
      * Resolve bouncing in x axis
      * @param {*} entity: entity targeted (instance of Sideral Entity class)
      * @param {*} other: other entity if the bouncing is established with a collision with it
-     * @param {{x: boolean, y: boolean}} collide: collide object
+     * @param {boolean} collide: collide object
      * @param {boolean} onLeft: side of collision
      * @returns {void|null} -
      */
@@ -254,20 +260,20 @@ export default class Collision {
      * Resolve bouncing in y axis
      * @param {*} entity: entity targeted (instance of Sideral Entity class)
      * @param {*} other: other entity if the bouncing is established with a collision with it
-     * @param {{x: boolean, y: boolean}} collide: collide object
+     * @param {boolean} collide: collide object
      * @param {boolean} onTop: side of collision
      * @returns {void|null} -
      */
     resolveBouncingY (entity, other, collide, onTop) {
-        if (!entity.props.bouncing || entity.props.mass === Entity.MASS.SOLID) {
+        if (!entity.props.bouncing || entity.props.mass === Entity.MASS.SOLID || (!other && !collide)) {
             return null;
         }
 
-        const bouncing      = entity.props.bouncing;
+        const bouncing = Math.abs(entity.props.bouncing);
 
         entity.props.vy = other
             ? Math.abs(other.props.vy || entity.props.vy) * (other.props.y < entity.props.y ? 1 : -1) * bouncing
-            : (collide ? Math.abs(entity.props.vy) * (onTop ? -bouncing : bouncing) : entity.props.vy);
+            : (collide ? entity.props.vy * bouncing * -1 : entity.props.vy);
     }
 
     /**
