@@ -15,6 +15,7 @@ export default class Player extends Entity {
         this.setProps({
             speed       : 250,
             power       : 100,
+            jump        : 450,
             side        : Player.SIDE.NONE,
             doubleDash  : false,
             doubleJump  : false,
@@ -46,39 +47,11 @@ export default class Player extends Entity {
     /* METHODS */
 
     /**
-     * Set the current player like a playable character with left keyboard keys
-     * @returns {void}
-     */
-    setPlayerLeft () {
-        Game.unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(this.onPressLeft)).
-            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(this.onPressRight)).
-            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_UP), this.createAction(this.onPressJump));
-
-        Game.bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Q), this.createAction(this.onPressLeft)).
-            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.D), this.createAction(this.onPressRight)).
-            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Z), this.createAction(this.onPressJump));
-    }
-
-    /**
-     * Set the current player like a playable character with right keyboard keys
-     * @returns {void}
-     */
-    setPlayerRight () {
-        Game.unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.Q), this.createAction(this.onPressLeft)).
-            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.D), this.createAction(this.onPressRight)).
-            unbind(Game.SIGNAL.KEY_PRESS(Game.KEY.Z), this.createAction(this.onPressJump));
-
-        Game.bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(this.onPressLeft)).
-            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_RIGHT), this.createAction(this.onPressRight)).
-            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_UP), this.createAction(this.onPressJump));
-    }
-
-    /**
      * @event key left
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    onPressLeft (pressed) {
+    moveLeft (pressed) {
         this.props.holdLeft = pressed;
 
         if (pressed && !this.props.vxFactor) {
@@ -98,7 +71,7 @@ export default class Player extends Entity {
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    onPressRight (pressed) {
+    moveRight (pressed) {
         this.props.holdRight = pressed;
 
         if (pressed && !this.props.vxFactor) {
@@ -118,14 +91,22 @@ export default class Player extends Entity {
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    onPressJump (pressed) {
+    jump (pressed) {
         if (pressed) {
-            console.log(this.standing);
+            // console.log(this.standing);
         }
 
         if (pressed && this.standing) {
-            this.props.vy = -1000;
+            this.props.vy = -Math.abs(this.props.jump);
         }
+    }
+
+    /**
+     * stop the current movement of the player
+     * @returns {void}
+     */
+    idle () {
+        this.props.vx = 0;
     }
 
     /*

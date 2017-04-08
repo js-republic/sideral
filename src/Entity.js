@@ -92,15 +92,8 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     updateVelocity () {
-        const gravity = this.scene.props.gravity;
-
-        if (gravity && !this.standing) {
-            this.props.vy += gravity * this.props.gravityFactor * Game.tick;
-        }
-
         this.props.vy   = Math.min(this.props.max.vy, Math.max(-this.props.max.vy, this.props.vy));
         this.props.vx   = Math.min(this.props.max.vx, Math.max(-this.props.max.vx, this.props.vx));
-        this.moving     = this.props.vx || this.props.vy;
 
         if (this.collision) {
             this.collision.resolveAll();
@@ -108,11 +101,6 @@ export default class Entity extends AbstractModule {
         } else {
             this.props.x += this.props.vx * Game.tick;
             this.props.y += this.props.vy * Game.tick;
-
-        }
-
-        if (this.standing) {
-            this.props.vy = 0;
         }
     }
 

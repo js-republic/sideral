@@ -287,6 +287,19 @@ export default class AbstractClass {
         }
     }
 
+    /**
+     * Check if a property has changed
+     * @param {string} propName: name of the property to check
+     * @returns {boolean} property has changed ?
+     */
+    hasChanged (propName) {
+        if (!this.props[propName]) {
+            return false;
+        }
+
+        return this.props[propName] !== this.last[propName];
+    }
+
     /* STATICS */
 
     /**

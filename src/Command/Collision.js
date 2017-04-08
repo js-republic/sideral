@@ -2,278 +2,39 @@ import Game from "./../Game";
 import Entity from "./../Entity";
 
 
-export default class Collision {
+class Chain {
 
     /**
      * @constructor
-     * @param {*} parent: parent (instance of Sideral Entity class)
+     * @param {Entity} entity: owner of the chain
+     * @param {number} nextPos: next position needed
+     * @param {string} axis: x axis or y axis
      */
-    constructor (parent) {
-        this.parent = parent;
+    constructor (entity, nextPos, axis) {
+        this.entity     = entity;
+        this.nextPos    = nextPos;
+        this.axis       = axis;
+        this.moveable   = true;
+        this.logic      = this.getLogic();
+        this.isGhost    = entity.props.mass === Entity.MASS.NONE;
+
+        this.nextPos    = this.logic.value;
     }
 
     /**
-     * @nextCycle
-     * @override
+     * Get logic with tilemap in x or y axis
+     * @returns {{collide: boolean, value: number}}
      */
-    nextCycle () {
-        super.nextCycle();
-
-        this._entities  = null;
-        this._scene     = null;
-        this._resolved  = false;
-    }
-
-    /**
-     * Resolve all collision (wall and between entities) when entity is moving
-     * @returns {void}
-     */
-    resolveAll () {
-        const entity    = this.parent,
-            scene       = entity.scene,
-            nextX       = entity.props.x + (entity.props.vx * Game.tick),
-            nextY       = entity.props.y + (entity.props.vy * Game.tick);
-
-        if (!entity.moving) {
-            this.getEntitiesInCollision(entity.props.x, entity.props.x + entity.props.width, entity.props.y, entity.props.y + entity.props.height, { scene: scene, id: entity.id }).forEach(ent => entity.onCollisionWith(ent));
-
-        } else {
-            if (entity.x !== nextX) {
-                this.resolveChain("x", this.shiftInX(entity, nextX));
-            }
-
-            if (entity.y !== nextY) {
-                this.resolveChain("y", this.shiftInY(entity, nextY));
-            }
+    getLogic () {
+        if (!this.entity.scene.tilemap) {
+            return { collide: false, value: this.nextPos };
         }
 
-
-        this._resolved = true;
-    }
-
-    /**
-     * Get all entities in contact
-     * @param {number} xmin: position x min
-     * @param {number} xmax: position x max
-     * @param {number} ymin: position y min
-     * @param {number} ymax: position y max
-     * @param {Scene=} scene: scene to get all entities
-     * @param {string=} id: id to filter
-     * @param {Entity=} entities: entities to check
-     * @returns {Array.<Entity>} array of entities in collision
-     */
-    getEntitiesInCollision (xmin, xmax, ymin, ymax, { scene, id, entities }) {
-        entities = (entities || scene.getEntities()).
-            filter(ent => this.filterEntityByPositionY(ent, ymin - 1, ymax + 1)).
-            filter(ent => this.filterEntityByPositionX(ent, xmin - 1, xmax + 1));
-
-        return id ? entities.filter(ent => ent.id !== id) : entities;
-    }
-
-    /**
-     * Shift an entity on x axis
-     * @param {Entity} entity: current entity
-     * @param {number} nextX: next position
-     * @param {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean}>} chains: current chains of collisions
-     * @returns {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean}>} chains of collisions
-     */
-    shiftInX (entity, nextX, chains = []) {
-        if (chains.find(chain => chain.entity.id === entity.id)) {
-            return chains;
+        if (this.axis === "x") {
+            return this.getLogicXAt(this.entity.scene, this.entity.props.x, this.nextPos, this.entity.props.y, this.entity.props.y + this.entity.props.height, this.entity.props.width);
         }
 
-        if (this.isGhost(entity)) {
-            chains.push({ entity: entity, movable: true, nextPos: entity.props.x, collide: entity.collide, onLeft: true, ghost: true });
-
-            return chains;
-        }
-
-        const scene     = entity.scene,
-            onLeft      = nextX < entity.x,
-            logic       = this.getLogicXAt(scene, entity.props.x, nextX, entity.props.y, entity.props.y + entity.props.height, entity.props.width),
-            lastChain   = chains[chains.length - 1],
-            movable     = lastChain ? this.isMovable(entity, chains) && !logic.collide : !logic.collide;
-
-        chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
-
-        scene.getEntities().
-            filter(ent => this.filterEntityByPositionY(ent, entity.props.y, entity.props.y + entity.props.height)).
-            filter(ent => this.filterEntityByPositionX(ent, logic.value, logic.value + entity.props.width)).
-            filter(ent => !chains.find(chain => chain.entity.id === ent.id)).
-            forEach(ent => this.shiftInX(ent, onLeft ? logic.value - ent.width : logic.value + entity.props.width, chains));
-
-        return chains;
-    }
-
-    /**
-     * Shift an entity on y axis
-     * @param {Entity} entity: current entity
-     * @param {number} nextY: next position
-     * @param {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onTop: boolean}>} chains: current chains of collisions
-     * @returns {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onTop: boolean, ghost: boolean}>} chains of collisions
-     */
-    shiftInY (entity, nextY, chains = []) {
-        if (this.isGhost(entity)) {
-            chains.push({ entity: entity, movable: true, nextPos: entity.props.y, collide: entity.collide, onTop: true, ghost: true });
-
-            return chains;
-        }
-
-        const scene     = entity.scene,
-            onTop       = nextY < entity.y,
-            logic       = this.getLogicYAt(scene, entity.props.y, nextY, entity.props.x, entity.props.x + entity.props.width, entity.props.height),
-            lastChain   = chains[chains.length - 1],
-            movable    = lastChain ? this.isMovable(entity, chains) && !logic.collide : !logic.collide;
-
-        chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onTop: onTop });
-
-        scene.getEntities().
-            filter(ent => this.filterEntityByPositionX(ent, entity.props.x, entity.props.x + entity.props.width)).
-            filter(ent => this.filterEntityByPositionY(ent, logic.value, logic.value + entity.props.height)).
-            filter(ent => !chains.find(chain => chain.entity.id === ent.id) && ent.id !== entity.id).
-            forEach(ent => this.shiftInY(ent, onTop ? logic.value + entity.props.height : logic.value - ent.height, chains));
-
-        return chains;
-    }
-
-    /**
-     * Resolve all chains of collisions
-     * @param {string} axis: axis x or y
-     * @param {Array<{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean, onTop: boolean, ghost: boolean}>} chains: current chains of collisions
-     * @returns {void}
-     */
-    resolveChain (axis, chains = []) {
-        const indexEntityBlocked    = chains.findIndex(chain => !chain.movable);
-        let lastChain               = null;
-
-        if (indexEntityBlocked >= 0) {
-            chains.slice(0, indexEntityBlocked + 1).reverse().forEach((chain, index, array) => {
-                const nextChain     = array.slice(index + 1).find(x => !x.ghost);
-
-                if (nextChain) {
-                    if (axis === "x" && this.filterEntityByPositionY(nextChain.entity, chain.entity.props.y, chain.entity.props.y + chain.entity.props.height)) {
-                        nextChain.entity.x  = chain.onLeft ? chain.entity.props.x + chain.entity.props.width : chain.entity.props.x - nextChain.entity.props.width;
-
-                    } else if (axis === "y" && this.filterEntityByPositionX(nextChain.entity, chain.entity.props.x, chain.entity.props.x + chain.entity.props.width)) {
-                        nextChain.entity.y  = chain.onTop ? chain.entity.props.y - nextChain.entity.props.height : chain.entity.props.y + chain.entity.props.height;
-
-                    }
-                }
-
-                chain.entity.collide[axis] = chain.collide;
-
-                if (axis === "y") {
-                    chain.entity.standing = chain.collide;
-                    chain.entity.props.vy = chain.collide ? 0 : chain.entity.props.vy;
-                }
-
-                this.resolveBouncing(chain, lastChain && lastChain.entity);
-
-                lastChain = chain;
-            });
-
-        } else {
-            chains.filter(chain => !chain.ghost).forEach((chain, index, array) => {
-                chain.entity.props[axis]    = chain.nextPos;
-                chain.entity.collide[axis]  = chain.collide;
-
-                if (axis === "y") {
-                    chain.entity.standing = chain.collide;
-                    chain.entity.props.vy = chain.collide ? 0 : chain.entity.props.vy;
-                }
-
-                lastChain = index && array[index - 1];
-
-                this.resolveBouncing(chain, lastChain && lastChain.entity);
-            });
-        }
-
-        // Call event onCollisionWith
-        chains.forEach((chain, index, array) => {
-            if (chain.ghost) {
-                this.getEntitiesInCollision(chain.entity.props.x, chain.entity.props.x + chain.entity.props.width, chain.entity.props.y, chain.entity.props.y + chain.entity.props.height, { id: chain.entity.id, entities: chains.map(x => x.entity) }).
-                    forEach(other => {
-                        chain.entity.onCollisionWith(other);
-                        other.onCollisionWith(chain.entity)
-                    });
-
-            } else {
-                const nextChain = array[index + 1];
-
-                lastChain       = array[index - 1];
-
-                if (lastChain && !lastChain.ghost) {
-                    chain.entity.onCollisionWith(lastChain.entity);
-                }
-
-                if (nextChain && !nextChain.ghost) {
-                    chain.entity.onCollisionWith(nextChain.entity);
-                }
-            }
-
-            if (chain.entity.collision) {
-                chain.entity.collision._resolved = true;
-            }
-        });
-    }
-
-    /**
-     * Resolve bouncing with chain
-     * @param {{entity: Entity, movable: boolean, nextPos: number, collide: boolean, onLeft: boolean, onTop: boolean, ghost: boolean}} chain: current chains of collisions
-     * @param {*} other: other if the bouncing is established with a collision with another entity
-     * @returns {void}
-     */
-    resolveBouncing (chain, other) {
-        if (typeof chain.onTop === "undefined") {
-            this.resolveBouncingX(chain.entity, other, chain.collide, chain.onLeft);
-
-        } else {
-            this.resolveBouncingY(chain.entity, other, chain.collide, chain.onTop);
-
-        }
-    }
-
-    /**
-     * Resolve bouncing in x axis
-     * @param {*} entity: entity targeted (instance of Sideral Entity class)
-     * @param {*} other: other entity if the bouncing is established with a collision with it
-     * @param {boolean} collide: collide object
-     * @param {boolean} onLeft: side of collision
-     * @returns {void|null} -
-     */
-    resolveBouncingX (entity, other, collide, onLeft) {
-        if (!entity.props.bouncing || entity.props.mass === Entity.MASS.SOLID) {
-            return null;
-        }
-
-        entity.props.vx = other
-            ? Math.abs(other.props.vx || entity.props.vx) * (other.props.x < entity.props.x ? 1 : -1) * entity.props.bouncing
-            : (collide ? Math.abs(entity.props.vx) * (onLeft ? 1 : -1) * entity.props.bouncing : entity.props.vx);
-
-        if (other && !entity.props.vy && other.props.vy) {
-            entity.props.vy = other.props.vy * entity.props.bouncing;
-        }
-    }
-
-
-    /**
-     * Resolve bouncing in y axis
-     * @param {*} entity: entity targeted (instance of Sideral Entity class)
-     * @param {*} other: other entity if the bouncing is established with a collision with it
-     * @param {boolean} collide: collide object
-     * @param {boolean} onTop: side of collision
-     * @returns {void|null} -
-     */
-    resolveBouncingY (entity, other, collide, onTop) {
-        if (!entity.props.bouncing || entity.props.mass === Entity.MASS.SOLID || (!other && !collide)) {
-            return null;
-        }
-
-        const bouncing = Math.abs(entity.props.bouncing);
-
-        entity.props.vy = other
-            ? Math.abs(other.props.vy || entity.props.vy) * (other.props.y < entity.props.y ? 1 : -1) * bouncing
-            : (collide ? entity.props.vy * bouncing * -1 : entity.props.vy);
+        return this.getLogicYAt(this.entity.scene, this.entity.props.y, this.nextPos, this.entity.props.x, this.entity.props.x + this.entity.props.width, this.entity.props.height);
     }
 
     /**
@@ -369,67 +130,66 @@ export default class Collision {
 
         return result;
     }
+}
+
+
+export default class Collision {
 
     /**
-     * Check if the entity is movable relative to other entity
-     * @param {Entity} entity : the entity
-     * @param {Array} chains : chains of collisions
-     * @returns {boolean} is movable
+     * @constructor
+     * @param {Entity} parent: owner of the collision command
      */
-    isMovable (entity, chains = []) {
-        if (!entity) {
-            return false;
-        }
-
-        const mass = entity.props.mass;
-
-        if (chains.length > 1) {
-            return mass !== Entity.MASS.SOLID;
-        }
-
-        const lastChain     = chains[chains.length - 1],
-            lastEntity      = chains[chains.length - 1].entity,
-            lastEntityMass  = lastEntity.props.mass;
-
-        if (lastEntityMass === Entity.MASS.WEAK && lastEntityMass === mass) {
-            return !(lastEntity.props["v" + lastChain.axis] || entity.props["v" + lastChain.axis]);
-        }
-
-        return mass < lastEntityMass;
+    constructor (parent) {
+        this.parent = parent;
     }
 
     /**
-     * Check if the entity passed in parameter is a ghost (mass === NONE)
-     * @param {Entity} entity: entity to check
-     * @returns {boolean} return true if the entity is a ghost
+     * Resolve all movement and collision
+     * @returns {void}
      */
-    isGhost (entity) {
-        if (!entity) {
-            return true;
+    resolveAll () {
+        let chain   = null;
+
+        const entity= this.parent,
+            nextX   = entity.props.x + (this.parent.props.vx * Game.tick),
+            nextY   = entity.props.y + (this.parent.props.vy * Game.tick),
+            moveInX = entity.hasChanged("x") || (entity.props.x !== nextX),
+            moveInY = entity.hasChanged("y") || (entity.props.y !== nextY) || !entity.collide.y;
+
+        if (moveInX) {
+            chain = new Chain(entity, nextX, "x");
+
+            if (chain.moveable && !chain.logic.collide) {
+                entity.props.x = chain.nextPos;
+            }
         }
 
-        return entity.props.mass === Entity.MASS.NONE;
+        if (moveInX || moveInY) {
+            const gravity = entity.scene.props.gravity * entity.props.gravityFactor * Game.tick;
+
+            chain = new Chain(entity, nextY + gravity, "y");
+
+            if (chain.moveable && !chain.logic.collide) {
+                entity.props.y  = chain.nextPos;
+                entity.props.vy += gravity;
+            }
+
+            entity.standing = chain.logic.collide;
+        }
     }
 
     /**
-     * Filter an entity by range of position in x axis
-     * @param {Entity} entity: entity to check
+     * Get entities from the scene in range
+     * @param {Scene} scene: scene to check
      * @param {number} xmin: position x min
      * @param {number} xmax: position x max
-     * @returns {boolean} if entity is in range of position in x axis
-     */
-    filterEntityByPositionX (entity, xmin, xmax) {
-        return entity.props.x > (xmin - entity.props.width) && entity.props.x < xmax;
-    }
-
-    /**
-     * Filter an entity by range of position in y axis
-     * @param {Entity} entity: entity to check
      * @param {number} ymin: position y min
      * @param {number} ymax: position y max
-     * @returns {boolean} if entity is in range of position in y axis
+     * @returns {Array<Entity>}
      */
-    filterEntityByPositionY (entity, ymin, ymax) {
-        return entity.props.y > (ymin - entity.props.height) && entity.props.y < ymax;
+    getEntitiesInRange (scene, xmin, xmax, ymin, ymax) {
+        return scene.getEntities().
+            filter(entity => entity.props.x >= (xmin - entity.props.width) && entity.props.x <= xmax).
+            filter(entity => entity.props.y >= (ymin - entity.props.height) && entity.props.y <= ymax);
     }
 }
