@@ -73,6 +73,18 @@ export default class Entity extends AbstractModule {
         }
     }
 
+    /**
+     * Get vector to entity to target
+     * @param {Entity} entity: the target
+     * @returns {{x: number, y: number}} the vector
+     */
+    vectorPositionTo (entity) {
+        return {
+            x: entity.props.x <= (this.props.x + (this.props.width / 2)) ? -1 : 1,
+            y: entity.props.y <= (this.props.y + (this.props.height / 2)) ? -1 : 1
+        };
+    }
+
 
     /* EVENTS */
 

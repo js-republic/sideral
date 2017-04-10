@@ -9,21 +9,53 @@ class Chain {
      * @param {Entity} entity: owner of the chain
      * @param {number} nextPos: next position needed
      * @param {string} axis: x axis or y axis
+     * @param {Entity=} initiator: entity that initiated the chain
      */
-    constructor (entity, nextPos, axis) {
+    constructor (entity, nextPos, axis, initiator) {
         this.entity     = entity;
         this.nextPos    = nextPos;
         this.axis       = axis;
-        this.moveable   = true;
+        this.moveable   = initiator ? !(entity.props.mass === Entity.MASS.SOLID) : true;
         this.logic      = this.getLogic();
+        this.impacts    = [];
         this.isGhost    = entity.props.mass === Entity.MASS.NONE;
 
-        this.nextPos    = this.logic.value;
+        this.nextPos    = this.moveable ? this.logic.value : entity.props.x;
+        this.moveable   = this.moveable ? !this.logic.collide : this.moveable;
+
+        if (this.moveable) {
+            this.updateImpacts(initiator);
+        }
+    }
+
+    updateImpacts (initiator) {
+        const entity    = this.entity,
+            xmin        = this.axis === "x" ? Math.min(this.logic.value, entity.props.x) : entity.props.x,
+            xmax        = this.axis === "x" ? Math.max(this.logic.value, entity.props.x) + entity.props.width : entity.props.x + entity.props.width,
+            ymin        = this.axis === "y" ? Math.min(this.logic.value, entity.props.y) : entity.props.y,
+            ymax        = this.axis === "y" ? Math.max(this.logic.value, entity.props.y) + entity.props.height : entity.props.y + entity.props.height,
+            range       = this.getEntitiesInRange(xmin, xmax, ymin, ymax, initiator && initiator.id);
+
+        this.impacts = range.map(target => {
+            const impact = {
+                entity: target,
+                vector: entity.vectorPositionTo(target)
+            };
+
+            switch (true) {
+            case this.axis === "x": impact.chain = new Chain(target, impact.vector.x === 1 ? xmax : xmin - target.props.width, this.axis, entity);
+                break;
+            case this.axis === "y": impact.chain = new Chain(target, impact.vector.y === 1 ? ymax : ymin - target.props.height, this.axis, entity);
+                break;
+            }
+
+            return impact;
+        });
     }
 
     /**
      * Get logic with tilemap in x or y axis
-     * @returns {{collide: boolean, value: number}}
+     * @returns {{collide: boolean, value: number}} logic object
      */
     getLogic () {
         if (!this.entity.scene.tilemap) {
@@ -130,6 +162,24 @@ class Chain {
 
         return result;
     }
+
+    /**
+     * Get entities from the scene in range
+     * @param {number} xmin: position x min
+     * @param {number} xmax: position x max
+     * @param {number} ymin: position y min
+     * @param {number} ymax: position y max
+     * @param {Array<string>=} ids: array of IDs to filter
+     * @returns {Array<Entity>} list of all entities in range
+     */
+    getEntitiesInRange (xmin, xmax, ymin, ymax, ids) {
+        ids = [].concat(ids || [], this.entity.id);
+
+        return this.entity.scene.getEntities().
+            filter(entity => entity.props.x >= (xmin - entity.props.width) && entity.props.x <= xmax).
+            filter(entity => entity.props.y >= (ymin - entity.props.height) && entity.props.y <= ymax).
+            filter(entity => !ids.find(id => id === entity.id));
+    }
 }
 
 
@@ -148,48 +198,57 @@ export default class Collision {
      * @returns {void}
      */
     resolveAll () {
-        let chain   = null;
+        let chain       = null;
 
-        const entity= this.parent,
-            nextX   = entity.props.x + (this.parent.props.vx * Game.tick),
-            nextY   = entity.props.y + (this.parent.props.vy * Game.tick),
-            moveInX = entity.hasChanged("x") || (entity.props.x !== nextX),
-            moveInY = entity.hasChanged("y") || (entity.props.y !== nextY) || !entity.collide.y;
+        const entity    = this.parent,
+            nextX       = entity.props.x + (this.parent.props.vx * Game.tick),
+            nextY       = entity.props.y + (this.parent.props.vy * Game.tick),
+            moveInX     = entity.hasChanged("x") || (entity.props.x !== nextX),
+            moveInY     = entity.hasChanged("y") || (entity.props.y !== nextY) || !entity.collide.y;
 
         if (moveInX) {
             chain = new Chain(entity, nextX, "x");
 
-            if (chain.moveable && !chain.logic.collide) {
-                entity.props.x = chain.nextPos;
+            if (chain.impacts.length) {
+                console.log(chain.entity.props.power, chain.impacts.map(impact => impact.chain.moveable));
             }
+
+            this.resolveChainX(chain);
         }
 
         if (moveInX || moveInY) {
             const gravity = entity.scene.props.gravity * entity.props.gravityFactor * Game.tick;
 
-            chain = new Chain(entity, nextY + gravity, "y");
+            chain  = new Chain(entity, nextY + gravity, "y");
 
             if (chain.moveable && !chain.logic.collide) {
-                entity.props.y  = chain.nextPos;
                 entity.props.vy += gravity;
             }
 
+            entity.props.y  = chain.nextPos;
             entity.standing = chain.logic.collide;
         }
     }
 
-    /**
-     * Get entities from the scene in range
-     * @param {Scene} scene: scene to check
-     * @param {number} xmin: position x min
-     * @param {number} xmax: position x max
-     * @param {number} ymin: position y min
-     * @param {number} ymax: position y max
-     * @returns {Array<Entity>}
-     */
-    getEntitiesInRange (scene, xmin, xmax, ymin, ymax) {
-        return scene.getEntities().
-            filter(entity => entity.props.x >= (xmin - entity.props.width) && entity.props.x <= xmax).
-            filter(entity => entity.props.y >= (ymin - entity.props.height) && entity.props.y <= ymax);
+    resolveChainX (chain) {
+        let indexBlocked    = -1;
+
+        if (!chain.moveable) {
+            chain.entity.props[chain.axis] = chain.nextPos;
+
+        } else if ((indexBlocked = chain.impacts.findIndex(impact => !impact.chain.moveable)) > -1) {
+            chain.impacts.splice(indexBlocked).reverse().forEach((impact, index, array) => {
+                const nextImpact    = array[index + 1];
+
+                if (nextImpact) {
+                    // nextImpact.chain.entity.props[nextImpact.chain.axis] = nextImpact.vector.x === 1 ? impact.chain.nextPos - nextImpact.chain.entity.props.width : impact.chain.
+                }
+            });
+
+        } else {
+            chain.entity.props[chain.axis] = chain.nextPos;
+            chain.impacts.forEach(impact => impact.chain.entity.props[impact.chain.axis] = impact.chain.nextPos);
+
+        }
     }
 }

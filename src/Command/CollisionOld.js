@@ -82,13 +82,13 @@ export default class Collision {
             movable     = lastChain ? this.isMovable(entity, chains) && !logic.collide : !logic.collide;
 
         chains.push({ entity: entity, movable: movable, nextPos: logic.value, collide: logic.collide, onLeft: onLeft });
-/*
+
         scene.getEntities().
             filter(ent => this.filterEntityByPositionY(ent, entity.props.y, entity.props.y + entity.props.height)).
             filter(ent => this.filterEntityByPositionX(ent, logic.value, logic.value + entity.props.width)).
             filter(ent => !chains.find(chain => chain.entity.id === ent.id)).
             forEach(ent => this.shiftInX(ent, onLeft ? logic.value - ent.width : logic.value + entity.props.width, chains));
-*/
+
         return chains;
     }
 
