@@ -3,7 +3,7 @@ import AbstractModule from "./Abstract/AbstractModule";
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
 
-import Collision from "./Command/Collision";
+import Physic from "./Command/Physic";
 
 import Game from "./Game";
 
@@ -29,7 +29,7 @@ export default class Entity extends AbstractModule {
         this.moving     = false;
         this.scene      = null;
         this.collide    = {x: false, y: false};
-        this.collision  = new Collision(this);
+        this.physic     = new Physic(this);
 
         this._debug     = null;
 
@@ -107,8 +107,8 @@ export default class Entity extends AbstractModule {
         this.props.vy   = Math.min(this.props.max.vy, Math.max(-this.props.max.vy, this.props.vy));
         this.props.vx   = Math.min(this.props.max.vx, Math.max(-this.props.max.vx, this.props.vx));
 
-        if (this.collision) {
-            this.collision.resolveAll();
+        if (this.physic) {
+            this.physic.resolveAll();
 
         } else {
             this.props.x += this.props.vx * Game.tick;

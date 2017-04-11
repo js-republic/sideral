@@ -25,6 +25,8 @@ class Chain {
 
         if (this.moveable) {
             this.updateImpacts(initiator);
+
+            this.getLogicCollision();
         }
     }
 

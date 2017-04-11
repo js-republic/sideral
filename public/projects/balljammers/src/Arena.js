@@ -20,7 +20,7 @@ export default class Arena extends Scene {
         super();
 
         this.setProps({
-            gravity : 200,
+            gravity : 500,
             spawnX  : 100
         });
 
@@ -46,7 +46,7 @@ export default class Arena extends Scene {
         this.addEntity(new Goal(), 0, 320);
 
         this.playerLeft     = this.addEntity(new PlayerCat(), this.props.spawnX, 320, { playerLeft: true });
-        this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX, 320);
+        this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX, 320, { playerRight: true });
 
         window.scene = this;
     }

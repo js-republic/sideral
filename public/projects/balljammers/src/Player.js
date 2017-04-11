@@ -15,7 +15,7 @@ export default class Player extends Entity {
         this.setProps({
             speed       : 250,
             power       : 100,
-            jump        : 450,
+            jump        : 750,
             side        : Player.SIDE.NONE,
             doubleDash  : false,
             doubleJump  : false,
