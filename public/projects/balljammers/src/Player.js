@@ -16,7 +16,6 @@ export default class Player extends Entity {
             speed       : 250,
             power       : 100,
             jump        : 750,
-            side        : Player.SIDE.NONE,
             doubleDash  : false,
             doubleJump  : false,
             mass        : Entity.MASS.SOLID,
@@ -40,7 +39,7 @@ export default class Player extends Entity {
      */
     updateVelocity () {
         this.props.vx = this.props.vxFactor * this.props.speed;
-        super.updateVelocity()
+        super.updateVelocity();
     }
 
 

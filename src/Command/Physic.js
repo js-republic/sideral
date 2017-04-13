@@ -17,14 +17,14 @@ export default class Physic {
         const entity    = this.entity,
             nextX       = entity.props.x + (this.entity.props.vx * Game.tick),
             nextY       = entity.props.y + (this.entity.props.vy * Game.tick),
-            moveInX     = entity.hasChanged("x") || (entity.props.x !== nextX),
-            moveInY     = entity.hasChanged("y") || (entity.props.y !== nextY) || !entity.collide.y;
+            moveInX     = entity.props.x !== nextX,
+            moveInY     = entity.props.gravityFactor ? entity.hasChanged("y") || (entity.props.y !== nextY) || !entity.collide.y : entity.props.y !== nextY;
 
         if (moveInX) {
-            this.resolveX(nextX);
+            this.resolveX(entity.props.x, nextX);
         }
 
-        if (moveInX || moveInY) {
+        if (entity.props.gravityFactor ? entity.hasChanged("x") || moveInX || moveInY : moveInY) {
             const gravity = entity.scene.props.gravity * entity.props.gravityFactor * Game.tick;
 
             entity.props.vy += gravity;
@@ -32,13 +32,13 @@ export default class Physic {
         }
     }
 
-    resolveX (nextX) {
+    resolveX (lastX, nextX) {
         let entities = [this.entity];
 
-        const logic = this.getLogicXAt(this.entity.scene, this.entity.props.x, nextX, this.entity.props.y, this.entity.props.y + this.entity.props.height, this.entity.props.width),
-            toLeft  = nextX < this.entity.props.x,
-            xmin    = toLeft ? logic.value : this.entity.props.x,
-            xmax    = (toLeft ? this.entity.props.x : logic.value) + this.entity.props.width;
+        const logic = this.getLogicXAt(this.entity.scene, lastX, nextX, this.entity.props.y, this.entity.props.y + this.entity.props.height, this.entity.props.width),
+            toLeft  = nextX < lastX,
+            xmin    = toLeft ? logic.value : lastX,
+            xmax    = (toLeft ? lastX : logic.value) + this.entity.props.width;
 
         entities = entities.concat(this.getEntitiesInRange(xmin, xmax, this.entity.props.y, this.entity.props.y + this.entity.props.height));
 
@@ -58,6 +58,10 @@ export default class Physic {
 
         }
     }
+
+    // 1st - check if there is a wall between last and next x value
+    // 1st - get all entities in the range between last and logic x value
+    // 2nd - if there is more than 1 entity and no logic collide, report to the first algorithm with a new range (next x + width of all entities)
 
     resolveY (nextY) {
         let entities = [this.entity];
@@ -91,13 +95,13 @@ export default class Physic {
             const lastEntity = array[index - 1];
 
             if (!lastEntity) {
-                entity.props.x = value;
+                entity.props.x      = value;
+                entity.collide.x    = collide;
 
-            } else {
+            } else if (entity.physic) {
                 entity.props.x = toLeft ? lastEntity.props.x + lastEntity.props.width : lastEntity.props.x - entity.props.width;
             }
 
-            entity.collide.x = collide;
         });
     }
 
@@ -114,6 +118,10 @@ export default class Physic {
 
             entity.collide.y    = collide;
             entity.standing     = collide;
+
+            if (collide) {
+                entity.props.vy = 0;
+            }
         });
     }
 

@@ -1,7 +1,7 @@
 import Entity from "src/Entity";
 
 
-export default class Goald extends Entity {
+export default class Goal extends Entity {
 
     /* LIFECYCLE */
 

@@ -21,7 +21,8 @@ export default class Scene extends AbstractClass {
             height  : Game.props.height
         });
 
-        this.tilemap = null;
+        this._entities  = null;
+        this.tilemap    = null;
     }
 
 
@@ -40,6 +41,7 @@ export default class Scene extends AbstractClass {
         settings.x      = x;
         settings.y      = y;
         entity.scene    = this;
+        this._entities  = null;
 
         return this.add(entity, settings, index);
     }
@@ -63,6 +65,24 @@ export default class Scene extends AbstractClass {
      * @returns {Array<*>} array of all entities
      */
     getEntities () {
-        return this.children.filter(child => child instanceof Entity);
+        return this._entities || (this._entities = this.children.filter(child => child instanceof Entity));
     }
+
+    /**
+     * Get entities from the scene in range
+     * @param {number} xmin: position x min
+     * @param {number} xmax: position x max
+     * @param {number} ymin: position y min
+     * @param {number} ymax: position y max
+     * @param {string=} id: string of the id of an entity to filter
+     * @returns {Array<Entity>} list of all entities in range
+     */
+    getEntitiesInRange (xmin, xmax, ymin, ymax, id) {
+        const entities = this.getEntities().
+            filter(entity => entity.props.x > (xmin - entity.props.width) && entity.props.x < xmax).
+            filter(entity => entity.props.y > (ymin - entity.props.height) && entity.props.y < ymax);
+
+        return id ? entities.filter(entity => id !== entity.id) : entities;
+    }
+
 }
