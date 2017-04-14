@@ -278,29 +278,97 @@ describe("Physic and collision test of entity", () => {
         expect(entity.props.y).toBe(target.props.y + target.props.height);
     });
 
-    it("should place the entity at the right side of the target -> LEFT", () => {
+    it("should place the entity at the right side of the target -> TOP", () => {
         entity.props.mass = target.props.mass = Entity.MASS.SOLID;
 
-        entity.position(5, 20);
-        target.position(20, 20);
-        entity.resolveMovement(11, 30);
+        entity.position(0, 0);
+        target.position(10, 10);
+        entity.resolveMovement(15, 30);
 
-        // expect(entity.props.x).toBe(target.props.x - entity.props.width);
-        // expect(entity.props.y).toBe(11);
-        expect(true).toBeTruthy();
+        expect(entity.props.x).toBe(15);
+        expect(entity.props.y).toBe(target.props.y - entity.props.height);
     });
 
-    it("should place the entity at the right side of the target -> TOP", () => {
-        entity.position(20, 0);
-        target.position(20, 20);
-        console.log("--- SPEC ---");
+    it("should place the entity at the right side of the target -> LEFT", () => {
+        entity.position(20, 20);
+        target.position(50, 10);
+        entity.resolveMovement(70, 5);
 
-        // Gérer le dépassement de collision de l'entité par rapport au target afin de savoir si on le place à gauche, en haut, à droite ou en bas
-        // Créer une fonction spécifique qui gère les deux mouvements lorsqu'il y a vx et vy, puis se servir de vectorCollisionBetween afin de gérer le side de la collision
-        entity.resolveMovement(20, 15);
-
-        // expect(entity.props.x).toBe(20);
-        // expect(entity.props.y).toBe(target.props.y - entity.props.height);
-        expect(true).toBeTruthy();
+        expect(entity.props.x).toBe(target.props.x - entity.props.width);
+        expect(entity.props.y).toBe(5);
     });
+
+    it("should place the entity at the right side of the target -> RIGHT", () => {
+        entity.position(50, 50);
+        target.position(0, 0);
+        entity.resolveMovement(-185, 9);
+
+        expect(entity.props.x).toBe(target.props.x + target.props.width);
+        expect(entity.props.y).toBe(9);
+    });
+
+    it("should place the entity at the right side of the target -> BOTTOM", () => {
+        entity.position(20, 20);
+        target.position(20, 0);
+        entity.resolveMovement(10, 0);
+
+        expect(entity.props.x).toBe(10);
+        expect(entity.props.y).toBe(target.props.y + target.props.height);
+    });
+
+    it("should replace two entities into the middle of theirs movement", () => {
+        entity.props.mass = target.props.mass = Entity.MASS.WEAK;
+        entity.props.vx = 100;
+        target.props.vx = -100;
+
+        entity.position(0, 0);
+        target.position(100, 0);
+        entity.resolveMovementX(entity.props.x + entity.props.vx);
+        target.resolveMovementX(target.props.x + target.props.vx);
+
+        expect(entity.props.x).toBe(40);
+        expect(target.props.x).toBe(50);
+    });
+
+    it("should replace two entities into the correct distance of each other of theirs movement", () => {
+        entity.props.vx = 500;
+        target.props.vx = -200;
+
+        entity.position(0, 0);
+        target.position(300, 0);
+        entity.resolveMovementX(entity.props.x + entity.props.vx);
+        target.resolveMovementX(target.props.x + target.props.vx);
+
+        expect(Math.floor(entity.props.x)).toBe(204);
+        expect(Math.floor(target.props.x)).toBe(300 - 86);
+    });
+
+    it("should replace two entities into the middle of theirs movement on y axis", () => {
+        entity.props.mass = target.props.mass = Entity.MASS.WEAK;
+        entity.props.vy = 100;
+        target.props.vy = -100;
+
+        entity.position(0, 0);
+        target.position(0, 100);
+        entity.resolveMovementY(entity.props.y + entity.props.vy);
+        target.resolveMovementY(target.props.y + target.props.vy);
+
+        expect(entity.props.y).toBe(40);
+        expect(target.props.y).toBe(50);
+    });
+
+    it("should replace two entities into the correct distance of each other of theirs movement on y axis", () => {
+        entity.props.vy = 500;
+        target.props.vy = -200;
+
+        entity.position(0, 0);
+        target.position(0, 300);
+        entity.resolveMovementY(entity.props.y + entity.props.vy);
+        target.resolveMovementY(target.props.y + target.props.vy);
+
+        expect(Math.floor(entity.props.y)).toBe(204);
+        expect(Math.floor(target.props.y)).toBe(300 - 86);
+    });
+
+
 });
