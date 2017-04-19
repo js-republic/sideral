@@ -1,10 +1,12 @@
-import Engine from "src/Engine";
 import Scene from "src/Scene";
+import Game from "src/Game";
 
-import Player from "./Player";
 import Ball from "./Ball";
-import { ZoneGoal, ZoneFilet } from "./Zone";
-import tilemapArena from "./../tilemaps/arena";
+import Goal from "./Goal";
+
+import PlayerCat from "./Player/Cat";
+
+import tilemapGrass from "./../tilemaps/grass.json";
 
 
 export default class Arena extends Scene {
@@ -14,105 +16,113 @@ export default class Arena extends Scene {
     /**
      * @constructor
      */
-    initialize () {
-        super.initialize();
+    constructor () {
+        super();
 
-        this.spawnX     = 57;
-        this.player     = new Player();
-        this.enemy      = new Player();
+        this.setProps({
+            gravity : 500,
+            spawnX  : 100
+        });
 
-        this.setTilemap(tilemapArena);
-
-        this.compose(this.player, { name: "player", x: this.spawnX, y: this.height / 2, onLeft: true }).
-            compose(this.enemy, { name: "enemy", x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
-            compose(new Ball(), { x: 200, y: 100 }, ball => window.ball = ball).
-            compose(new ZoneGoal(), { x: 0, y: 32 }).
-            compose(new ZoneGoal(), { x: this.width - 32, y: 32 }).
-            compose(new ZoneFilet(), { x: (this.width / 2) - 16, y: 32 });
+        Game.bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Q), this.createAction(pressed => this.onPressLeft("left", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.D), this.createAction(pressed => this.onPressRight("left", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Z), this.createAction(pressed => this.onPressJump("left", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(pressed => this.onPressLeft("right", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_RIGHT), this.createAction(pressed => this.onPressRight("right", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_UP), this.createAction(pressed => this.onPressJump("right", pressed)));
     }
 
     /**
-     * @update
+     * @initialize
+     * @lifecycle
      * @override
      */
+    initialize (props) {
+        super.initialize(props);
+
+        this.setTilemap(tilemapGrass);
+        this.addEntity(new Ball(), 0, 0, { debug: true });
+        this.addEntity(new Goal(), this.props.width - 45, 320, { flip: true });
+        this.addEntity(new Goal(), 0, 320);
+
+        this.playerLeft     = this.addEntity(new PlayerCat(), this.props.spawnX, 320, { playerLeft: true, speed: 300 });
+        this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });
+
+        window.scene = this;
+    }
+
+
+    /* METHODS */
+
+    /**
+     * @event key left
+     * @param {string} playerSide: player left or right
+     * @param {boolean} pressed: if it is pressed
+     * @returns {void}
+     */
+    onPressLeft (playerSide, pressed) {
+        const player = playerSide === "left" ? this.playerLeft : this.playerRight;
+
+        if (player) {
+            player.moveLeft(pressed);
+        }
+    }
+
+    /**
+     * @event key right
+     * @param {string} playerSide: player left or right
+     * @param {boolean} pressed: if it is pressed
+     * @returns {void}
+     */
+    onPressRight (playerSide, pressed) {
+        const player = playerSide === "left" ? this.playerLeft : this.playerRight;
+
+        if (player) {
+            player.moveRight(pressed);
+        }
+    }
+
+    /**
+     * @event key jump
+     * @param {string} playerSide: player left or right
+     * @param {boolean} pressed: if it is pressed
+     * @returns {void}
+     */
+    onPressJump (playerSide, pressed) {
+        const player = playerSide === "left" ? this.playerLeft : this.playerRight;
+
+        if (player) {
+            player.jump(pressed);
+        }
+    }
+
+    /*
     update () {
         super.update();
 
-        this.updatePlayerKeyboard();
-        this.updateEnemyKeyboard();
+        this.updatePlayerKeyboard(this.player, "Z", "S", "Q", "D", "M");
+        this.updatePlayerKeyboard(this.enemy, "ARROW_UP", "ARROW_DOWN", "ARROW_LEFT", "ARROW_RIGHT", "M");
     }
 
-    updatePlayerKeyboard () {
-        if (!this.player) {
+    updatePlayerKeyboard (player, keyUp, keyDown, keyLeft, keyRight, keyFire) {
+        if (!player) {
             return null;
         }
 
-        let vx = 0,
-            vy = 0;
+        const left  = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyLeft]) ? -1 : 0,
+            right   = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyRight]) ? 1 : 0,
+            top     = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyUp]) ? -1 : 0,
+            down    = Engine.keyboard.isHeld(Engine.keyboard.KEY[keyDown]) ? 1 : 0,
+            x       = left + right,
+            y       = top + down;
 
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_RIGHT)) {
-            vx += this.player.speed;
+        if (player.currentMove.x !== x || player.currentMove.y !== y) {
+            player.move(x, y);
         }
 
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_LEFT)) {
-            vx -= this.player.speed;
-        }
-
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_UP)) {
-            vy -= this.player.speed;
-        }
-
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.ARROW_DOWN)) {
-            vy += this.player.speed;
-        }
-
-        if (this.player.vx !== vx) {
-            this.player.vx = vx;
-        }
-
-        if (this.player.vy !== vy) {
-            this.player.vy = vy;
-        }
-
-        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.M)) {
-            this.player.attack();
+        if (Engine.keyboard.isPressed(Engine.keyboard.KEY[keyFire])) {
+            player.attack();
         }
     }
-
-    updateEnemyKeyboard () {
-        if (!this.enemy) {
-            return null;
-        }
-
-        let vx = 0,
-            vy = 0;
-
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.D)) {
-            vx += this.enemy.speed;
-        }
-
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.Q)) {
-            vx -= this.enemy.speed;
-        }
-
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.Z)) {
-            vy -= this.enemy.speed;
-        }
-
-        if (Engine.keyboard.isHeld(Engine.keyboard.KEY.S)) {
-            vy += this.enemy.speed;
-        }
-
-        if (this.enemy.vx !== vx) {
-            this.enemy.vx = vx;
-        }
-
-        if (this.enemy.vy !== vy) {
-            this.enemy.vy = vy;
-        }
-
-        if (Engine.keyboard.isPressed(Engine.keyboard.KEY.C)) {
-            this.enemy.attack();
-        }
-    }
+    */
 }

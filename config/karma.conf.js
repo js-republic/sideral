@@ -1,3 +1,7 @@
+const webpack   = require("webpack"),
+    path        = require("path");
+
+
 var karmaConf = {
     basePath: "./../",
     browsers: ["PhantomJS"],
@@ -53,6 +57,12 @@ var karmaConf = {
                 }
             ]
         },
+
+        plugins: [
+            new webpack.ProvidePlugin({
+                PIXI: path.join(__dirname, "../node_modules/pixi.js")
+            })
+        ],
 
         devtool: "inline-source-map"
     },

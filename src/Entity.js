@@ -1,9 +1,12 @@
-import Component from "./Component";
-import Scene from "./Scene";
-import Engine from "./Engine";
+import AbstractModule from "./Abstract/AbstractModule";
+
+import Shape from "./Module/Shape";
+import Sprite from "./Module/Sprite";
+
+import Game from "./Game";
 
 
-export default class Entity extends Component {
+export default class Entity extends AbstractModule {
 
     /* LIFECYCLE */
 
@@ -13,132 +16,49 @@ export default class Entity extends Component {
     constructor () {
         super();
 
-        this.name = "entity";
+        this.setProps({
+            gravityFactor   : 1,
+            vx              : 0,
+            vy              : 0,
+            fricX           : 0,
+            fricY           : 0,
+            accelX          : 0,
+            accelY          : 0,
+            limit           : { vx: 2000, vy: 2000 },
+            bouncing        : 0,
+            mass            : Entity.MASS.WEAK,
+            debug           : false
+        });
 
-        this._container = new PIXI.DisplayObject();
+        this.standing   = false;
+        this.moving     = false;
+        this.scene      = null;
+        this.collide    = {x: false, y: false};
 
-        /**
-         * Factor of gravity provided by the scene
-         * @type {number}
-         */
-        this.gravityFactor  = 0;
+        this._debug     = null;
 
-        /**
-         * Velocity X
-         * @type {number}
-         */
-        this.vx             = 0;
-
-        /**
-         * Velocity y
-         * @type {number}
-         */
-        this.vy             = 0;
-
-        // read-only
-
-        /**
-         * Know if the entity is currently falling
-         * @readonly
-         * @type {boolean}
-         */
-        this.falling        = false;
-
-        /**
-         * Know if the entity is standing on the ground (or over an other entity)
-         * @readonly
-         * @type {boolean}
-         */
-        this.standing       = false;
-
-        /**
-         * Know if the entity is moving or not
-         * @readonly
-         * @type {boolean}
-         */
-        this.moving         = false;
+        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange)).
+            bind(this.SIGNAL.UPDATE(), this.createAction(this.updateVelocity));
     }
 
-    update () {
-        super.update();
-        this.updateVelocity();
-    }
 
     /* METHODS */
 
     /**
-     * Set a new velocity for the current entity
-     * @param {number=} vx: velocity in x axis
-     * @param {number=} vy: velocity in y axis
-     * @returns {void}
+     * Add a new spritesheet to the current entity
+     * @param {string} imagePath: path to the media
+     * @param {number} tilewidth: width of a tile
+     * @param {number} tileheight: height of a tile
+     * @param {Object=} settings: settings to pass to the spritesheet module
+     * @param {number=} index: z index position of the entity
+     * @returns {Object} the current spritesheet
      */
-    velocity (vx, vy) {
-        if (typeof vx !== "undefined") {
-            this.vx = vx;
-        }
+    addSprite (imagePath, tilewidth, tileheight, settings = {}, index) {
+        settings.imagePath  = imagePath;
+        settings.width      = tilewidth;
+        settings.height     = tileheight;
 
-        if (typeof vy !== "undefined") {
-            this.vy = vy;
-        }
-    }
-
-    /**
-     * Update the position with velocity and check if there is not a collision wall
-     * @returns {void}
-     */
-    updateVelocity () {
-        this.moving     = this.vx || this.vy;
-
-        this.x          += this.vx * Engine.tick;
-        this.y          += this.vy * Engine.tick;
-    }
-
-    /**
-     * Find the first Scene into parent hierarchy
-     * @param {*=} recursive: recursive object to get scene
-     * @returns {Scene|null} get the current scene
-     */
-    getScene (recursive) {
-        recursive = recursive || this;
-
-        if (recursive.parent) {
-            return recursive.parent instanceof Scene ? recursive.parent : this.getScene(recursive);
-        }
-
-        return recursive;
-    }
-
-    /**
-     * Check if it intersect with the entity passed in parameter
-     * @param {Entity} entity: other entity to check collision
-     * @param {boolean=} onlyStaticIntersection: check only with static intersection
-     * @returns {null|{x: number, y: number}} return the vector if true, else retur null
-     */
-    intersect (entity, onlyStaticIntersection) {
-        const staticIntersection = !(entity.x > (this.x + this.width) ||
-            (entity.x + entity.width) < this.x ||
-            entity.y > (this.y + this.height) ||
-            (entity.y + entity.height) < this.y),
-            vector = this.vectorTo(entity);
-
-        if (staticIntersection || onlyStaticIntersection) {
-            return vector;
-
-        } else if (this.moving) {
-            const lastVector    = this.lastVectorTo(entity),
-                lastDistance    = this.lastDistanceTo(entity),
-                distance        = this.distanceTo(entity),
-                colleft         = lastDistance * lastVector.x > 0 && distance * vector.x < 0,
-                colright        = lastDistance * lastVector.x < 0 && distance * vector.x > 0,
-                coltop          = lastDistance * lastVector.y > 0 && distance * vector.y < 0,
-                colbottom       = lastDistance * lastVector.y < 0 && distance * vector.y > 0;
-
-            if (colleft || colright || coltop || colbottom) {
-                return vector;
-            }
-        }
-
-        return null;
+        return this.add(new Sprite(), settings, index);
     }
 
     /**
@@ -146,130 +66,250 @@ export default class Entity extends Component {
      * @param {Entity} entity: the target
      * @returns {{x: number, y: number}} the vector
      */
-    vectorTo (entity) {
-        return Entity.vectorBetween(this.x, this.y, this.width, this.height,
-            entity.x, entity.y, entity.width, entity.height);
+    vectorPositionTo (entity) {
+        return {
+            x: entity.props.x <= (this.props.x + (this.props.width / 2)) ? -1 : 1,
+            y: entity.props.y <= (this.props.y + (this.props.height / 2)) ? -1 : 1
+        };
     }
 
-    /**
-     * Get the last vector to entity to target
-     * @param {Entity} entity: the target
-     * @returns {{x: number, y: number}} the last vector
-     */
-    lastVectorTo (entity) {
-        return Entity.vectorBetween(this.last.x, this.last.y, this.last.width, this.last.height,
-            entity.x, entity.y, entity.width, entity.height);
-    }
+
+    /* EVENTS */
 
     /**
-     * Get distance between current entity and the target
-     * @param {Entity} entity: the target
-     * @returns {number} the distance
-     */
-    distanceTo (entity) {
-        return Entity.distanceBetween(this.x, this.y, this.width, this.height,
-            entity.x, entity.y, entity.width, entity.height);
-    }
-
-    /**
-     * Get last distance between current entity and the target
-     * @param {Entity} entity: the target
-     * @returns {number} the last distance
-     */
-    lastDistanceTo (entity) {
-        return Entity.distanceBetween(this.last.x, this.last.y, this.last.width, this.last.height,
-            entity.x, entity.y, entity.width, entity.height);
-    }
-
-    /**
-     * Get the vector of the velocity
-     * @returns {{x: number, y: number}} the vector of current velocity
-     */
-    getVectorVelocity () {
-        let x = 0,
-            y = 0;
-
-        if (this.vx > 0) {
-            x = 1;
-        } else if (this.vx < 0) {
-            x = -1;
-        }
-
-        if (this.vy > 0) {
-            y = 1;
-        } else if (this.vy < 0) {
-            y = -1;
-        }
-
-        return {x: x, y: y};
-    }
-
-    /* ABSTRACT */
-
-    /**
-     * Event fired when entity enter in collision with an other entity
-     * @param {Entity} other: other entity
+     * When "width" or "height" attributes change
+     * @override
      * @returns {void}
      */
-    onCollisionWith (other) {
+    onSizeChange () {
+        if (this._debug) {
+            this._debug.size(this.props.width, this.props.height);
+        }
     }
+
+    /**
+     * When vx or vy attributes change
+     * @returns {void}
+     */
+    updateVelocity () {
+        const { x, y, vx, vy, fricX, fricY, limit } = this.props,
+            resolveFriction = (vel, friction) => {
+                if (friction && vel) {
+                    const tendance  = Math.sign(vel),
+                        delta       = Math.abs(friction) * Game.tick * tendance;
+
+                    return Math[tendance > 0 ? "max" : "min"](0, vel - delta);
+                }
+
+                return vel;
+            };
+
+        this.props.vx   = resolveFriction(Math.min(limit.vx, Math.max(-limit.vx, vx)), fricX);
+        this.props.vy   = resolveFriction(Math.min(limit.vy, Math.max(-limit.vy, vy)), fricY);
+
+        const nextX     = x + (vx * Game.tick),
+            nextY       = y + (vy * Game.tick),
+            moveInX     = x !== nextX,
+            moveInY     = this.props.gravityFactor ? moveInX || this.hasChanged("x") || this.hasChanged("y") || (y !== nextY) || !this.collide.y : y !== nextY,
+            gravity     = this.scene.props.gravity * this.props.gravityFactor * Game.tick;
+
+        if (moveInY) {
+            this.props.vy += gravity;
+
+            if (!moveInX) {
+                this.resolveMovementY(nextY + gravity);
+            }
+        }
+
+        if (moveInX && !moveInY) {
+            this.resolveMovementX(nextX);
+
+        } else if (moveInX && moveInY) {
+            this.resolveMovement(nextX, nextY + gravity);
+
+        }
+    }
+
+    /**
+     * Event triggered when the current entity enter in collision with another entity
+     * @param {*} entity: target entity (instance of Sideral Entity class)
+     * @returns {void}
+     */
+    onCollisionWith (entity) { }
+
+    /**
+     * Resolve logic of physic when entity enter in collision with an other entity
+     * @param {Entity} other: target entity
+     * @param {number} shift : number of pixel shift
+     * @returns {number} number of pixel shift
+     */
+    resolveMass (other, shift) {
+        const isGhost   = entity => entity.props.mass === Entity.MASS.NONE;
+
+        if (isGhost(this) || isGhost(other)) {
+            return shift;
+        }
+
+        if (other.props.mass === Entity.MASS.SOLID) {
+            shift = 0;
+        }
+
+        return shift;
+    }
+
+    /**
+     * Return the position of collision of entity when entered in collision with an other entity
+     * @param {Entity} target: target in collision
+     * @param {string} axis: axis of the collision (x or y)
+     * @returns {number} the next position of the entity
+     */
+    resolveCollision (target, axis) {
+        const pEntity   = this.props[axis],
+            pTarget     = target.props[axis],
+            vEntity     = this.props["v" + axis] * Game.tick,
+            vTarget     = target.props["v" + axis] * Game.tick;
+
+        if (!vEntity || !vTarget || (Math.sign(vEntity) + Math.sign(vTarget)) !== 0) {
+            return NaN;
+        }
+
+        return pEntity + (Math.abs(pTarget - pEntity) / (1 + (Math.abs(vTarget) / Math.abs(vEntity))));
+    }
+
+    resolveBouncing (target, axis) {
+        const bEntity   = this.props.bouncing,
+            bTarget     = target.props.bouncing,
+            vEntity     = this.props["v" + axis],
+            vTarget     = target.props["v" + axis],
+            vSign       = Math.sign(target.props[axis] - this.props[axis]);
+
+        if (bEntity && vTarget && Math.sign(vTarget) === vSign) {
+            this.props["v" + axis] = vTarget * bEntity;
+        }
+
+        if (bTarget && target.props.mass !== Entity.MASS.SOLID && Math.sign(vEntity) === vSign) {
+            target.props["v" + axis] = vEntity * bTarget;
+        }
+
+        return vEntity;
+    }
+
+    resolveMovement (nextX, nextY) {
+        if (nextY > this.props.y) {
+            this.resolveMovementX(nextX);
+            this.resolveMovementY(nextY);
+
+        } else {
+            this.resolveMovementY(nextY);
+            this.resolveMovementX(nextX);
+
+        }
+    }
+
+    resolveMovementX (nextX) {
+        if (nextX === this.props.x) {
+            return nextX;
+        }
+
+        const tilemap       = this.scene.tilemap,
+            fromLeft        = nextX > this.props.x,
+            logic           = tilemap ? tilemap.getLogicXAt(this.props.x, nextX, this.props.y, this.props.y + this.props.height, this.props.width) : { collide: false, value: nextX },
+            xmin            = Math.min(this.props.x, logic.value),
+            xmax            = Math.max(this.props.x, logic.value) + this.props.width,
+            other           = this.scene.getEntitiesInRange(xmin, xmax, this.props.y, this.props.y + this.props.height, this.id).sort((a, b) => fromLeft ? a.props.x - b.props.x : b.props.x - a.props.x)[0];
+
+        if (other && other.props.mass !== Entity.MASS.NONE && this.props.mass !== Entity.MASS.NONE) {
+            const otherX    = other.resolveMovementX(other.props.x + this.resolveMass(other, fromLeft ? this.props.width + logic.value - other.props.x : logic.value - other.props.x - other.props.width));
+
+            this.props.x    = (nextX = fromLeft ? otherX - this.props.width : otherX + other.props.width);
+            this.resolveBouncing(other, "x");
+
+        } else {
+            this.props.x    = (nextX = logic.value);
+        }
+
+        return nextX;
+    }
+
+    resolveMovementY (nextY) {
+        if (nextY === this.props.y) {
+            return nextY;
+        }
+
+        const tilemap       = this.scene.tilemap,
+            fromTop         = nextY > this.props.y,
+            logic           = tilemap ? tilemap.getLogicYAt(this.props.y, nextY, this.props.x, this.props.x + this.props.width, this.props.height) : { collide: false, value: nextY },
+            ymin            = Math.min(this.props.y, logic.value),
+            ymax            = Math.max(this.props.y, logic.value) + this.props.height,
+            other           = this.scene.getEntitiesInRange(this.props.x, this.props.x + this.props.width, ymin, ymax, this.id).sort((a, b) => fromTop ? a.props.y - b.props.y : b.props.y - a.props.y)[0];
+
+        if (other  && other.props.mass !== Entity.MASS.NONE && this.props.mass !== Entity.MASS.NONE) {
+            const otherY    = other.resolveMovementY(other.props.y + this.resolveMass(other, fromTop ? this.props.height + logic.value - other.props.y : logic.value - other.props.y - other.props.height));
+
+            this.props.y    = (nextY = fromTop ? otherY - this.props.height : otherY + other.props.height);
+            this.resolveBouncing(other, "y");
+
+            if (other.props.y < this.props.y) {
+                other.standing  = true;
+
+            } else {
+                this.standing   = true;
+
+            }
+
+        } else {
+            this.props.y    = (nextY = logic.value);
+        }
+
+        this.standing   = fromTop ? logic.collide || Boolean(other) : false;
+        this.props.vy   = this.standing ? Math.max(0, this.props.vy) : this.props.vy;
+
+        return nextY;
+    }
+
+    /**
+     * Get the speed of the velocity
+     * @returns {number} speed velocity
+     */
+    getKineticEnergy () {
+        const x = (this.props.x + (this.props.width / 2)) - (this.props.x + (this.props.vx * Game.tick)),
+            y   = (this.props.y + (this.props.height / 2)) - (this.props.y + (this.props.vy * Game.tick));
+
+        return this.props.mass * Math.sqrt((x * x) + (y * y));
+    }
+
+
+    /* PRIVATE */
+
+    /**
+     * When "debug" attribute change
+     * @private
+     * @returns {void}
+     */
+    _onDebugChange () {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+        }
+
+        if (this.props.debug) {
+            this._debug = this.add(new Shape(), {
+                type    : Shape.TYPE.RECTANGLE,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            }, 0);
+        }
+    }
+
 
     /* STATIC */
 
-    /**
-     * Get the vector between two entity
-     * @param {number} x : x position of the first entity
-     * @param {number} y : y position of the first entity
-     * @param {number} width : width of the first entity
-     * @param {number} height : height of the first entity
-     * @param {number} targetX : x position of the second entity
-     * @param {number} targetY : y position of the second entity
-     * @param {number} targetWidth : width of the second entity
-     * @param {number} targetHeight : height of the second entity
-     * @returns {{x: number, y: number}} the vector result
-     */
-    static vectorBetween (x, y, width, height, targetX, targetY, targetWidth, targetHeight) {
-        const bottom    = y + height,
-            right       = x + width,
-            targbottom  = targetY + targetHeight,
-            targright   = targetX + targetWidth,
-            colbottom   = targbottom - y,
-            coltop      = bottom - targetY,
-            colleft     = right - targetX,
-            colright    = targright - x;
-
-        if (coltop < colbottom && coltop < colleft && coltop < colright) {
-            return {x: 0, y: 1};
-
-        } else if (colbottom < coltop && colbottom < colleft && colbottom < colright) {
-            return {x: 0, y: -1};
-
-        } else if (colleft < colright && colleft < coltop && colleft < colbottom) {
-            return {x: 1, y: 0};
-
-        } else if (colright < colleft && colright < coltop && colright < colbottom) {
-            return {x: -1, y: 0};
-        }
-
-        return {x: 0, y: 0};
-    }
-
-    /**
-     * Get the absolute distance between two entities
-     * @param {number} x : x position of the first entity
-     * @param {number} y : y position of the first entity
-     * @param {number} width : width of the first entity
-     * @param {number} height : height of the first entity
-     * @param {number} targetX : x position of the second entity
-     * @param {number} targetY : y position of the second entity
-     * @param {number} targetWidth : width of the second entity
-     * @param {number} targetHeight : height of the second entity
-     * @returns {number} the distance
-     */
-    static distanceBetween (x, y, width, height, targetX, targetY, targetWidth, targetHeight) {
-        x = (x + (width / 2)) - (targetX + (targetWidth / 2));
-        y = (y + (height / 2)) - (targetY + (targetHeight / 2));
-
-        return Math.sqrt((x * x) + (y * y));
-    }
 }
+
+Entity.MASS = {
+    NONE    : 0,
+    WEAK    : 1,
+    SOLID   : 2
+};

@@ -1,8 +1,10 @@
-import Engine from "./Engine";
-import Component from "./Component";
+import AbstractClass from "./Abstract/AbstractClass";
+import Tilemap from "./Module/Tilemap";
+import Game from "./Game";
+import Entity from "./Entity";
 
 
-export default class Scene extends Component {
+export default class Scene extends AbstractClass {
 
     /* LIFECYCLE */
 
@@ -12,100 +14,75 @@ export default class Scene extends Component {
     constructor () {
         super();
 
-        this.name = "scene";
+        this.setProps({
+            gravity : 0,
+            scale   : 1,
+            width   : Game.props.width,
+            height  : Game.props.height
+        });
 
-        /**
-         * Stage of PIXI
-         * @type {*}
-         */
-        this._container  = new PIXI.Container();
-
-        /**
-         * Gravity of the scene
-         * @type {number}
-         */
-        this.gravity    = 0;
-
-        /**
-         * Scale of the scene
-         * @type {number}
-         */
-        this.scale      = 1;
-
-        /**
-         * Width of the scene
-         * @type {number}
-         */
-        this.width      = Engine.width;
-
-        /**
-         * Height of the scene
-         * @type {number}
-         */
-        this.height     = Engine.height;
-
-        /**
-         * set a tilemap to the current Scene
-         * @readonly
-         * @type {*}
-         */
+        this._entities  = null;
         this.tilemap    = null;
     }
 
+
     /* METHODS */
 
+    /**
+     * Add a new entity into the scene
+     * @param {Object} entity: entity instance
+     * @param {number} x: position of the entity in x axis
+     * @param {number} y: position of the entity in y axis
+     * @param {{}=} settings: settings to add to the entity (will merge into props of entity)
+     * @param {number=} index: z index position of the entity
+     * @returns {Object} entity added
+     */
+    addEntity (entity, x, y, settings = {}, index) {
+        settings.x      = x;
+        settings.y      = y;
+        entity.scene    = this;
+        this._entities  = null;
+
+        return this.add(entity, settings, index);
+    }
 
     /**
-     * When tilemap change
-     * @param {*} tilemap: next Tilemap to render
-     * @returns {void|null} -
+     * Set a tilemap for the current scene
+     * @param {{}} data: data of the tilemap (generaly provided by a json file)
+     * @returns {Object} Tilemap instance
      */
-    setTilemap (tilemap) {
-        if (!tilemap) {
-            return null;
-        }
+    setTilemap (data) {
+        this.tilemap        = this.add(new Tilemap(), {}, 0);
+        this.tilemap.scene  = this;
 
-        const canvas    = document.createElement("canvas"),
-            ctx         = canvas.getContext("2d"),
-            image       = new Image();
+        this.tilemap.setData(data);
 
-        if (this.tilemap && this.tilemap.sprite) {
-            this._container.removeChild(this.tilemap.sprite);
-        }
-
-        this.tilemap        = tilemap;
-        this.tilemap.width  = 0;
-        this.tilemap.height = 0;
-
-        // Determine the size of the tilemap
-        this.tilemap.grid.visual.forEach(layer => layer.forEach(line => {
-            this.tilemap.width = line.length > this.tilemap.width ? line.length : this.tilemap.width;
-        }));
-
-        this.tilemap.width *= this.tilemap.tilewidth;
-        this.tilemap.height = this.tilemap.grid.visual[0].length * this.tilemap.tileheight;
-        canvas.width        = this.tilemap.width;
-        canvas.height       = this.tilemap.height;
-
-        // Load the tileset
-        image.onload = () => {
-
-            // Render the tilemap into the canvas
-            this.tilemap.grid.visual.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
-                ctx.drawImage(image,
-                    Math.floor(tile * this.tilemap.tilewidth) % image.width,
-                    Math.floor(tile * this.tilemap.tilewidth / image.width) * this.tilemap.tileheight,
-                    this.tilemap.tilewidth, this.tilemap.tileheight,
-                    x * this.tilemap.tilewidth, y * this.tilemap.tileheight,
-                    this.tilemap.tilewidth, this.tilemap.tileheight
-                );
-            })));
-
-            this.tilemap.sprite = PIXI.Sprite.from(canvas);
-
-            this._container.addChildAt(this.tilemap.sprite, 0);
-        };
-
-        image.src = this.tilemap.path;
+        return this.tilemap;
     }
+
+    /**
+     * Get all children instance of Entity
+     * @returns {Array<*>} array of all entities
+     */
+    getEntities () {
+        return this._entities || (this._entities = this.children.filter(child => child instanceof Entity));
+    }
+
+    /**
+     * Get entities from the scene in range
+     * @param {number} xmin: position x min
+     * @param {number} xmax: position x max
+     * @param {number} ymin: position y min
+     * @param {number} ymax: position y max
+     * @param {string=} id: string of the id of an entity to filter
+     * @returns {Array<Entity>} list of all entities in range
+     */
+    getEntitiesInRange (xmin, xmax, ymin, ymax, id) {
+        const entities = this.getEntities().
+            filter(entity => entity.props.x > (xmin - entity.props.width) && entity.props.x < xmax).
+            filter(entity => entity.props.y > (ymin - entity.props.height) && entity.props.y < ymax);
+
+        return id ? entities.filter(entity => id !== entity.id) : entities;
+    }
+
 }
