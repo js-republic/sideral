@@ -1,5 +1,4 @@
 const webpack   = require("webpack"),
-    entries     = require("./webpack.entries.json"),
     path        = require("path");
 
 
@@ -9,7 +8,9 @@ module.exports = {
         filename: "[name].js"
     },
 
-    entry: entries,
+    entry: {
+        "projects/balljammers/sideral":"./public/projects/balljammers/src"
+    },
 
     resolve: {
         extensions: ["", ".js", ".json", ".jsx"],

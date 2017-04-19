@@ -1,10 +1,12 @@
-import Engine from "src/Engine";
 import Scene from "src/Scene";
+import Game from "src/Game";
 
-import Player from "./Player";
 import Ball from "./Ball";
-import { ZoneGoal } from "./Zone";
-import tilemapArena from "./../tilemaps/arena";
+import Goal from "./Goal";
+
+import PlayerCat from "./Player/Cat";
+
+import tilemapGrass from "./../tilemaps/grass.json";
 
 
 export default class Arena extends Scene {
@@ -14,27 +16,87 @@ export default class Arena extends Scene {
     /**
      * @constructor
      */
-    initialize () {
-        super.initialize();
+    constructor () {
+        super();
 
-        this.spawnX     = 57;
-        this.player     = new Player();
-        this.enemy      = new Player();
-        this.ball       = new Ball();
+        this.setProps({
+            gravity : 500,
+            spawnX  : 100
+        });
 
-        this.setTilemap(tilemapArena);
-
-        this.compose(this.player, { debug: true, name: "player", x: this.spawnX, y: this.height / 2, onLeft: true, ball: this.ball }).
-            compose(this.enemy, { name: "enemy", x: this.width - this.spawnX, y: this.height / 2, onLeft: false }).
-            compose(this.ball, { x: 200, y: 100 }, ball => window.ball = ball).
-            compose(new ZoneGoal(), { x: 0, y: 32 }).
-            compose(new ZoneGoal(), { x: this.width - 32, y: 32 });
+        Game.bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Q), this.createAction(pressed => this.onPressLeft("left", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.D), this.createAction(pressed => this.onPressRight("left", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.Z), this.createAction(pressed => this.onPressJump("left", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_LEFT), this.createAction(pressed => this.onPressLeft("right", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_RIGHT), this.createAction(pressed => this.onPressRight("right", pressed))).
+            bind(Game.SIGNAL.KEY_PRESS(Game.KEY.ARROW_UP), this.createAction(pressed => this.onPressJump("right", pressed)));
     }
 
     /**
-     * @update
+     * @initialize
+     * @lifecycle
      * @override
      */
+    initialize (props) {
+        super.initialize(props);
+
+        this.setTilemap(tilemapGrass);
+        this.addEntity(new Ball(), 0, 0, { debug: true });
+        this.addEntity(new Goal(), this.props.width - 45, 320, { flip: true });
+        this.addEntity(new Goal(), 0, 320);
+
+        this.playerLeft     = this.addEntity(new PlayerCat(), this.props.spawnX, 320, { playerLeft: true, speed: 300 });
+        this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });
+
+        window.scene = this;
+    }
+
+
+    /* METHODS */
+
+    /**
+     * @event key left
+     * @param {string} playerSide: player left or right
+     * @param {boolean} pressed: if it is pressed
+     * @returns {void}
+     */
+    onPressLeft (playerSide, pressed) {
+        const player = playerSide === "left" ? this.playerLeft : this.playerRight;
+
+        if (player) {
+            player.moveLeft(pressed);
+        }
+    }
+
+    /**
+     * @event key right
+     * @param {string} playerSide: player left or right
+     * @param {boolean} pressed: if it is pressed
+     * @returns {void}
+     */
+    onPressRight (playerSide, pressed) {
+        const player = playerSide === "left" ? this.playerLeft : this.playerRight;
+
+        if (player) {
+            player.moveRight(pressed);
+        }
+    }
+
+    /**
+     * @event key jump
+     * @param {string} playerSide: player left or right
+     * @param {boolean} pressed: if it is pressed
+     * @returns {void}
+     */
+    onPressJump (playerSide, pressed) {
+        const player = playerSide === "left" ? this.playerLeft : this.playerRight;
+
+        if (player) {
+            player.jump(pressed);
+        }
+    }
+
+    /*
     update () {
         super.update();
 
@@ -62,4 +124,5 @@ export default class Arena extends Scene {
             player.attack();
         }
     }
+    */
 }

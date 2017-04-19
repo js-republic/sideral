@@ -1,36 +1,114 @@
-import Sprite from "src/Entity/Sprite";
+import Entity from "src/Entity";
+import Game from "src/Game";
 
 
-export default class Player extends Sprite {
+export default class Player extends Entity {
 
     /* LIFECYCLE */
 
+    /**
+     * @constructor
+     */
     constructor () {
         super();
 
-        this.size(30, 30);
-
-        this.name           = "player";
-        this.speed          = 250;
-        this.power          = 100;
-        this.hasAttacked    = 0;
-        this.attackCooldown = 0;
-        this.onLeft         = false;
-        this.offset         = {x: 17, y: 34};
-        this.doubleDash     = 0;
-        this.currentMove    = {x: 0, y: 0};
-        this.lastMove       = {x: 0, y: 0};
-
-        this.setSpritesheet("images/characters/chris.png", 64, 64);
+        this.setProps({
+            speed       : 250,
+            power       : 100,
+            jump        : 750,
+            doubleDash  : false,
+            doubleJump  : false,
+            mass        : Entity.MASS.SOLID,
+            vxFactor    : 0,
+            holdLeft    : false,
+            holdRight   : false
+        });
     }
 
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
-
-        this.x -= this.width / 2;
-        this.y -= this.height / 2;
     }
 
+    /**
+     * @override
+     */
+    updateVelocity () {
+        this.props.vx = this.props.vxFactor * this.props.speed;
+        super.updateVelocity();
+    }
+
+
+    /* METHODS */
+
+    /**
+     * @event key left
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    moveLeft (pressed) {
+        this.props.holdLeft = pressed;
+
+        if (pressed && !this.props.vxFactor) {
+            this.props.vxFactor = -1;
+
+        } else if ((pressed && this.props.vxFactor === 1) || (!pressed && this.props.vxFactor === -1)) {
+            this.props.vxFactor = 0;
+
+        } else if (!pressed && this.props.holdRight) {
+            this.props.vxFactor = 1;
+
+        }
+    }
+
+    /**
+     * @event key right
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    moveRight (pressed) {
+        this.props.holdRight = pressed;
+
+        if (pressed && !this.props.vxFactor) {
+            this.props.vxFactor = 1;
+
+        } else if ((pressed && this.props.vxFactor === -1) || (!pressed && this.props.vxFactor === 1)) {
+            this.props.vxFactor = 0;
+
+        } else if (!pressed && this.props.holdLeft) {
+            this.props.vxFactor = -1;
+
+        }
+    }
+
+    /**
+     * @event key jump
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    jump (pressed) {
+        if (pressed) {
+            // console.log(this.standing);
+        }
+
+        if (pressed && this.standing) {
+            this.props.vy = -Math.abs(this.props.jump);
+        }
+    }
+
+    /**
+     * stop the current movement of the player
+     * @returns {void}
+     */
+    idle () {
+        this.props.vx = 0;
+    }
+
+    /*
     update () {
         super.update();
 
@@ -40,7 +118,6 @@ export default class Player extends Sprite {
         this.vy = this.currentMove.y * this.speed * speedDash;
 
         if (this.doubleDash > 0) {
-            console.log("double dash");
             this.doubleDash--;
         }
 
@@ -66,14 +143,6 @@ export default class Player extends Sprite {
         }
     }
 
-    /* METHODS */
-
-    /**
-     * move function
-     * @param {number} factorX
-     * @param {number} factorY
-     * @returns {void}
-     */
     move (factorX = 0, factorY = 0) {
         if (this.currentMove.x || this.currentMove.y) {
             this.lastMove.x = this.currentMove.x;
@@ -82,7 +151,7 @@ export default class Player extends Sprite {
 
         this.currentMove = {x: factorX, y: factorY};
 
-        if (!this.doubleDash && !this._timers["dash"] && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
+        if (!this.doubleDash && !this._timers.dash && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
             this.doubleDash = 3;
             this.addTimer("dash", 30, () => this.lastMove = {x: 0, y: 0});
 
@@ -116,4 +185,11 @@ export default class Player extends Sprite {
             ball.vy = 0;
         }
     }
+    */
 }
+
+Player.SIDE = {
+    LEFT    : -1,
+    RIGHT   : 1,
+    NONE    : 0
+};

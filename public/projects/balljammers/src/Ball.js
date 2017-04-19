@@ -1,7 +1,7 @@
-import Sprite from "src/Entity/Sprite";
+import Entity from "src/Entity";
 
 
-export default class Ball extends Sprite {
+export default class Ball extends Entity {
 
     /* LIFECYCLE */
 
@@ -11,14 +11,16 @@ export default class Ball extends Sprite {
     constructor () {
         super();
 
-        this.name               = "ball";
-        this.visible            = false;
-        this.collision.mass     = this.collision.MASS.WEAK;
-        this.collision.bouncing = 1;
+        this.setProps({
+            mass            : Entity.MASS.WEAK,
+            bouncing        : 0.55,
+            width           : 32,
+            height          : 32,
+            fricX           : 100,
+            gravityFactor   : 1
+        });
 
-        this.size(32, 32);
-
-        this.setSpritesheet("images/ball.png", this.width, this.height);
+        this.addSprite("images/ball.png", this.props.width, this.props.height, { y: 5 });
     }
 
     /**
@@ -28,8 +30,8 @@ export default class Ball extends Sprite {
     initialize (props) {
         super.initialize(props);
 
-        this.pivx = 16;
-        this.pivy = 16;
+        // this.pivx = 16;
+        // this.pivy = 16;
 
         this.respawn();
     }
@@ -41,7 +43,8 @@ export default class Ball extends Sprite {
     update () {
         super.update();
 
-        this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
+        console.log(this.props.vx);
+        // this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
     }
 
     /**
@@ -60,13 +63,7 @@ export default class Ball extends Sprite {
     /* METHODS */
 
     respawn () {
-        const scene = this.getScene();
-
-        this.position(
-            (scene.width / 2) - 200 + Math.floor(Math.random() * 400),
-            (scene.height / 2) - 25 + Math.floor(Math.random() * 50)
-        );
-
-        this.velocity(0, 0);
+        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
+        this.props.vx = this.props.vy = 0;
     }
 }

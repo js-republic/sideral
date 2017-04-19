@@ -1,16 +1,8 @@
-import Engine from "src/Engine";
-import Keyboard from "src/Mixin/Keyboard";
+import Game from "src/Game";
 
 import Arena from "./Arena";
 
 
-Engine.set({
-    width       : 608,
-    height      : 332,
-    dom         : document.getElementById("sideral-app")
-}).start();
+window.game = Game.start(832, 576);
 
-Engine.mix(new Keyboard()).
-    compose(new Arena());
-
-window.Engine = Engine;
+Game.addScene(new Arena());
