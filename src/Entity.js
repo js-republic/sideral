@@ -20,6 +20,10 @@ export default class Entity extends AbstractModule {
             gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
+            fricX           : 0,
+            fricY           : 0,
+            accelX          : 0,
+            accelY          : 0,
             limit           : { vx: 2000, vy: 2000 },
             bouncing        : 0,
             mass            : Entity.MASS.WEAK,
@@ -58,22 +62,6 @@ export default class Entity extends AbstractModule {
     }
 
     /**
-     * Set a new velocity for the current entity
-     * @param {number=} vx: velocity in x axis
-     * @param {number=} vy: velocity in y axis
-     * @returns {void}
-     */
-    velocity (vx, vy) {
-        if (typeof vx !== "undefined") {
-            this.props.vx = vx;
-        }
-
-        if (typeof vy !== "undefined") {
-            this.props.vy = vy;
-        }
-    }
-
-    /**
      * Get vector to entity to target
      * @param {Entity} entity: the target
      * @returns {{x: number, y: number}} the vector
@@ -104,13 +92,25 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     updateVelocity () {
-        this.props.vy   = Math.min(this.props.limit.vy, Math.max(-this.props.limit.vy, this.props.vy));
-        this.props.vx   = Math.min(this.props.limit.vx, Math.max(-this.props.limit.vx, this.props.vx));
+        const { x, y, vx, vy, fricX, fricY, limit } = this.props,
+            resolveFriction = (vel, friction) => {
+                if (friction && vel) {
+                    const tendance  = Math.sign(vel),
+                        delta       = Math.abs(friction) * Game.tick * tendance;
 
-        const nextX     = this.props.x + (this.props.vx * Game.tick),
-            nextY       = this.props.y + (this.props.vy * Game.tick),
-            moveInX     = this.props.x !== nextX,
-            moveInY     = this.props.gravityFactor ? moveInX || this.hasChanged("x") || this.hasChanged("y") || (this.props.y !== nextY) || !this.collide.y : this.props.y !== nextY,
+                    return Math[tendance > 0 ? "max" : "min"](0, vel - delta);
+                }
+
+                return vel;
+            };
+
+        this.props.vx   = resolveFriction(Math.min(limit.vx, Math.max(-limit.vx, vx)), fricX);
+        this.props.vy   = resolveFriction(Math.min(limit.vy, Math.max(-limit.vy, vy)), fricY);
+
+        const nextX     = x + (vx * Game.tick),
+            nextY       = y + (vy * Game.tick),
+            moveInX     = x !== nextX,
+            moveInY     = this.props.gravityFactor ? moveInX || this.hasChanged("x") || this.hasChanged("y") || (y !== nextY) || !this.collide.y : y !== nextY,
             gravity     = this.scene.props.gravity * this.props.gravityFactor * Game.tick;
 
         if (moveInY) {
@@ -151,7 +151,7 @@ export default class Entity extends AbstractModule {
         }
 
         if (other.props.mass === Entity.MASS.SOLID) {
-            return 0;
+            shift = 0;
         }
 
         return shift;
@@ -174,6 +174,24 @@ export default class Entity extends AbstractModule {
         }
 
         return pEntity + (Math.abs(pTarget - pEntity) / (1 + (Math.abs(vTarget) / Math.abs(vEntity))));
+    }
+
+    resolveBouncing (target, axis) {
+        const bEntity   = this.props.bouncing,
+            bTarget     = target.props.bouncing,
+            vEntity     = this.props["v" + axis],
+            vTarget     = target.props["v" + axis],
+            vSign       = Math.sign(target.props[axis] - this.props[axis]);
+
+        if (bEntity && vTarget && Math.sign(vTarget) === vSign) {
+            this.props["v" + axis] = vTarget * bEntity;
+        }
+
+        if (bTarget && target.props.mass !== Entity.MASS.SOLID && Math.sign(vEntity) === vSign) {
+            target.props["v" + axis] = vEntity * bTarget;
+        }
+
+        return vEntity;
     }
 
     resolveMovement (nextX, nextY) {
@@ -201,18 +219,10 @@ export default class Entity extends AbstractModule {
             other           = this.scene.getEntitiesInRange(xmin, xmax, this.props.y, this.props.y + this.props.height, this.id).sort((a, b) => fromLeft ? a.props.x - b.props.x : b.props.x - a.props.x)[0];
 
         if (other && other.props.mass !== Entity.MASS.NONE && this.props.mass !== Entity.MASS.NONE) {
-            const velocityCollision = this.resolveCollision(other, "x");
+            const otherX    = other.resolveMovementX(other.props.x + this.resolveMass(other, fromLeft ? this.props.width + logic.value - other.props.x : logic.value - other.props.x - other.props.width));
 
-            if (isNaN(velocityCollision)) {
-                const otherX    = other.resolveMovementX(other.props.x + this.resolveMass(other, fromLeft ? this.props.width + logic.value - other.props.x : logic.value - other.props.x - other.props.width));
-
-                this.props.x    = (nextX = fromLeft ? otherX - this.props.width : otherX + other.props.width);
-
-            } else {
-                this.props.x    = fromLeft ? velocityCollision - this.props.width : velocityCollision;
-                other.props.x   = fromLeft ? this.props.x + this.props.width : this.props.x - other.props.width;
-                this.props.vx   = other.props.vx = 0;
-            }
+            this.props.x    = (nextX = fromLeft ? otherX - this.props.width : otherX + other.props.width);
+            this.resolveBouncing(other, "x");
 
         } else {
             this.props.x    = (nextX = logic.value);
@@ -234,25 +244,25 @@ export default class Entity extends AbstractModule {
             other           = this.scene.getEntitiesInRange(this.props.x, this.props.x + this.props.width, ymin, ymax, this.id).sort((a, b) => fromTop ? a.props.y - b.props.y : b.props.y - a.props.y)[0];
 
         if (other  && other.props.mass !== Entity.MASS.NONE && this.props.mass !== Entity.MASS.NONE) {
-            const velocityCollision = this.resolveCollision(other, "y");
+            const otherY    = other.resolveMovementY(other.props.y + this.resolveMass(other, fromTop ? this.props.height + logic.value - other.props.y : logic.value - other.props.y - other.props.height));
 
-            if (isNaN(velocityCollision)) {
-                const otherY    = other.resolveMovementY(other.props.y + this.resolveMass(other, fromTop ? this.props.height + logic.value - other.props.y : logic.value - other.props.y - other.props.height));
+            this.props.y    = (nextY = fromTop ? otherY - this.props.height : otherY + other.props.height);
+            this.resolveBouncing(other, "y");
 
-                this.props.y    = (nextY = fromTop ? otherY - this.props.height : otherY + other.props.height);
+            if (other.props.y < this.props.y) {
+                other.standing  = true;
 
             } else {
-                this.props.y    = fromTop ? velocityCollision - this.props.height : velocityCollision;
-                other.props.y   = fromTop ? this.props.y + this.props.height : this.props.y - other.props.height;
-                this.props.vy   = other.props.vy = 0;
+                this.standing   = true;
+
             }
 
         } else {
             this.props.y    = (nextY = logic.value);
         }
 
-        this.standing   = fromTop ? logic.collide || other : false;
-        this.props.vy   = this.standing ? 0 : this.props.vy;
+        this.standing   = fromTop ? logic.collide || Boolean(other) : false;
+        this.props.vy   = this.standing ? Math.max(0, this.props.vy) : this.props.vy;
 
         return nextY;
     }

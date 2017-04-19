@@ -316,6 +316,7 @@ describe("Physic and collision test of entity", () => {
         expect(entity.props.y).toBe(target.props.y + target.props.height);
     });
 
+    /*
     it("should replace two entities into the middle of theirs movement", () => {
         entity.props.mass = target.props.mass = Entity.MASS.WEAK;
         entity.props.vx = 100;
@@ -369,6 +370,6 @@ describe("Physic and collision test of entity", () => {
         expect(Math.floor(entity.props.y)).toBe(204);
         expect(Math.floor(target.props.y)).toBe(300 - 86);
     });
-
+    */
 
 });
