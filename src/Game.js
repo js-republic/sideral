@@ -67,11 +67,12 @@ class Game extends AbstractClass {
         requestAnimationFrame(this.update.bind(this));
 
         // 100ms latency max
-        this.latency    = Math.min(performance - this.lastUpdate, 100);
+        this.latency    = Math.max(0, Math.min(performance - this.lastUpdate, 100));
         this.fps        = Math.floor(1000 / this.latency);
         this.tick       = 1000 / (this.fps * 1000);
         this.tick       = this.tick < 0 ? 0 : this.tick;
 
+        console.log(this.latency);
         this._updateInputs();
 
         this.children.forEach(scene => scene.update());

@@ -35,7 +35,6 @@
         "complexity": "error",
         "computed-property-spacing": "error",
         "curly": "error",
-        "dot-location": "error",
         "dot-notation": "error",
         "eol-last": "error",
         "eqeqeq": "error",

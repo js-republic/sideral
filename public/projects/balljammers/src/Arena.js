@@ -20,7 +20,7 @@ export default class Arena extends Scene {
         super();
 
         this.setProps({
-            gravity : 500,
+            gravity : 1,
             spawnX  : 100
         });
 

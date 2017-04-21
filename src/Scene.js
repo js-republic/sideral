@@ -1,3 +1,5 @@
+import p2 from "p2";
+
 import AbstractClass from "./Abstract/AbstractClass";
 import Tilemap from "./Module/Tilemap";
 import Game from "./Game";
@@ -23,6 +25,26 @@ export default class Scene extends AbstractClass {
 
         this._entities  = null;
         this.tilemap    = null;
+        this.world      = new p2.World({ gravity: [0, 0] });
+
+        this.bind(this.SIGNAL.VALUE_CHANGE("gravity"), this.createAction(this.onGravityChange));
+    }
+
+    initialize (props) {
+        super.initialize(props);
+
+        this.onGravityChange();
+    }
+
+    /**
+     * @update
+     * @lifecycle
+     * @override
+     */
+    update () {
+        super.update();
+
+        this.world.step(Game.latency);
     }
 
 
@@ -42,6 +64,8 @@ export default class Scene extends AbstractClass {
         settings.y      = y;
         entity.scene    = this;
         this._entities  = null;
+
+        this.world.addBody(entity.body);
 
         return this.add(entity, settings, index);
     }
@@ -85,4 +109,14 @@ export default class Scene extends AbstractClass {
         return id ? entities.filter(entity => id !== entity.id) : entities;
     }
 
+
+    /* EVENTS */
+
+    /**
+     * When gravity property change
+     * @returns {void}
+     */
+    onGravityChange () {
+        this.world.gravity = [0, -Math.abs(this.props.gravity)];
+    }
 }

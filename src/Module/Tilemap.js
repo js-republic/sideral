@@ -1,3 +1,5 @@
+import p2 from "p2";
+
 import AbstractModule from "./../Abstract/AbstractModule";
 
 
@@ -16,6 +18,7 @@ export default class Tilemap extends AbstractModule {
             tileheight  : 0
         });
 
+        this.bodies                 = [];
         this.grid                   = {};
         this.gridContainer          = null;
         this.backgroundContainers   = [];
@@ -61,6 +64,7 @@ export default class Tilemap extends AbstractModule {
         loader.load((currentLoader, resources) => {
             this._loadBackgrounds(data.backgrounds, resources);
             this._loadGrids(data.grid, data.path);
+            this._loadLogic(data.grid.logic);
             this._loadDecorators(data.decorators, resources);
         });
     }
@@ -201,6 +205,70 @@ export default class Tilemap extends AbstractModule {
         };
 
         image.src = path;
+    }
+
+    /**
+     * Create a body with all logic
+     * @private
+     * @param {*} logic: logic data
+     * @returns {void}
+     */
+    _loadLogic (logic) {
+        const items = [],
+            { tilewidth, tileheight } = this.props,
+            getDuplicateItems = (array, value, index = 0) => {
+                let length = 0;
+
+                array.some((v, i, arr) => {
+                    if (i === arr.length - 1 && v === value) {
+                        length = i - index + 1;
+
+                        return true;
+                    } else if (i < index || v === value) {
+                        return false;
+                    }
+
+                    length = i - index;
+
+                    return true;
+                });
+
+                return length;
+            };
+
+        this.bodies.forEach(body => this.scene.world.removeBody(body));
+        this.bodies = [];
+
+        logic.forEach((line, y) => {
+            const currentLine   = [];
+
+            let currentIndex    = 0,
+                nextIndex       = -1;
+
+            do {
+                nextIndex = line.indexOf(1, currentIndex);
+
+                if (nextIndex > -1) {
+                    const length = getDuplicateItems(line, 1, nextIndex);
+
+                    currentLine.push({ x: nextIndex * tilewidth, y: y * tileheight, width: length * tilewidth, height: tileheight });
+                    currentIndex = nextIndex + length + 1;
+                }
+            } while (nextIndex !== -1);
+
+            items.push(currentLine);
+        });
+
+        this.bodies = items.map(item => {
+            const shape = new p2.Box({ width: item.width, height: item.height }),
+                body    = new p2.Body({ mass: 0, position: [item.x, item.y] });
+
+            body.addShape(shape);
+
+            return body;
+        });
+
+        this.bodies.forEach(body => this.scene.world.addBody(body));
     }
 
     /**

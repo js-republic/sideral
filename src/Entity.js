@@ -1,3 +1,5 @@
+import p2 from "p2";
+
 import AbstractModule from "./Abstract/AbstractModule";
 
 import Shape from "./Module/Shape";
@@ -30,6 +32,8 @@ export default class Entity extends AbstractModule {
             debug           : false
         });
 
+        this.body       = new p2.Body({ mass: 1 });
+        this.bodyShape  = new p2.Box({ width: this.props.width, height: this.props.height });
         this.standing   = false;
         this.moving     = false;
         this.scene      = null;
@@ -37,8 +41,21 @@ export default class Entity extends AbstractModule {
 
         this._debug     = null;
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange)).
-            bind(this.SIGNAL.UPDATE(), this.createAction(this.updateVelocity));
+        this.body.addShape(this.bodyShape);
+
+        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange))
+            .bind(this.SIGNAL.UPDATE(), this.createAction(this.updateVelocity));
+    }
+
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
+    initialize (props) {
+        super.initialize(props);
+
+        this.body.position = [this.props.x, this.props.y];
     }
 
 
@@ -85,6 +102,27 @@ export default class Entity extends AbstractModule {
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
         }
+
+        if (this.bodyShape) {
+            this.bodyShape.width    = this.props.width;
+            this.bodyShape.height   = this.props.height;
+        }
+    }
+
+    /**
+     * Event triggered when the current entity enter in collision with another entity
+     * @param {*} entity: target entity (instance of Sideral Entity class)
+     * @returns {void}
+     */
+    onCollisionWith (entity) {
+
+    }
+
+    /**
+     * @override
+     */
+    onPositionChange () {
+        super.onPositionChange();
     }
 
     /**
@@ -92,6 +130,13 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     updateVelocity () {
+        // this.props.x += this.props.vx * Game.tick;
+        // this.props.y += this.props.vy * Game.tick;
+
+        this.props.x = this.body.position[0];
+        this.props.y = this.body.position[1];
+
+        /*
         const { x, y, vx, vy, fricX, fricY, limit } = this.props,
             resolveFriction = (vel, friction) => {
                 if (friction && vel) {
@@ -127,15 +172,8 @@ export default class Entity extends AbstractModule {
         } else if (moveInX && moveInY) {
             this.resolveMovement(nextX, nextY + gravity);
 
-        }
+        }*/
     }
-
-    /**
-     * Event triggered when the current entity enter in collision with another entity
-     * @param {*} entity: target entity (instance of Sideral Entity class)
-     * @returns {void}
-     */
-    onCollisionWith (entity) { }
 
     /**
      * Resolve logic of physic when entity enter in collision with an other entity
@@ -277,7 +315,6 @@ export default class Entity extends AbstractModule {
 
         return this.props.mass * Math.sqrt((x * x) + (y * y));
     }
-
 
     /* PRIVATE */
 
