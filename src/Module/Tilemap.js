@@ -1,6 +1,7 @@
 import p2 from "p2";
 
 import AbstractModule from "./../Abstract/AbstractModule";
+import Shape from "./Shape";
 
 
 export default class Tilemap extends AbstractModule {
@@ -15,14 +16,18 @@ export default class Tilemap extends AbstractModule {
 
         this.setProps({
             tilewidth   : 0,
-            tileheight  : 0
+            tileheight  : 0,
+            debug       : false
         });
 
         this.bodies                 = [];
+        this._debugs                = [];
         this.grid                   = {};
         this.gridContainer          = null;
         this.backgroundContainers   = [];
         this.decoratorContainers    = [];
+
+        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange));
     }
 
 
@@ -74,7 +79,7 @@ export default class Tilemap extends AbstractModule {
      * @returns {void}
      */
     removeData () {
-        [].concat(this.gridContainer || [], this.backgroundContainers, this.decoratorContainers).forEach(container => {
+        [].concat(this.gridContainer || [], this.backgroundContainers, this.decoratorContainers).forEach(container => {
             this.container.removeChild(container);
             container.destroy(true);
         });
@@ -214,8 +219,9 @@ export default class Tilemap extends AbstractModule {
      * @returns {void}
      */
     _loadLogic (logic) {
-        const items = [],
-            { tilewidth, tileheight } = this.props,
+        let items = [];
+
+        const { tilewidth, tileheight } = this.props,
             getDuplicateItems = (array, value, index = 0) => {
                 let length = 0;
 
@@ -256,7 +262,7 @@ export default class Tilemap extends AbstractModule {
                 }
             } while (nextIndex !== -1);
 
-            items.push(currentLine);
+            items = items.concat(currentLine);
         });
 
         this.bodies = items.map(item => {
@@ -323,5 +329,32 @@ export default class Tilemap extends AbstractModule {
             return decoratorContainer;
 
         }).forEach(decoratorContainer => this.container.addChild(decoratorContainer));
+    }
+
+
+    /* EVENTS */
+
+    /**
+     * when debug attributes change
+     * @return {void}
+     */
+    _onDebugChange () {
+        this._debugs.forEach(_debug => _debug.kill());
+
+        if (this.props.debug) {
+            this._debugs = this.bodies.map(body => {
+                const shape = body.shapes[0];
+
+                return this.add(new Shape(), {
+                    x       : body.position[0],
+                    y       : body.position[1],
+                    type    : Shape.TYPE.RECTANGLE,
+                    width   : shape.width,
+                    height  : shape.height,
+                    stroke  : "#FF0000",
+                    fill    : "transparent"
+                });
+            });
+        }
     }
 }

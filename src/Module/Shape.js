@@ -23,7 +23,6 @@ export default class Shape extends AbstractModule {
         this.bind(this.SIGNAL.VALUE_CHANGE(["type", "fill", "stroke"]), this.createAction(this._updateShape));
     }
 
-
     /* EVENTS */
 
     onSizeChange () {
@@ -59,13 +58,11 @@ export default class Shape extends AbstractModule {
      */
     _drawShape () {
         const withStroke = this.props.stroke !== "transparent",
-            x = withStroke ? this.props.x + 1 : this.props.x,
-            y = withStroke ? this.props.y + 1 : this.props.y,
             width = withStroke ? this.props.width - 1 : this.props.width,
             height = withStroke ? this.props.height - 1 : this.props.height;
 
         switch (this.props.type) {
-        default: this.container.drawRect(x, y, width, height);
+        default: this.container.drawRect(0, 0, width, height);
             break;
         }
     }

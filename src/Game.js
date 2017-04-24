@@ -72,7 +72,6 @@ class Game extends AbstractClass {
         this.tick       = 1000 / (this.fps * 1000);
         this.tick       = this.tick < 0 ? 0 : this.tick;
 
-        console.log(this.latency);
         this._updateInputs();
 
         this.children.forEach(scene => scene.update());

@@ -32,8 +32,8 @@ export default class Entity extends AbstractModule {
             debug           : false
         });
 
-        this.body       = new p2.Body({ mass: 1 });
         this.bodyShape  = new p2.Box({ width: this.props.width, height: this.props.height });
+        this.body       = new p2.Body({ mass: 1 });
         this.standing   = false;
         this.moving     = false;
         this.scene      = null;
@@ -55,7 +55,21 @@ export default class Entity extends AbstractModule {
     initialize (props) {
         super.initialize(props);
 
-        this.body.position = [this.props.x, this.props.y];
+        this.bodyShape  = new p2.Box({ width: this.props.width, height: this.props.height });
+        this.body       = new p2.Body({ mass: 1, position: [this.props.x, this.props.y] });
+    }
+
+    /**
+     * @kill
+     * @lifecycle
+     * @override
+     */
+    kill () {
+        super.kill();
+
+        if (this.body) {
+            this.scene.world.removeBody(this.body);
+        }
     }
 
 
@@ -106,6 +120,7 @@ export default class Entity extends AbstractModule {
         if (this.bodyShape) {
             this.bodyShape.width    = this.props.width;
             this.bodyShape.height   = this.props.height;
+            console.log(this.bodyShape.width, this.bodyShape.height);
         }
     }
 
@@ -336,7 +351,7 @@ export default class Entity extends AbstractModule {
                 height  : this.props.height,
                 stroke  : "#FF0000",
                 fill    : "transparent"
-            }, 0);
+            });
         }
     }
 

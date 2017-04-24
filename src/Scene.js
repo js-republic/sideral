@@ -44,7 +44,7 @@ export default class Scene extends AbstractClass {
     update () {
         super.update();
 
-        this.world.step(Game.latency);
+        this.world.step(Game.tick);
     }
 
 
@@ -65,9 +65,13 @@ export default class Scene extends AbstractClass {
         entity.scene    = this;
         this._entities  = null;
 
-        this.world.addBody(entity.body);
+        const entityCreated = this.add(entity, settings, index);
 
-        return this.add(entity, settings, index);
+        if (entityCreated.body) {
+            this.world.addBody(entityCreated.body);
+        }
+
+        return entityCreated;
     }
 
     /**
@@ -117,6 +121,6 @@ export default class Scene extends AbstractClass {
      * @returns {void}
      */
     onGravityChange () {
-        this.world.gravity = [0, -Math.abs(this.props.gravity)];
+        this.world.gravity = [0, this.props.gravity];
     }
 }
