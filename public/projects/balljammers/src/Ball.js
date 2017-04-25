@@ -43,6 +43,7 @@ export default class Ball extends Entity {
     update () {
         super.update();
 
+        // console.log(this.props.x, this.props.y, this.props.angle, this.body.angle);
         // this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
     }
 

@@ -267,7 +267,7 @@ export default class Tilemap extends AbstractModule {
 
         this.bodies = items.map(item => {
             const shape = new p2.Box({ width: item.width, height: item.height }),
-                body    = new p2.Body({ mass: 0, position: [item.x, item.y] });
+                body    = new p2.Body({ mass: 0, gravityScale: 0, fixedX: true, fixedY: true, position: [item.x, item.y] });
 
             body.addShape(shape);
 

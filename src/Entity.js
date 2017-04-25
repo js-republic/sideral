@@ -28,12 +28,11 @@ export default class Entity extends AbstractModule {
             accelY          : 0,
             limit           : { vx: 2000, vy: 2000 },
             bouncing        : 0,
+            angle           : 0,
             mass            : Entity.MASS.WEAK,
             debug           : false
         });
 
-        this.bodyShape  = new p2.Box({ width: this.props.width, height: this.props.height });
-        this.body       = new p2.Body({ mass: 1 });
         this.standing   = false;
         this.moving     = false;
         this.scene      = null;
@@ -41,9 +40,9 @@ export default class Entity extends AbstractModule {
 
         this._debug     = null;
 
-        this.body.addShape(this.bodyShape);
-
         this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange))
+            .bind(this.SIGNAL.VALUE_CHANGE("angle"), this.createAction(this.onAngleChange))
+            .bind(this.SIGNAL.VALUE_CHANGE("mass"), this.createAction(this.onMassChange))
             .bind(this.SIGNAL.UPDATE(), this.createAction(this.updateVelocity));
     }
 
@@ -56,7 +55,9 @@ export default class Entity extends AbstractModule {
         super.initialize(props);
 
         this.bodyShape  = new p2.Box({ width: this.props.width, height: this.props.height });
-        this.body       = new p2.Body({ mass: 1, position: [this.props.x, this.props.y] });
+        this.body       = new p2.Body({ mass: this.props.mass, position: [this.props.x, this.props.y] });
+
+        this.body.addShape(this.bodyShape);
     }
 
     /**
@@ -113,6 +114,9 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     onSizeChange () {
+        this.container.pivot.x = this.width / 2;
+        this.container.pivot.y = this.height / 2;
+
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
         }
@@ -120,7 +124,6 @@ export default class Entity extends AbstractModule {
         if (this.bodyShape) {
             this.bodyShape.width    = this.props.width;
             this.bodyShape.height   = this.props.height;
-            console.log(this.bodyShape.width, this.bodyShape.height);
         }
     }
 
@@ -141,6 +144,45 @@ export default class Entity extends AbstractModule {
     }
 
     /**
+     * When angle attribute change
+     * @returns {void}
+     */
+    onAngleChange () {
+        this.container.rotation = this.props.angle * Math.PI / 180;
+    }
+
+    /**
+     * When mass attribute change
+     * @returns {void}
+     */
+    onMassChange () {
+        this.body.mass = this.props.mass;
+        this.body.updateMassProperties();
+    }
+
+    /**
+     * When "debug" attribute change
+     * @private
+     * @returns {void}
+     */
+    _onDebugChange () {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+        }
+
+        if (this.props.debug) {
+            this._debug = this.add(new Shape(), {
+                type    : Shape.TYPE.RECTANGLE,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            });
+        }
+    }
+
+    /**
      * When vx or vy attributes change
      * @returns {void}
      */
@@ -148,8 +190,9 @@ export default class Entity extends AbstractModule {
         // this.props.x += this.props.vx * Game.tick;
         // this.props.y += this.props.vy * Game.tick;
 
-        this.props.x = this.body.position[0];
-        this.props.y = this.body.position[1];
+        this.props.x        = this.body.interpolatedPosition[0];
+        this.props.y        = this.body.interpolatedPosition[1];
+        this.props.angle    = this.body.interpolatedAngle * 180 / Math.PI;
 
         /*
         const { x, y, vx, vy, fricX, fricY, limit } = this.props,
@@ -329,30 +372,6 @@ export default class Entity extends AbstractModule {
             y   = (this.props.y + (this.props.height / 2)) - (this.props.y + (this.props.vy * Game.tick));
 
         return this.props.mass * Math.sqrt((x * x) + (y * y));
-    }
-
-    /* PRIVATE */
-
-    /**
-     * When "debug" attribute change
-     * @private
-     * @returns {void}
-     */
-    _onDebugChange () {
-        if (this._debug) {
-            this._debug.kill();
-            this._debug = null;
-        }
-
-        if (this.props.debug) {
-            this._debug = this.add(new Shape(), {
-                type    : Shape.TYPE.RECTANGLE,
-                width   : this.props.width,
-                height  : this.props.height,
-                stroke  : "#FF0000",
-                fill    : "transparent"
-            });
-        }
     }
 
 

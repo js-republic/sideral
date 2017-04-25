@@ -42,8 +42,8 @@ export default class Arena extends Scene {
 
         this.setTilemap(tilemapGrass);
         this.addEntity(new Ball(), 0, 0, { debug: true });
-        this.addEntity(new Goal(), this.props.width - 45, 318, { flip: true, debug: true });
-        this.addEntity(new Goal(), 0, 318, { debug: true });
+        // this.addEntity(new Goal(), this.props.width - 45, 448 - 130, { flip: true, debug: true });
+        this.addEntity(new Goal(), 0, 448 - 130, { debug: true });
 
         this.playerLeft     = this.addEntity(new PlayerCat(), this.props.spawnX, 320, { playerLeft: true, speed: 300 });
         this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });

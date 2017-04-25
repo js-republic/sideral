@@ -30,6 +30,11 @@ export default class Scene extends AbstractClass {
         this.bind(this.SIGNAL.VALUE_CHANGE("gravity"), this.createAction(this.onGravityChange));
     }
 
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
 
@@ -44,7 +49,7 @@ export default class Scene extends AbstractClass {
     update () {
         super.update();
 
-        this.world.step(Game.tick);
+        this.world.step(1 / 60, Game.latency, 3);
     }
 
 
