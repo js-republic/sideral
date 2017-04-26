@@ -1,3 +1,6 @@
+import Game from "./../Game";
+
+
 export default class Util {
 
     /* STATICS */
@@ -30,6 +33,44 @@ export default class Util {
                 func(...arguments);
             }
         };
+    }
+
+    /**
+     * Convert degree to radians
+     * @param {number} degree: number of degree
+     * @returns {number} number of radians
+     */
+    static toRadians (degree) {
+        return degree * Math.PI / 180;
+    }
+
+    /**
+     * Convert radians to degree
+     * @param {number} radians: number of radians
+     * @returns {number} number of degrees
+     */
+    static toDegree (radians) {
+        return radians * 180 / Math.PI;
+    }
+
+    /**
+     * Ensure that the value is more than min and less than max
+     * @param {number} value: number value
+     * @param {number} min: number min
+     * @param {number} max: number max
+     * @returns {number} the value limited
+     */
+    static limit (value, min, max) {
+        Math.max(min, Math.min(max, value));
+    }
+
+    /**
+     * Convert a frame to milliseconds
+     * @param {number} frame: number of frames
+     * @returns {number} number of milliseconds
+     */
+    static frameToMs (frame) {
+        return frame / Game.fps;
     }
 
     /**

@@ -30,11 +30,11 @@ class Game extends AbstractClass {
         this.lastUpdate = 0;
         this.stopped    = true;
 
-        this.SIGNAL.KEY_PRESS = property => new Signal("KEY_PRESS", property);
+        this.signals.keyPress = new Signal();
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("dom"), this.createAction(this._attachGame)).
-            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this.createAction(this._resizeGame)).
-            bind(this.SIGNAL.VALUE_CHANGE("background"), this.createAction(this._backgroundChange));
+        this.signals.propChange.bind("dom", this._attachGame.bind(this));
+        this.signals.propChange.bind(["width", "height"], this._resizeGame.bind(this));
+        this.signals.propChange.bind("background", this._backgroundChange.bind(this));
 
         window.addEventListener("keydown", this._onKeydown.bind(this));
         window.addEventListener("keyup", this._onKeyup.bind(this));
@@ -67,7 +67,7 @@ class Game extends AbstractClass {
         requestAnimationFrame(this.update.bind(this));
 
         // 100ms latency max
-        this.latency    = Math.max(0, Math.min(performance - this.lastUpdate, 100));
+        this.latency    = Util.limit(performance - this.lastUpdate, 0, 100);
         this.fps        = Math.floor(1000 / this.latency);
         this.tick       = 1000 / (this.fps * 1000);
         this.tick       = this.tick < 0 ? 0 : this.tick;
@@ -168,7 +168,7 @@ class Game extends AbstractClass {
 
                 } else if (input !== HOLD) {
                     this.inputs[key] = PRESSED;
-                    this.trigger(this.SIGNAL.KEY_PRESS(key), true);
+                    this.signals.keyPress.dispatch(key, true);
 
                 }
 
@@ -183,7 +183,7 @@ class Game extends AbstractClass {
 
                 } else {
                     this.inputs[key] = RELEASED;
-                    this.trigger(this.SIGNAL.KEY_PRESS(key), false);
+                    this.signals.keyPress.dispatch(key, false);
 
                 }
             }

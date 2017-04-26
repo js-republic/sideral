@@ -1,64 +1,41 @@
-export default class Signal {
+import Signals from "signals";
+
+export default class Signal extends Signals {
 
     /**
      * @constructor
-     * @param {string} name: name of the signal
-     * @param {Array<*>|*=} properties: property or array of properties
-     * @param {function=} onTrigger: event when the signal is triggered
      */
-    constructor (name, properties, onTrigger) {
-        this.properties = [].concat(properties || []);
-        this.onTrigger  = onTrigger;
-        this.name       = name;
-        this.triggered  = false;
+    constructor () {
+        super();
 
-        this.actions    = [];
+        this.keysBound = [];
     }
 
     /**
-     * Call all actions with the value passed in parameters
-     * @param {*} value: value to pass to actions
-     * @returns {void}
+     * Bind a listener when signal dispatch a key
+     * @param {string|Array<string>} key: key to bind the listener
+     * @param {Function} listener: Signal handler function
+     * @returns {*} An Object representing the binding between the Signal and listener
      */
-    callActions (value) {
-        this.actions.forEach(action => action.method(value));
-    }
+    bind (key, listener) {
+        const keys = [].concat(key);
 
-    /**
-     * Function to trigger the signal
-     * @param {*} value: value to triggered
-     * @returns {void|null} -
-     */
-    trigger (value) {
-        if (this.triggered) {
-            return null;
-        }
+        this.keysBound.push(keys);
 
-        if (this.onTrigger) {
-            this.onTrigger(this, value);
-
-        } else {
-            this.callActions(value);
-
-        }
-
-        this.triggered = true;
-    }
-
-    /**
-     * Check if properties match with the properties of the signal
-     * @param {Array<*>|*} properties: properties to check
-     * @returns {boolean} has matched with the properties of the signal
-     */
-    hasProperties (properties) {
-        let hasMatched = false;
-
-        properties.forEach(property => {
-            if (this.properties.find(x => x === property)) {
-                hasMatched = true;
+        return this.add(function addListener (listenerKey) {
+            if (keys.find(currentKey => currentKey === listenerKey)) {
+                listener(...[].slice.call(arguments, 1));
             }
         });
+    }
 
-        return hasMatched || (properties.length === this.properties.length && this.properties.length === 0);
+    /**
+     * Dispatch all listener (even with listener linked to a key)
+     * @returns {void}
+     */
+    dispatchAll () {
+        this.dispatch();
+
+        this.keysBound.forEach(keys => this.dispatch(keys[0]));
     }
 }

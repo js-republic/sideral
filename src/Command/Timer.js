@@ -137,10 +137,3 @@ export default class Timer {
         this.finished = false;
     }
 }
-
-
-Timer.toMs = (frame) => {
-    "use strict";
-
-    return frame / Game.fps;
-};

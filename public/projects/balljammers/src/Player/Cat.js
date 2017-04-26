@@ -11,7 +11,11 @@ export default class PlayerCat extends Player {
     constructor () {
         super();
 
-        this.size(25, 45);
+        this.setProps({
+            width: 25,
+            height: 45,
+            debug: true
+        });
     }
 
     /**
@@ -22,7 +26,6 @@ export default class PlayerCat extends Player {
     initialize (props) {
         super.initialize(props);
 
-        this.props.debug = true;
         this.spritesheet = this.addSprite("images/characters/cat.png", 65, 65, { x: -15, y: -7 });
     }
 
@@ -30,7 +33,7 @@ export default class PlayerCat extends Player {
         super.update();
 
         if (this.props.playerLeft) {
-            // console.log(this.body.position);
+            // console.log(thisthis.body.position[1]);
         }
     }
 }

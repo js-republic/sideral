@@ -31,9 +31,12 @@ export default class AbstractClass {
 
         /**
          * Slots for signals
-         * @type {Array<Signal>}
+         * @type {*}
          */
-        this.signals    = [];
+        this.signals    = {
+            update      : new Signal(),
+            propChange  : new Signal()
+        };
 
         /**
          * Children of AbstractClass
@@ -58,15 +61,6 @@ export default class AbstractClass {
          * @type {*}
          */
         this.container  = new PIXI.Container();
-
-        /**
-         * List of all signals of the class
-         * @type {{}}
-         */
-        this.SIGNAL     = {
-            VALUE_CHANGE    : properties    => new Signal("VALUE_CHANGE", properties),
-            UPDATE          : ()            => new Signal("UPDATE")
-        };
     }
 
     /**
@@ -85,6 +79,8 @@ export default class AbstractClass {
      * @returns {void}
      */
     kill () {
+        Object.keys(this.signals).forEach(key => this.signals[key].removeAll());
+
         this.children.forEach(child => child.kill());
 
         if (this.container) {
@@ -99,7 +95,7 @@ export default class AbstractClass {
      */
     update () {
         this.children.forEach(child => child.update());
-        this.trigger(this.SIGNAL.UPDATE());
+        this.signals.update.dispatch();
 
         this.timers.forEach(timer => timer.update());
         this.timers = this.timers.filter(timer => !timer.finished);
@@ -115,14 +111,11 @@ export default class AbstractClass {
 
         Object.keys(this.props).forEach(key => {
             if (this.props[key] !== this.last[key]) {
-                this.trigger(this.SIGNAL.VALUE_CHANGE(key), this.props[key]);
+                this.signals.propChange.dispatch(key, this.props[key]);
             }
 
             this.last[key] = this.props[key];
         });
-
-        // reset trigger of signals
-        this.signals.forEach(signal => signal.triggered = false);
     }
 
 
@@ -206,85 +199,6 @@ export default class AbstractClass {
         this.timers.push(timer);
 
         return timer;
-    }
-
-    /**
-     * Bind a signal to an action
-     * @param {Signal} signal: Signal to bind
-     * @param {*} action: action to bind into the Signal
-     * @returns {*} Current object
-     */
-    bind (signal, action) {
-        if (!action.id && !action.method) {
-            throw new Error(`Error bind for Signal with name ${signal.name} : action must be created with 'createAction' method.`);
-        }
-
-        let currentSignal = this.findSignal(signal.name, signal.properties);
-
-        if (!currentSignal) {
-            currentSignal = signal;
-            this.signals.push(currentSignal);
-        }
-
-        currentSignal.actions.push(action);
-
-        return this;
-    }
-
-    /**
-     * Unbind an action from a signal
-     * @param {Signal} signal: Signal target
-     * @param {*} action: action to unbind into the Signal
-     * @returns {*} Current object
-     */
-    unbind (signal, action) {
-        if (!action.id && !action.method) {
-            throw new Error(`Error bind for Signal with name ${signal.name} : action must be created with 'createAction' method.`);
-        }
-
-        const currentSignal = this.findSignal(signal.name, signal.properties);
-
-        if (currentSignal) {
-            currentSignal.actions = currentSignal.actions.filter(x => !(x.method.toString() === action.method.toString() && x.id === action.id));
-        }
-
-        return this;
-    }
-
-    /**
-     * Create an action for a bind
-     * @param {*} method: method to bind
-     * @returns {{id: string, action: *}} object action
-     */
-    createAction (method) {
-        return {
-            id      : this.id,
-            method  : method.hasOwnProperty("prototype") ? method.bind(this) : method
-        };
-    }
-
-    /**
-     * Find a signal of signal by the name of a signal and properties
-     * @param {string} signalName: name of the signal
-     * @param {Array<*>} properties: array of properties
-     * @returns {Signal} the signal
-     */
-    findSignal (signalName, properties) {
-        return this.signals.find(signal => signal.name === signalName && signal.hasProperties(properties));
-    }
-
-    /**
-     * Trigger a signal
-     * @param {Signal} signalReference: signal to trigger
-     * @param {*=} value: value of the changement
-     * @returns {void}
-     */
-    trigger (signalReference, value) {
-        const signal = this.findSignal(signalReference.name, signalReference.properties);
-
-        if (signal) {
-            signal.trigger(value);
-        }
     }
 
     /**

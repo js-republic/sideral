@@ -27,7 +27,7 @@ export default class Scene extends AbstractClass {
         this.tilemap    = null;
         this.world      = new p2.World({ gravity: [0, 0] });
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("gravity"), this.createAction(this.onGravityChange));
+        this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
 
     /**

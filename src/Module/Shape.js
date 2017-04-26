@@ -20,14 +20,19 @@ export default class Shape extends AbstractModule {
 
         this.container = new PIXI.Graphics();
 
-        this.bind(this.SIGNAL.VALUE_CHANGE(["type", "fill", "stroke"]), this.createAction(this._updateShape));
+        this.signals.propChange.bind(["type", "fill", "strok"], this._updateShape.bind(this));
     }
+
 
     /* EVENTS */
 
+    /**
+     * @override
+     */
     onSizeChange () {
         this._updateShape();
     }
+
 
     /* PRIVATE */
 
