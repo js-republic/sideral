@@ -15,7 +15,7 @@ export default class Player extends Entity {
         this.setProps({
             speed       : 250,
             power       : 100,
-            jump        : 750,
+            jump        : 150,
             doubleDash  : false,
             doubleJump  : false,
             mass        : Entity.MASS.SOLID,
@@ -35,11 +35,14 @@ export default class Player extends Entity {
     }
 
     /**
+     * @update
+     * @lifecycle
      * @override
      */
-    updateVelocity () {
+    update () {
         this.props.vx = this.props.vxFactor * this.props.speed;
-        super.updateVelocity();
+
+        super.update();
     }
 
 
@@ -95,8 +98,9 @@ export default class Player extends Entity {
             // console.log(this.standing);
         }
 
-        if (pressed && this.standing) {
+        if (pressed) {
             this.props.vy = -Math.abs(this.props.jump);
+
         }
     }
 

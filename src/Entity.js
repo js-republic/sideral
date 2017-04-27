@@ -162,11 +162,11 @@ export default class Entity extends AbstractModule {
      */
     onVelocityChange () {
         if (this.props.vx !== this.last.vx) {
-            // this.body.velocity[0] = this.props.vx;
+            this.body.data.velocity[0] = this.props.vx;
         }
 
         if (this.props.vy !== this.last.vy) {
-            // this.body.velocity[1] = this.props.vy;
+            this.body.data.velocity[1] = this.props.vy;
         }
     }
 

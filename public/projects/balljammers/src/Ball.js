@@ -64,7 +64,8 @@ export default class Ball extends Entity {
     /* METHODS */
 
     respawn () {
-        // this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
+        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
+
         this.props.vx = this.props.vy = 0;
     }
 }
