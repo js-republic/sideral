@@ -1,8 +1,7 @@
-import p2 from "p2";
-
 import AbstractModule from "./Abstract/AbstractModule";
 
 import Util from "./Command/Util";
+import Body from "./Command/Body";
 
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
@@ -34,23 +33,17 @@ export default class Entity extends AbstractModule {
             flip            : false
         });
 
+        this.type       = Entity.TYPE.RECTANGLE;
         this.standing   = false;
         this.moving     = false;
         this.scene      = null;
         this.collide    = {x: false, y: false};
-        this.bodyShape  = new p2.Box({ width: this.props.width, height: this.props.height });
-        this.body       = new p2.Body({ mass: this.props.mass, position: [this.props.x + (this.props.width / 2), this.props.y + (this.props.height / 2)] });
-
-        this.body.addShape(this.bodyShape);
-
-        this._debug     = null;
 
         this.signals.propChange.bind("debug", this._onDebugChange.bind(this));
         this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
         this.signals.propChange.bind("mass", this.onMassChange.bind(this));
         this.signals.propChange.bind(["vx", "vy"], this.onVelocityChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
-        this.signals.update.add(this.updateVelocity.bind(this));
     }
 
     /**
@@ -61,10 +54,14 @@ export default class Entity extends AbstractModule {
     initialize (props) {
         super.initialize(props);
 
-        if (this.body) {
-            this.body.position = [this.props.x + (this.props.width / 2), this.props.y + (this.props.height / 2)];
-            this.onSizeChange();
+        switch (this.type) {
+        case Entity.TYPE.CIRCLE: this.body = new Body.CircularBody(this.props.x, this.props.y, this.props.width / 2, { mass: this.props.mass });
+            break;
+        default: this.body = new Body.RectangularBody(this.props.x, this.props.y, this.props.width, this.props.height, { mass: this.props.mass });
+            break;
         }
+
+        this.onSizeChange();
     }
 
     /**
@@ -76,8 +73,26 @@ export default class Entity extends AbstractModule {
         super.kill();
 
         if (this.body) {
-            this.scene.world.removeBody(this.body);
+            this.scene.world.removeBody(this.body.box);
         }
+    }
+
+    /**
+     * @nextCycle
+     * @lifecycle
+     * @override
+     */
+    nextCycle () {
+        super.nextCycle();
+
+        this.setProps({
+            x       : this.body.x,
+            y       : this.body.y,
+            angle   : this.body.angle
+        });
+
+        this.container.position.set(this.props.x, this.props.y);
+        this.container.rotation = this.body.data.angle;
     }
 
 
@@ -101,20 +116,20 @@ export default class Entity extends AbstractModule {
     }
 
 
-    /* UPDATES */
+    /* EVENTS */
 
     /**
-     * When vx or vy attributes change
-     * @returns {void}
+     * onPositionChange
+     * @override
      */
-    updateVelocity () {
-        this.props.x        = this.body.position[0] - (this.props.width / 2);
-        this.props.y        = this.body.position[1] - (this.props.height / 2);
-        this.props.angle    = Util.toDegree(this.body.angle);
+    onPositionChange () {
+        super.onPositionChange();
+
+        if (this.body) {
+            this.body.x = this.props.x;
+            this.body.y = this.props.y;
+        }
     }
-
-
-    /* EVENTS */
 
     /**
      * When "width" or "height" attributes change
@@ -122,19 +137,12 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     onSizeChange () {
-
-        /*
-        this.container.pivot.x = this.props.width / 2;
-        this.container.pivot.y = this.props.height / 2;
-        */
-
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
         }
 
-        if (this.bodyShape) {
-            this.bodyShape.width    = this.props.width;
-            this.bodyShape.height   = this.props.height;
+        if (this.body) {
+            this.body.size(this.props.width, this.props.height);
         }
     }
 
@@ -176,7 +184,9 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     onAngleChange () {
-        this.container.rotation = Util.toRadians(this.props.angle);
+        // this.container.pivot.x  = this.container.width / 2;
+        // this.container.pivot.y  = this.container.height / 2;
+        this.body.angle = this.props.angle;
     }
 
     /**
@@ -184,8 +194,8 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     onMassChange () {
-        this.body.mass = this.props.mass;
-        this.body.updateMassProperties();
+        this.body.data.mass = this.props.mass;
+        this.body.data.updateMassProperties();
     }
 
     /**
@@ -201,7 +211,7 @@ export default class Entity extends AbstractModule {
 
         if (this.props.debug) {
             this._debug = this.add(new Shape(), {
-                type    : Shape.TYPE.RECTANGLE,
+                type    : this.type,
                 width   : this.props.width,
                 height  : this.props.height,
                 stroke  : "#FF0000",
@@ -215,4 +225,10 @@ Entity.MASS = {
     NONE    : 0,
     SOLID   : 1,
     WEAK    : 2
+};
+
+
+Entity.TYPE = {
+    RECTANGLE   : "rectangle",
+    CIRCLE      : "circle"
 };

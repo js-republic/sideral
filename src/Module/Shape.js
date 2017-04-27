@@ -20,7 +20,7 @@ export default class Shape extends AbstractModule {
 
         this.container = new PIXI.Graphics();
 
-        this.signals.propChange.bind(["type", "fill", "strok"], this._updateShape.bind(this));
+        this.signals.propChange.bind(["type", "fill", "stroke"], this._updateShape.bind(this));
     }
 
 
@@ -67,6 +67,15 @@ export default class Shape extends AbstractModule {
             height = withStroke ? this.props.height - 1 : this.props.height;
 
         switch (this.props.type) {
+        case Shape.TYPE.CIRCLE:
+
+            if (width !== height) {
+                this.container.drawEllipse(width / 2, height / 2, width / 2, height / 2);
+            } else {
+                this.container.drawCircle(width / 2, width / 2, width / 2);
+            }
+            break;
+
         default: this.container.drawRect(0, 0, width, height);
             break;
         }
@@ -81,6 +90,5 @@ Shape.TYPE = {
     CIRCLE              : "circle",
     RECTANGLE           : "rectangle",
     POLYGON             : "polygon",
-    ELLIPSE             : "ellipse",
     ROUNDED_RECTANGLE   : "roundedRectangle"
 };

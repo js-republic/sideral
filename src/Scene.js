@@ -73,7 +73,7 @@ export default class Scene extends AbstractClass {
         const entityCreated = this.add(entity, settings, index);
 
         if (entityCreated.body) {
-            this.world.addBody(entityCreated.body);
+            this.world.addBody(entityCreated.body.data);
         }
 
         return entityCreated;

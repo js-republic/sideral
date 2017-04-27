@@ -19,10 +19,26 @@ export default class Sprite extends AbstractModule {
         this.image      = null;
         this.container  = new PIXI.Sprite();
 
+        this.container.anchor.set(0.5);
+
         this.signals.propChange.bind("imagePath", this.onImagePathChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
     }
 
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
+    initialize (props = {}) {
+        const width = props.width || this.props.width,
+            height  = props.height || this.props.height;
+
+        props.x     = (props.x || 0) + (width / 2);
+        props.y     = (props.y || 0) + (height / 2);
+
+        super.initialize(props);
+    }
 
     /* EVENTS */
 

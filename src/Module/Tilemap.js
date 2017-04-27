@@ -1,7 +1,8 @@
-import p2 from "p2";
-
 import AbstractModule from "./../Abstract/AbstractModule";
+
 import Shape from "./Shape";
+
+import Body from "./../Command/Body";
 
 
 export default class Tilemap extends AbstractModule {
@@ -17,7 +18,7 @@ export default class Tilemap extends AbstractModule {
         this.setProps({
             tilewidth   : 0,
             tileheight  : 0,
-            debug       : true
+            debug       : false
         });
 
         this.bodies                 = [];
@@ -184,15 +185,12 @@ export default class Tilemap extends AbstractModule {
         });
 
         this.bodies = items.map(item => {
-            const shape = new p2.Box({ width: item.width, height: item.height }),
-                body    = new p2.Body({ mass: 0, gravityScale: 0, fixedX: true, fixedY: true, position: [item.x + (item.width / 2), item.y + (item.height / 2)] });
+            const body = new Body.RectangularBody(item.x, item.y, item.width, item.height, { mass: 0, gravityScale: 0, fixedX: true, fixedY: true });
 
-            body.addShape(shape);
+            this.scene.world.addBody(body.data);
 
             return body;
         });
-
-        this.bodies.forEach(body => this.scene.world.addBody(body));
     }
 
     /**
@@ -260,19 +258,15 @@ export default class Tilemap extends AbstractModule {
         this._debugs.forEach(_debug => _debug.kill());
 
         if (this.props.debug) {
-            this._debugs = this.bodies.map(body => {
-                const shape = body.shapes[0];
-
-                return this.add(new Shape(), {
-                    x       : body.position[0] - (shape.width / 2),
-                    y       : body.position[1] - (shape.height / 2),
-                    type    : Shape.TYPE.RECTANGLE,
-                    width   : shape.width,
-                    height  : shape.height,
-                    stroke  : "#FF0000",
-                    fill    : "transparent"
-                });
-            });
+            this._debugs = this.bodies.map(body => this.add(new Shape(), {
+                x       : body.x,
+                y       : body.y,
+                type    : Shape.TYPE.RECTANGLE,
+                width   : body.width,
+                height  : body.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            }));
         }
     }
 }

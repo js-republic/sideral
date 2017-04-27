@@ -14,8 +14,8 @@ export default class AbstractModule extends AbstractClass {
         this.setProps({
             x       : 0,
             y       : 0,
-            width   : 10,
-            height  : 10
+            width   : 0,
+            height  : 0
         });
 
         this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
@@ -76,9 +76,11 @@ export default class AbstractModule extends AbstractClass {
      * @returns {void}
      */
     onSizeChange () {
+
+        /*
         if (this.container) {
-            this.container.width    = this.props.width;
-            this.container.height   = this.props.height;
-        }
+            this.container.pivot.x  = this.container.width / 2;
+            this.container.pivot.y  = this.container.height / 2;
+        }*/
     }
 }

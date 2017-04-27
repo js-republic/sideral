@@ -20,7 +20,9 @@ export default class Ball extends Entity {
             gravityFactor   : 1
         });
 
-        this.addSprite("images/ball.png", this.props.width, this.props.height, { y: 5 });
+        this.type = Entity.TYPE.CIRCLE;
+
+        this.addSprite("images/ball.png", this.props.width, this.props.height);
     }
 
     /**
@@ -30,10 +32,7 @@ export default class Ball extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        // this.pivx = 16;
-        // this.pivy = 16;
-
-        // this.respawn();
+        this.respawn();
     }
 
     /**
@@ -42,6 +41,8 @@ export default class Ball extends Entity {
      */
     update () {
         super.update();
+
+        // console.log(this.props.x, this.props.y);
 
         // console.log(this.props.x, this.body.position[0], this.props.y, this.body.position[1], this.props.angle, this.body.angle);
         // this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
@@ -63,7 +64,7 @@ export default class Ball extends Entity {
     /* METHODS */
 
     respawn () {
-        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
+        // this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
         this.props.vx = this.props.vy = 0;
     }
 }

@@ -54,6 +54,26 @@ export default class Util {
     }
 
     /**
+     * Convert pixels to meters (for p2 physic)
+     * @param {number} px: number of pixels
+     * @param {Boolean=} inversed: if true, the value will be inversed
+     * @returns {number} number of meters
+     */
+    static pixelToMeter (px, inversed) {
+        return px * 0.05 * (inversed ? -1 : 1);
+    }
+
+    /**
+     * Convert meters to pixels (for p2 physic)
+     * @param {number} meter: number of meters
+     * @param {Boolean=} inversed: if true, the value will be inversed
+     * @returns {number} number of pixels
+     */
+    static meterToPixel (meter, inversed) {
+        return meter * 20 * (inversed ? -1 : 1);
+    }
+
+    /**
      * Ensure that the value is more than min and less than max
      * @param {number} value: number value
      * @param {number} min: number min
