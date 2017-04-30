@@ -26,7 +26,7 @@ export default class Entity extends AbstractModule {
             accelX          : 0,
             accelY          : 0,
             limit           : { vx: 2000, vy: 2000 },
-            bouncing        : 0,
+            bounce          : 0,
             angle           : 0,
             mass            : Entity.MASS.WEAK,
             debug           : false,
@@ -44,6 +44,7 @@ export default class Entity extends AbstractModule {
         this.signals.propChange.bind("mass", this.onMassChange.bind(this));
         this.signals.propChange.bind(["vx", "vy"], this.onVelocityChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
+        this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
     }
 
     /**
@@ -55,9 +56,9 @@ export default class Entity extends AbstractModule {
         super.initialize(props);
 
         switch (this.type) {
-        case Entity.TYPE.CIRCLE: this.body = new Body.CircularBody(this.props.x, this.props.y, this.props.width / 2, { mass: this.props.mass });
+        case Entity.TYPE.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, { mass: this.props.mass });
             break;
-        default: this.body = new Body.RectangularBody(this.props.x, this.props.y, this.props.width, this.props.height, { mass: this.props.mass });
+        default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, { mass: this.props.mass });
             break;
         }
 
@@ -177,6 +178,14 @@ export default class Entity extends AbstractModule {
      */
     onCollisionWith (entity) {
 
+    }
+
+    /**
+     * When bounce property change
+     * @returns {void}
+     */
+    onBounceChange () {
+        this.scene.setEntityBouncing(this, this.props.bounce, this.last.bounce);
     }
 
     /**

@@ -6,20 +6,23 @@ import Util from "./Util";
 export default class Body {
 
     constructor (props = {}) {
-        const { x, y, width, height } = props;
+        const { scene, x, y, width, height } = props;
 
         delete props.x;
         delete props.y;
         delete props.width;
         delete props.height;
+        delete props.scene;
 
         this.offset = {
             x: width / 2,
             y: height / 2
         };
 
-        this.shape  = props.shape || new p2.Box({ width: width, height: height });
-        this.data   = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
+        this.scene          = scene;
+        this.shape          = props.shape || new p2.Box({ width: width, height: height });
+        this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
+        this.shape.material = this.scene.DefaultMaterial;
 
         this.data.addShape(this.shape);
     }
@@ -85,8 +88,9 @@ export default class Body {
 }
 
 Body.RectangularBody = class extends Body {
-    constructor (x, y, width, height, props = {}) {
+    constructor (scene, x, y, width, height, props = {}) {
         super(Object.assign(props, {
+            scene   : scene,
             x       : x,
             y       : y,
             width   : width,
@@ -98,8 +102,9 @@ Body.RectangularBody = class extends Body {
 
 
 Body.CircularBody = class extends Body {
-    constructor (x, y, radius, props = {}) {
+    constructor (scene, x, y, radius, props = {}) {
         super(Object.assign(props, {
+            scene   : scene,
             x       : x,
             y       : y,
             width   : radius * 2,

@@ -1,7 +1,11 @@
 import p2 from "p2";
 
 import AbstractClass from "./Abstract/AbstractClass";
+
 import Tilemap from "./Module/Tilemap";
+
+import Body from "./Command/Body";
+
 import Game from "./Game";
 import Entity from "./Entity";
 
@@ -23,9 +27,12 @@ export default class Scene extends AbstractClass {
             height  : Game.props.height
         });
 
-        this._entities  = null;
-        this.tilemap    = null;
-        this.world      = new p2.World({ gravity: [0, 0] });
+        this.DefaultMaterial    = new p2.Material();
+
+        this._entities          = null;
+        this.tilemap            = null;
+        this.world              = new p2.World({ gravity: [0, 0] });
+        this.materials          = [this.DefaultMaterial];
 
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
@@ -77,6 +84,41 @@ export default class Scene extends AbstractClass {
         }
 
         return entityCreated;
+    }
+
+    /**
+     * Set a new bouncing factor for the entity
+     * @param {Entity} entity: entity with a new bounce factor
+     * @param {Number} bounce: next bouncing factor
+     * @param {Number=} lastBounce: last bouncing factor
+     * @returns {Number} Bouncing factor
+     */
+    setEntityBouncing (entity, bounce, lastBounce) {
+        if (!entity || (entity && !entity.body)) {
+            return bounce;
+        }
+
+        if (lastBounce) {
+            const id = entity.body.shape.material.id;
+
+            this.world.contactMaterials.filter(x => x.materialA.id === id || x.materialB.id === id)
+                .forEach(contactMaterial => this.world.removeContactMaterial(contactMaterial));
+        }
+
+        if (!bounce) {
+            entity.body.shape.material = this.DefaultMaterial;
+
+        } else {
+            const material          = entity.body.shape.material = new p2.Material(),
+                contactMaterials    = this.materials.map(materialB => new p2.ContactMaterial(material, materialB, {
+                    restitution : bounce,
+                    stiffness   : Number.MAX_VALUE
+                }));
+
+            contactMaterials.forEach(contactMaterial => this.world.addContactMaterial(contactMaterial));
+        }
+
+        return bounce;
     }
 
     /**
