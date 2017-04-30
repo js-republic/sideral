@@ -4,8 +4,6 @@ import AbstractClass from "./Abstract/AbstractClass";
 
 import Tilemap from "./Module/Tilemap";
 
-import Body from "./Command/Body";
-
 import Game from "./Game";
 import Entity from "./Entity";
 
@@ -34,6 +32,7 @@ export default class Scene extends AbstractClass {
         this.world              = new p2.World({ gravity: [0, 0] });
         this.materials          = [this.DefaultMaterial];
 
+        this.world.on("endContact", this.onShapeContact.bind(this));
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
 
@@ -169,5 +168,32 @@ export default class Scene extends AbstractClass {
      */
     onGravityChange () {
         this.world.gravity = [0, this.props.gravity];
+    }
+
+    /**
+     * p2 JS event when two shapes starts to overlap
+     * @param {p2.Shape} shapeA: shape of the body A
+     * @param {p2.Shape} shapeB: shape of the body B
+     * @param {p2.Body} bodyA: body entered in collision
+     * @param {p2.Body} bodyB: body entered in collision
+     * @returns {void}
+     */
+    onShapeContact (shapeA, shapeB, bodyA, bodyB) {
+        const entities  = this.getEntities().filter(entity => entity.body),
+            walls       = (this.tilemap && this.tilemap.bodies) || [],
+            findEntityByBody    = body => entities.find(entity => entity.body.data.id === body.id),
+            findWallByBody      = body => walls.find(wall => wall.id === body.id),
+            entityA     = findEntityByBody(bodyA),
+            entityB     = findEntityByBody(bodyB);
+
+        if (entityA && entityB) {
+            entityA.onCollisionWith(entityB);
+            entityB.onCollisionWith(entityA);
+
+        } else if ((entityA && !entityB) || (entityB && !entityA)) {
+            const wall = findWallByBody(entityA ? bodyB : bodyA),
+                entity = entityA || entityB;
+
+        }
     }
 }
