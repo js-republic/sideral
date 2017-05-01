@@ -53,6 +53,8 @@ export default class Ball extends Entity {
      * @override
      */
     onCollisionWith (entity) {
+        console.log("COLLISION", entity);
+
         super.onCollisionWith(entity);
 
         switch (entity.name) {

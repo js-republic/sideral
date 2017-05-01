@@ -3,6 +3,12 @@ const webpack   = require("webpack"),
 
 
 module.exports = {
+    devServer: {
+        contentBase : path.join(__dirname, "../public/dev"),
+        compress    : true,
+        port        : 3332
+    },
+
     output: {
         path: path.join(__dirname, "../public/"),
         filename: "[name].js"
@@ -13,8 +19,10 @@ module.exports = {
     },
 
     resolve: {
-        extensions: [".js", ".json", ".jsx"],
-        modules: [path.resolve("./"), "node_modules"]
+        extensions: ["", ".js", ".json", ".jsx"],
+        root: [
+            path.resolve("./")
+        ]
     },
 
     devtool: "source-map",
@@ -23,7 +31,7 @@ module.exports = {
         loaders: [
             {
                 test: /\.json$/,
-                loader: "json-loader"
+                loader: "json"
             },
 
             {
@@ -35,12 +43,6 @@ module.exports = {
                 }
             }
         ]
-    },
-
-    devServer: {
-        contentBase : path.join(__dirname, "../public/projects/balljammers"),
-        compress    : true,
-        port        : 3332,
     },
 
     plugins: [

@@ -172,19 +172,18 @@ export default class Scene extends AbstractClass {
 
     /**
      * p2 JS event when two shapes starts to overlap
-     * @param {p2.Shape} shapeA: shape of the body A
-     * @param {p2.Shape} shapeB: shape of the body B
      * @param {p2.Body} bodyA: body entered in collision
      * @param {p2.Body} bodyB: body entered in collision
      * @returns {void}
      */
-    onShapeContact (shapeA, shapeB, bodyA, bodyB) {
-        const entities  = this.getEntities().filter(entity => entity.body),
+    onShapeContact ({ bodyA, bodyB }) {
+        const entities  = this.getEntities().filter(entity => entity.body && entity.body.data),
             walls       = (this.tilemap && this.tilemap.bodies) || [],
             findEntityByBody    = body => entities.find(entity => entity.body.data.id === body.id),
             findWallByBody      = body => walls.find(wall => wall.id === body.id),
             entityA     = findEntityByBody(bodyA),
             entityB     = findEntityByBody(bodyB);
+
 
         if (entityA && entityB) {
             entityA.onCollisionWith(entityB);
