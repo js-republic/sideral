@@ -57,6 +57,17 @@ export default class AbstractModule extends AbstractClass {
         }
     }
 
+    /**
+     * Update the position of the pixi container
+     * @returns {void}
+     */
+    updateContainerPosition () {
+        if (this.container) {
+            this.container.pivot.set(this.props.width / 2, this.props.height / 2);
+            this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
+        }
+    }
+
 
     /* EVENTS */
 
@@ -65,10 +76,7 @@ export default class AbstractModule extends AbstractClass {
      * @returns {void}
      */
     onPositionChange () {
-        if (this.container) {
-            this.container.x = this.props.x;
-            this.container.y = this.props.y;
-        }
+        this.updateContainerPosition();
     }
 
     /**
@@ -76,11 +84,6 @@ export default class AbstractModule extends AbstractClass {
      * @returns {void}
      */
     onSizeChange () {
-
-        /*
-        if (this.container) {
-            this.container.pivot.x  = this.container.width / 2;
-            this.container.pivot.y  = this.container.height / 2;
-        }*/
+        this.updateContainerPosition();
     }
 }

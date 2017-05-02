@@ -19,7 +19,7 @@ export default class Sprite extends AbstractModule {
         this.image      = null;
         this.container  = new PIXI.Sprite();
 
-        this.container.anchor.set(0.5);
+        this.container.anchor.set(0.5, 0.5);
 
         this.signals.propChange.bind("imagePath", this.onImagePathChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
@@ -63,6 +63,6 @@ export default class Sprite extends AbstractModule {
      */
     onFlipChange () {
         this.container.scale.x      = Math.abs(this.container.scale.x) * (this.props.flip ? -1 : 1);
-        this.container.anchor.x     = this.props.flip ? 1 : 0.5;
+        this.container.anchor.x     = this.props.flip ? -0.5 : 0.5;
     }
 }

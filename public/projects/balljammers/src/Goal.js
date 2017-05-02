@@ -15,7 +15,7 @@ export default class Goal extends Entity {
             width           : 45,
             height          : 130,
             gravityFactor   : 0,
-            mass            : Entity.MASS.SOLID
+            mass            : 0
         });
     }
 

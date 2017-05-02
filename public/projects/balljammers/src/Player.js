@@ -32,6 +32,8 @@ export default class Player extends Entity {
      */
     initialize (props) {
         super.initialize(props);
+
+        this.props.debug = true;
     }
 
     /**
@@ -100,7 +102,8 @@ export default class Player extends Entity {
 
         if (pressed) {
             this.props.vy = -Math.abs(this.props.jump);
-
+        } else {
+            this.props.vy = 0;
         }
     }
 

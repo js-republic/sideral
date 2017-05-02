@@ -13,8 +13,7 @@ export default class PlayerCat extends Player {
 
         this.setProps({
             width: 25,
-            height: 45,
-            debug: true
+            height: 45
         });
     }
 

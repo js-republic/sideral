@@ -23,6 +23,10 @@ export default class Ball extends Entity {
         this.type = Entity.TYPE.CIRCLE;
 
         this.addSprite("images/ball.png", this.props.width, this.props.height);
+
+        this.onCollisionWithWall(() => {
+
+        });
     }
 
     /**
@@ -35,18 +39,6 @@ export default class Ball extends Entity {
         this.respawn();
     }
 
-    /**
-     * @update
-     * @override
-     */
-    update () {
-        super.update();
-
-        // console.log(this.props.x, this.props.y);
-
-        // console.log(this.props.x, this.body.position[0], this.props.y, this.body.position[1], this.props.angle, this.body.angle);
-        // this.rotation += (Math.abs(this.vx) + Math.abs(this.vy)) / 10;
-    }
 
     /**
      * @onCollisionWith

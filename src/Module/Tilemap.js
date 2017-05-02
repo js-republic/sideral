@@ -185,7 +185,7 @@ export default class Tilemap extends AbstractModule {
         });
 
         this.bodies = items.map(item => {
-            const body = new Body.RectangularBody(item.x, item.y, item.width, item.height, { mass: 0, gravityScale: 0, fixedX: true, fixedY: true });
+            const body = new Body.RectangularBody(this.scene, item.x, item.y, item.width, item.height, { mass: 0, gravityScale: 0, fixedX: true, fixedY: true });
 
             this.scene.world.addBody(body.data);
 
