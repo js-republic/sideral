@@ -17,16 +17,9 @@ export default class Goal extends Entity {
             gravityFactor   : 0,
             mass            : 0
         });
-    }
 
-    /**
-     * @initialize
-     * @lifecycle
-     * @override
-     */
-    initialize (props) {
-        super.initialize(props);
+        this.name = "goal";
 
-        this.spritesheet = this.addSprite("images/goal.png", this.props.width, this.props.height);
+        this.addSprite("images/goal.png", this.props.width, this.props.height);
     }
 }

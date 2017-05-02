@@ -1,6 +1,6 @@
 import AbstractModule from "./Abstract/AbstractModule";
 
-import Util from "./Command/Util";
+import Signal from "./Command/Signal";
 import Body from "./Command/Body";
 
 import Shape from "./Module/Shape";
@@ -27,20 +27,21 @@ export default class Entity extends AbstractModule {
             limit           : { vx: 2000, vy: 2000 },
             bounce          : 0,
             angle           : 0,
-            mass            : Entity.MASS.WEAK,
-            debug           : false,
             flip            : false
         });
 
-        this.type       = Entity.TYPE.RECTANGLE;
+        this.name       = "entity";
+        this.type       = Entity.TYPE.SOLID;
+        this.box        = Entity.BOX.RECTANGLE;
+        this.scene      = null;
+
         this.standing   = false;
         this.moving     = false;
-        this.scene      = null;
-        this.collide    = {x: false, y: false};
+        this.falling    = false;
 
-        this.signals.propChange.bind("debug", this._onDebugChange.bind(this));
+        this.signals.collision      = new Signal();
+
         this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
-        this.signals.propChange.bind("mass", this.onMassChange.bind(this));
         this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
         this.signals.propChange.bind(["vx", "vy"], this.onVelocityChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
@@ -56,8 +57,8 @@ export default class Entity extends AbstractModule {
         super.initialize(props);
 
         const settings = {
-            mass: this.props.mass,
-            fixedRotation: this.props.mass === Entity.MASS.SOLID
+            mass: this.type,
+            fixedRotation: this.type === Entity.TYPE.SOLID
         };
 
         switch (this.type) {
@@ -98,6 +99,12 @@ export default class Entity extends AbstractModule {
             angle   : this.body.angle
         });
 
+        if (this.body) {
+            this.moving     = this.body.data.velocity[0] || this.body.data.velocity[1];
+            this.standing   = this.body.data.velocity[1];
+            this.falling    = this.body.data.velocity[1] < 0;
+        }
+
         this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
         this.container.rotation = this.body.data.angle;
     }
@@ -120,6 +127,42 @@ export default class Entity extends AbstractModule {
         settings.height     = tileheight;
 
         return this.add(new Sprite(), settings, index);
+    }
+
+    /**
+     * set or remove the debug mode
+     * @returns {void}
+     */
+    toggleDebug () {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+
+        } else {
+            this._debug = this.add(new Shape(), {
+                box     : this.box,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            });
+        }
+    }
+
+    /**
+     * Set a new type for the current entity
+     * @param {number} type: type corresponding of Entity.TYPE Object
+     * @returns {void}
+     */
+    setType (type) {
+        if (Object.keys(Entity.TYPE).find(key => Entity.TYPE[key] === type)) {
+            this.type = type;
+
+            if (this.body) {
+                this.body.data.mass = this.props.mass;
+                this.body.data.updateMassProperties();
+            }
+        }
     }
 
 
@@ -180,23 +223,6 @@ export default class Entity extends AbstractModule {
     }
 
     /**
-     * Event triggered when the current entity enter in collision with another entity
-     * @param {Entity} entity: target entity (instance of Sideral Entity class)
-     * @returns {void}
-     */
-    onCollisionWith (entity) {
-
-    }
-
-    /**
-     * Event triggered when the current entity enter in collision with a wall
-     * @returns {void}
-     */
-    onCollisionWithWall () {
-
-    }
-
-    /**
      * When bounce property change
      * @returns {void}
      */
@@ -221,38 +247,16 @@ export default class Entity extends AbstractModule {
         this.body.data.mass = this.props.mass;
         this.body.data.updateMassProperties();
     }
-
-    /**
-     * When "debug" attribute change
-     * @private
-     * @returns {void}
-     */
-    _onDebugChange () {
-        if (this._debug) {
-            this._debug.kill();
-            this._debug = null;
-        }
-
-        if (this.props.debug) {
-            this._debug = this.add(new Shape(), {
-                type    : this.type,
-                width   : this.props.width,
-                height  : this.props.height,
-                stroke  : "#FF0000",
-                fill    : "transparent"
-            });
-        }
-    }
 }
 
-Entity.MASS = {
-    NONE    : 0,
-    SOLID   : 1,
-    WEAK    : 2
+Entity.TYPE = {
+    GHOST   : -1,
+    STATIC  : 0,
+    WEAK    : 1,
+    SOLID   : 2
 };
 
-
-Entity.TYPE = {
+Entity.BOX = {
     RECTANGLE   : "rectangle",
     CIRCLE      : "circle"
 };

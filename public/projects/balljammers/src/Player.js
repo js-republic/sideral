@@ -18,7 +18,6 @@ export default class Player extends Entity {
             jump        : 150,
             doubleDash  : false,
             doubleJump  : false,
-            mass        : Entity.MASS.SOLID,
             vxFactor    : 0,
             holdLeft    : false,
             holdRight   : false
@@ -33,7 +32,7 @@ export default class Player extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        this.props.debug = true;
+        this.toggleDebug();
     }
 
     /**
@@ -102,17 +101,8 @@ export default class Player extends Entity {
 
         if (pressed) {
             this.props.vy = -Math.abs(this.props.jump);
-        } else {
-            this.props.vy = 0;
-        }
-    }
 
-    /**
-     * stop the current movement of the player
-     * @returns {void}
-     */
-    idle () {
-        this.props.vx = 0;
+        }
     }
 
     /*

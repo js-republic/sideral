@@ -1,7 +1,5 @@
 import Entity from "src/Entity";
 
-import Goal from "./Goal";
-
 
 export default class Ball extends Entity {
 
@@ -14,14 +12,17 @@ export default class Ball extends Entity {
         super();
 
         this.setProps({
-            mass            : Entity.MASS.WEAK,
             width           : 32,
             height          : 32,
-            fricX           : 100,
+            friction        : 100,
             gravityFactor   : 1
         });
 
-        this.type = Entity.TYPE.CIRCLE;
+        this.name   = "ball";
+        this.type   = Entity.TYPE.WEAK;
+        this.box    = Entity.BOX.CIRCLE;
+
+        this.signals.collision.bind("goal", this.onCollisionWithGoal.bind(this));
 
         this.addSprite("images/ball.png", this.props.width, this.props.height);
     }
@@ -38,21 +39,23 @@ export default class Ball extends Entity {
     }
 
 
-    /**
-     * @onCollisionWith
-     * @override
-     */
-    onCollisionWith (entity) {
-        super.onCollisionWith(entity);
+    /* EVENTS */
 
-        switch (true) {
-        case entity instanceof Goal: this.respawn();
-            break;
-        }
+    /**
+     * When entering in collision with a goal entity
+     * @param {Goal} goal: goal entity
+     * @returns {void}
+     */
+    onCollisionWithGoal (goal) {
+        this.respawn();
     }
 
     /* METHODS */
 
+    /**
+     * Respawn the ball to an other position
+     * @returns {void}
+     */
     respawn () {
         this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
 

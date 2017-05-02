@@ -178,21 +178,52 @@ export default class Scene extends AbstractClass {
      */
     onShapeContact ({ bodyA, bodyB }) {
         const entities  = this.getEntities().filter(entity => entity.body && entity.body.data),
-            walls       = (this.tilemap && this.tilemap.bodies) || [],
+            walls       = (this.tilemap && this.tilemap.bodies) || [],
             findEntityByBody    = body => entities.find(entity => entity.body.data.id === body.id),
-            findWallByBody      = body => walls.find(wall => wall.id === body.id),
+            findWallByBody      = body => walls.find(wall => wall.data.id === body.id),
             entityA     = findEntityByBody(bodyA),
             entityB     = findEntityByBody(bodyB);
 
+        /*
+        const resolveEntityWithWall = (entity, wall) => {
+            if ((wall.y >= entityA.props.y + entityA.props.height) && (entityA.props.x + entityA.props.width > wall.x) && (entityA.props.x < wall.x)) {
+                entityA.standing = true;
+            }
+        };*/
+
+        if (entityA) {
+            entityA.setProps({
+                x       : entityA.body.x,
+                y       : entityA.body.y,
+                angle   : entityA.body.angle
+            });
+        }
+
+        if (entityB) {
+            entityB.setProps({
+                x       : entityB.body.x,
+                y       : entityB.body.y,
+                angle   : entityB.body.angle
+            });
+        }
+
+        /*
+        if (entityA && !entityB) {
+            resolveEntityWithWall(entityA, findWallByBody(bodyB));
+
+        } else if (entityB && !entityA) {
+            resolveEntityWithWall(entityB, findWallByBody(bodyA));
+
+        } else {
+            entityA.signals.collision.dispatch(entityB.name, entityB);
+            entityB.signals.collision.dispatch(entityA.name, entityA);
+
+        }
+        */
 
         if (entityA && entityB) {
-            entityA.onCollisionWith(entityB);
-            entityB.onCollisionWith(entityA);
-
-        } else if ((entityA && !entityB) || (entityB && !entityA)) {
-            const wall = findWallByBody(entityA ? bodyB : bodyA),
-                entity = entityA || entityB;
-
+            entityA.signals.collision.dispatch(entityB.name, entityB);
+            entityB.signals.collision.dispatch(entityA.name, entityA);
         }
     }
 }
