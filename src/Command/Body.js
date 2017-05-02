@@ -11,28 +11,24 @@ export default class Body {
      * @param {*=} props: properties to pass to p2
      */
     constructor (scene, props = {}) {
-        const { x, y, width, height, friction, bounce } = props;
+        const { x, y, width, height } = props;
 
         delete props.x;
         delete props.y;
         delete props.width;
         delete props.height;
-        delete props.friction;
-        delete props.bounce;
+        delete props.scene;
 
         this.offset = {
             x: width / 2,
             y: height / 2
         };
 
-        this.scene      = scene;
-        this.friction   = friction;
-        this.bounce     = bounce;
-        this.shape      = props.shape || new p2.Box({ width: width, height: height });
-        this.data       = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
-        this.material   = new p2.Material();
+        this.scene          = scene;
+        this.shape          = props.shape || new p2.Box({ width: width, height: height });
+        this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
+        this.shape.material = this.scene.DefaultMaterial;
 
-        this.shape.material = this.material;
         this.data.addShape(this.shape);
     }
 
@@ -150,6 +146,7 @@ export default class Body {
         this.offset.y       = value / 2;
     }
 }
+
 
 Body.RectangularBody = class extends Body {
     constructor (scene, x, y, width, height, props = {}) {

@@ -21,9 +21,11 @@ export default class Entity extends AbstractModule {
             gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
+            friction        : 0,
             accelX          : 0,
             accelY          : 0,
             limit           : { vx: 2000, vy: 2000 },
+            bounce          : 0,
             angle           : 0,
             mass            : Entity.MASS.WEAK,
             debug           : false,
@@ -39,10 +41,10 @@ export default class Entity extends AbstractModule {
         this.signals.propChange.bind("debug", this._onDebugChange.bind(this));
         this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
         this.signals.propChange.bind("mass", this.onMassChange.bind(this));
-        this.signals.propChange.bind("friction", this.onFrictionChange.bind(this));
         this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
         this.signals.propChange.bind(["vx", "vy"], this.onVelocityChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
+        this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
     }
 
     /**
@@ -179,11 +181,27 @@ export default class Entity extends AbstractModule {
 
     /**
      * Event triggered when the current entity enter in collision with another entity
-     * @param {*} entity: target entity (instance of Sideral Entity class)
+     * @param {Entity} entity: target entity (instance of Sideral Entity class)
      * @returns {void}
      */
     onCollisionWith (entity) {
 
+    }
+
+    /**
+     * Event triggered when the current entity enter in collision with a wall
+     * @returns {void}
+     */
+    onCollisionWithWall () {
+
+    }
+
+    /**
+     * When bounce property change
+     * @returns {void}
+     */
+    onBounceChange () {
+        this.scene.setEntityBouncing(this, this.props.bounce, this.last.bounce);
     }
 
     /**

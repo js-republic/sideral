@@ -13,10 +13,8 @@ module.exports = {
     },
 
     resolve: {
-        extensions: ["", ".js", ".json", ".jsx"],
-        root: [
-            path.resolve("./")
-        ]
+        extensions: [".js", ".json", ".jsx"],
+        modules: [path.resolve("./"), "node_modules"]
     },
 
     devtool: "source-map",
@@ -25,7 +23,7 @@ module.exports = {
         loaders: [
             {
                 test: /\.json$/,
-                loader: "json"
+                loader: "json-loader"
             },
 
             {
@@ -40,7 +38,9 @@ module.exports = {
     },
 
     devServer: {
-
+        contentBase : path.join(__dirname, "../public/projects/balljammers"),
+        compress    : true,
+        port        : 3332,
     },
 
     plugins: [
