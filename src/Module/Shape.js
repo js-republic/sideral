@@ -15,7 +15,7 @@ export default class Shape extends AbstractModule {
         this.setProps({
             stroke  : "#FF0000",
             fill    : "#FFFFFF",
-            box     : Shape.TYPE.RECTANGLE
+            box     : Shape.BOX.RECTANGLE
         });
 
         this.container = new PIXI.Graphics();

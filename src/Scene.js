@@ -93,7 +93,7 @@ export default class Scene extends AbstractClass {
      * @returns {Number} Bouncing factor
      */
     setEntityBouncing (entity, bounce, lastBounce) {
-        if (!entity || (entity && !entity.body)) {
+        if (!entity || (entity && !entity.body)) {
             return bounce;
         }
 
@@ -184,12 +184,11 @@ export default class Scene extends AbstractClass {
             entityA     = findEntityByBody(bodyA),
             entityB     = findEntityByBody(bodyB);
 
-        /*
         const resolveEntityWithWall = (entity, wall) => {
-            if ((wall.y >= entityA.props.y + entityA.props.height) && (entityA.props.x + entityA.props.width > wall.x) && (entityA.props.x < wall.x)) {
-                entityA.standing = true;
+            if ((wall.y >= entity.props.y + entity.props.height) && (entity.props.x > wall.x - entity.props.width) && (entity.props.x < wall.x + wall.width)) {
+                entity._standing = true;
             }
-        };*/
+        };
 
         if (entityA) {
             entityA.setProps({
@@ -207,7 +206,6 @@ export default class Scene extends AbstractClass {
             });
         }
 
-        /*
         if (entityA && !entityB) {
             resolveEntityWithWall(entityA, findWallByBody(bodyB));
 
@@ -218,12 +216,6 @@ export default class Scene extends AbstractClass {
             entityA.signals.collision.dispatch(entityB.name, entityB);
             entityB.signals.collision.dispatch(entityA.name, entityA);
 
-        }
-        */
-
-        if (entityA && entityB) {
-            entityA.signals.collision.dispatch(entityB.name, entityB);
-            entityB.signals.collision.dispatch(entityA.name, entityA);
         }
     }
 }

@@ -15,13 +15,14 @@ export default class Player extends Entity {
         this.setProps({
             speed       : 250,
             power       : 100,
-            jump        : 150,
+            jump        : 500,
             doubleDash  : false,
-            doubleJump  : false,
             vxFactor    : 0,
             holdLeft    : false,
             holdRight   : false
         });
+
+        this.doubleJump = false;
     }
 
     /**
@@ -44,6 +45,17 @@ export default class Player extends Entity {
         this.props.vx = this.props.vxFactor * this.props.speed;
 
         super.update();
+    }
+
+    /**
+     * @nextCycle
+     * @lifecycle
+     * @override
+     */
+    nextCycle () {
+        super.nextCycle();
+
+        this.props.vy = 0;
     }
 
 
@@ -96,11 +108,22 @@ export default class Player extends Entity {
      */
     jump (pressed) {
         if (pressed) {
-            // console.log(this.standing);
-        }
+            let canJump = false;
 
-        if (pressed) {
-            this.props.vy = -Math.abs(this.props.jump);
+            console.log(this.standing, this.doubleJump);
+
+            if (this.standing) {
+                this.doubleJump = true;
+                canJump         = true;
+
+            } else if (this.doubleJump) {
+                this.doubleJump = false;
+                canJump         = true;
+            }
+
+            if (canJump) {
+                this.props.vy = -Math.abs(this.props.jump);
+            }
 
         }
     }

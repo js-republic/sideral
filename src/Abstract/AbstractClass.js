@@ -214,6 +214,7 @@ export default class AbstractClass {
         return this.props[propName] !== this.last[propName];
     }
 
+
     /* STATICS */
 
     /**

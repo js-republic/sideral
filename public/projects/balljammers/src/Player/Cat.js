@@ -15,19 +15,16 @@ export default class PlayerCat extends Player {
             width: 25,
             height: 45
         });
+
+        this.addSprite("images/characters/cat.png", 65, 65, { x: -15, y: -7 })
+            .addAnimation("idle", 1, [5, 16, 17]);
     }
 
     /**
-     * @initialize
+     * @update
      * @lifecycle
      * @override
      */
-    initialize (props) {
-        super.initialize(props);
-
-        this.spritesheet = this.addSprite("images/characters/cat.png", 65, 65, { x: -15, y: -7 });
-    }
-
     update () {
         super.update();
 

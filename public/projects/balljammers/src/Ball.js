@@ -34,8 +34,21 @@ export default class Ball extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        this.props.bounce = 1;
+        this.setBounce(0.5);
         this.respawn();
+    }
+
+
+    /* METHODS */
+
+    /**
+     * Respawn the ball to an other position
+     * @returns {void}
+     */
+    respawn () {
+        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
+
+        this.props.vx = this.props.vy = 0;
     }
 
 
@@ -50,15 +63,4 @@ export default class Ball extends Entity {
         this.respawn();
     }
 
-    /* METHODS */
-
-    /**
-     * Respawn the ball to an other position
-     * @returns {void}
-     */
-    respawn () {
-        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
-
-        this.props.vx = this.props.vy = 0;
-    }
 }

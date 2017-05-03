@@ -24,8 +24,6 @@ export default class Entity extends AbstractModule {
             friction        : 0,
             accelX          : 0,
             accelY          : 0,
-            limit           : { vx: 2000, vy: 2000 },
-            bounce          : 0,
             angle           : 0,
             flip            : false
         });
@@ -37,15 +35,15 @@ export default class Entity extends AbstractModule {
 
         this.standing   = false;
         this.moving     = false;
-        this.falling    = false;
+
+        this._bounce    = 0;
+        this._standing  = false;
 
         this.signals.collision      = new Signal();
 
         this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
-        this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
-        this.signals.propChange.bind(["vx", "vy"], this.onVelocityChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
-        this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
+        this.signals.propChange.bind("gravityFactor", this.onGravityFactorChange.bind(this));
     }
 
     /**
@@ -57,12 +55,13 @@ export default class Entity extends AbstractModule {
         super.initialize(props);
 
         const settings = {
-            mass: this.type,
-            fixedRotation: this.type === Entity.TYPE.SOLID
+            mass            : this.type,
+            gravityScale    : this.props.gravityFactor,
+            fixedRotation   : this.type === Entity.TYPE.SOLID
         };
 
-        switch (this.type) {
-        case Entity.TYPE.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+        switch (this.box) {
+        case Entity.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
             break;
 
         default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
@@ -100,9 +99,20 @@ export default class Entity extends AbstractModule {
         });
 
         if (this.body) {
-            this.moving     = this.body.data.velocity[0] || this.body.data.velocity[1];
-            this.standing   = this.body.data.velocity[1];
-            this.falling    = this.body.data.velocity[1] < 0;
+            this.standing   = this._standing || !Math.ceil(this.body.data.velocity[1]);
+            this.moving     = Boolean(this.body.data.velocity[0]) || !this.standing;
+            this._standing  = false;
+
+            this.body.data.force[0]     = this.props.accelX;
+            this.body.data.velocity[0]  = this.props.vx;
+            this.body.data.force[1]     = this.props.accelY;
+
+            if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
+                this.body.data.velocity[1] = this.props.vy;
+
+
+            }
+
         }
 
         this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
@@ -126,7 +136,13 @@ export default class Entity extends AbstractModule {
         settings.width      = tilewidth;
         settings.height     = tileheight;
 
-        return this.add(new Sprite(), settings, index);
+        const sprite = this.add(new Sprite(), settings, index);
+
+        if (!this.sprite) {
+            this.sprite = sprite;
+        }
+
+        return sprite;
     }
 
     /**
@@ -152,7 +168,7 @@ export default class Entity extends AbstractModule {
     /**
      * Set a new type for the current entity
      * @param {number} type: type corresponding of Entity.TYPE Object
-     * @returns {void}
+     * @returns {number} the type
      */
     setType (type) {
         if (Object.keys(Entity.TYPE).find(key => Entity.TYPE[key] === type)) {
@@ -163,6 +179,19 @@ export default class Entity extends AbstractModule {
                 this.body.data.updateMassProperties();
             }
         }
+
+        return this.type;
+    }
+
+    /**
+     * Set a new bounce factor
+     * @param {number} bounceFactor: next factor of bounce
+     * @returns {number} the next bounceFactor
+     */
+    setBounce (bounceFactor) {
+        this._bounce = this.scene.setEntityBouncing(this, bounceFactor, this._bounce);
+
+        return this._bounce;
     }
 
 
@@ -203,31 +232,19 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     onFlipChange () {
-        if (this.spritesheet) {
-            this.spritesheet.props.flip = this.props.flip;
+        if (this.sprite) {
+            this.sprite.props.flip = this.props.flip;
         }
     }
 
     /**
-     * When "vx" or "vy" attributes change
+     * When gravityFactor property change
      * @returns {void}
      */
-    onVelocityChange () {
-        if (this.props.vx !== this.last.vx) {
-            this.body.data.velocity[0] = this.props.vx;
+    onGravityFactorChange () {
+        if (this.body) {
+            this.body.data.gravityScale = this.props.gravityFactor;
         }
-
-        if (this.props.vy !== this.last.vy && (this.props.vy || (!this.props.vy && !this.props.gravityFactor))) {
-            this.body.data.velocity[1] = this.props.vy;
-        }
-    }
-
-    /**
-     * When bounce property change
-     * @returns {void}
-     */
-    onBounceChange () {
-        this.scene.setEntityBouncing(this, this.props.bounce, this.last.bounce);
     }
 
     /**
@@ -237,15 +254,6 @@ export default class Entity extends AbstractModule {
     onAngleChange () {
         this.updateContainerPosition();
         this.body.angle = this.props.angle;
-    }
-
-    /**
-     * When mass attribute change
-     * @returns {void}
-     */
-    onMassChange () {
-        this.body.data.mass = this.props.mass;
-        this.body.data.updateMassProperties();
     }
 }
 
