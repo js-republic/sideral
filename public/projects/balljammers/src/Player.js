@@ -1,5 +1,6 @@
 import Entity from "src/Entity";
-import Game from "src/Game";
+
+import Enum from "src/Command/Enum";
 
 
 export default class Player extends Entity {
@@ -13,7 +14,7 @@ export default class Player extends Entity {
         super();
 
         this.setProps({
-            speed       : 250,
+            speed       : 300,
             power       : 100,
             jump        : 500,
             doubleDash  : false,
@@ -22,6 +23,8 @@ export default class Player extends Entity {
             holdRight   : false
         });
 
+        this.group      = Enum.GROUP.ALLY;
+        this.name       = "player";
         this.doubleJump = false;
     }
 
@@ -42,7 +45,15 @@ export default class Player extends Entity {
      * @override
      */
     update () {
-        this.props.vx = this.props.vxFactor * this.props.speed;
+        this.props.accelX = this.props.vxFactor * this.props.speed * 150;
+
+        if (this.props.vxFactor === -1) {
+            this.props.flip = true;
+
+        } else if (this.props.vxFactor === 1) {
+            this.props.flip = false;
+
+        }
 
         super.update();
     }
@@ -109,8 +120,6 @@ export default class Player extends Entity {
     jump (pressed) {
         if (pressed) {
             let canJump = false;
-
-            console.log(this.standing, this.doubleJump);
 
             if (this.standing) {
                 this.doubleJump = true;

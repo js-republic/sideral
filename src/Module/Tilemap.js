@@ -3,6 +3,7 @@ import AbstractModule from "./../Abstract/AbstractModule";
 import Shape from "./Shape";
 
 import Body from "./../Command/Body";
+import Enum from "./../Command/Enum";
 
 
 export default class Tilemap extends AbstractModule {
@@ -17,8 +18,7 @@ export default class Tilemap extends AbstractModule {
 
         this.setProps({
             tilewidth   : 0,
-            tileheight  : 0,
-            debug       : false
+            tileheight  : 0
         });
 
         this.bodies                 = [];
@@ -27,8 +27,6 @@ export default class Tilemap extends AbstractModule {
         this.gridContainer          = null;
         this.backgroundContainers   = [];
         this.decoratorContainers    = [];
-
-        this.signals.propChange.bind("debug", this._onDebugChange.bind(this));
     }
 
 
@@ -51,12 +49,12 @@ export default class Tilemap extends AbstractModule {
         this.grid               = data.grid;
 
         // Determine the size of the tilemap
-        data.grid.visual.forEach(layer => layer.forEach(line => {
+        data.grid.forEach(layer => layer.forEach(line => {
             this.props.width = line.length > this.props.width ? line.length : this.props.width;
         }));
 
         this.props.width *= this.props.tilewidth;
-        this.props.height = data.grid.visual[0].length * this.props.tileheight;
+        this.props.height = data.grid[0].length * this.props.tileheight;
 
         // Load all assets
         if (data.backgrounds) {
@@ -69,10 +67,9 @@ export default class Tilemap extends AbstractModule {
 
         loader.load((currentLoader, resources) => {
             this._loadBackgrounds(data.backgrounds, resources);
-            this._loadGrids(data.grid, data.path);
-            this._loadLogic(data.grid.logic);
+            this._loadGrids(data.grid, data.path, data.debug);
             this._loadDecorators(data.decorators, resources);
-            this._onDebugChange();
+            this._loadWalls(data.walls);
         });
     }
 
@@ -91,6 +88,24 @@ export default class Tilemap extends AbstractModule {
         this.decoratorContainers    = [];
     }
 
+    /**
+     * when debug attributes change
+     * @return {void}
+     */
+    toggleDebug () {
+        this._debugs.forEach(_debug => _debug.kill());
+
+        this._debugs = this.bodies.map(body => this.add(new Shape(), {
+            x       : body.x,
+            y       : body.y,
+            box     : Enum.BOX.RECTANGLE,
+            width   : body.width,
+            height  : body.height,
+            stroke  : "#FF0000",
+            fill    : "transparent"
+        }));
+    }
+
 
     /* PRIVATE */
 
@@ -99,9 +114,10 @@ export default class Tilemap extends AbstractModule {
      * @private
      * @param {*} grid: grid provided by the data
      * @param {string} path: path to the image
+     * @param {Boolean=} debug: Active the debug mode
      * @returns {void}
      */
-    _loadGrids (grid, path) {
+    _loadGrids (grid, path, debug) {
         const canvas    = document.createElement("canvas"),
             ctx         = canvas.getContext("2d"),
             image       = new Image();
@@ -113,7 +129,7 @@ export default class Tilemap extends AbstractModule {
 
         // Render the tilemap into the canvas
         image.onload = () => {
-            grid.visual.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
+            grid.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
                 ctx.drawImage(image,
                     Math.floor(tile * tilewidth) % image.width,
                     Math.floor(tile * tilewidth / image.width) * tileheight,
@@ -125,71 +141,38 @@ export default class Tilemap extends AbstractModule {
 
             this.gridContainer = PIXI.Sprite.from(canvas);
             this.container.addChild(this.gridContainer);
-            this._onDebugChange();
+
+            if (debug) {
+                this.toggleDebug();
+            }
         };
 
         image.src = path;
     }
 
     /**
-     * Create a body with all logic
+     * Load all walls of the maps
      * @private
-     * @param {*} logic: logic data
+     * @param {*} walls: wall data
      * @returns {void}
      */
-    _loadLogic (logic) {
-        let items = [];
+    _loadWalls (walls) {
+        walls.forEach(wall => {
+            const box      = wall[0],
+                settings    = { mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND };
+            let body        = null;
 
-        const { tilewidth, tileheight } = this.props,
-            getDuplicateItems = (array, value, index = 0) => {
-                let length = 0;
+            switch (box) {
+            case Enum.BOX.CIRCLE: body = new Body.CircularBody(this.scene, wall[1], wall[2], wall[3], settings);
+                break;
+            default: body = new Body.RectangularBody(this.scene, wall[1], wall[2], wall[3], wall[4], settings);
+                break;
+            }
 
-                array.some((v, i, arr) => {
-                    if (i === arr.length - 1 && v === value) {
-                        length = i - index + 1;
-
-                        return true;
-                    } else if (i < index || v === value) {
-                        return false;
-                    }
-
-                    length = i - index;
-
-                    return true;
-                });
-
-                return length;
-            };
-
-        this.bodies.forEach(body => this.scene.world.removeBody(body));
-        this.bodies = [];
-
-        logic.forEach((line, y) => {
-            const currentLine   = [];
-
-            let currentIndex    = 0,
-                nextIndex       = -1;
-
-            do {
-                nextIndex = line.indexOf(1, currentIndex);
-
-                if (nextIndex > -1) {
-                    const length = getDuplicateItems(line, 1, nextIndex);
-
-                    currentLine.push({ x: nextIndex * tilewidth, y: y * tileheight, width: length * tilewidth, height: tileheight });
-                    currentIndex = nextIndex + length + 1;
-                }
-            } while (nextIndex !== -1);
-
-            items = items.concat(currentLine);
-        });
-
-        this.bodies = items.map(item => {
-            const body = new Body.RectangularBody(this.scene, item.x, item.y, item.width, item.height, { mass: 0, gravityScale: 0, fixedX: true, fixedY: true });
-
-            this.scene.world.addBody(body.data);
-
-            return body;
+            if (body) {
+                this.scene.world.addBody(body.data);
+                this.bodies.push(body);
+            }
         });
     }
 
@@ -245,28 +228,5 @@ export default class Tilemap extends AbstractModule {
             return decoratorContainer;
 
         }).forEach(decoratorContainer => this.container.addChild(decoratorContainer));
-    }
-
-
-    /* EVENTS */
-
-    /**
-     * when debug attributes change
-     * @return {void}
-     */
-    _onDebugChange () {
-        this._debugs.forEach(_debug => _debug.kill());
-
-        if (this.props.debug) {
-            this._debugs = this.bodies.map(body => this.add(new Shape(), {
-                x       : body.x,
-                y       : body.y,
-                type    : Shape.TYPE.RECTANGLE,
-                width   : body.width,
-                height  : body.height,
-                stroke  : "#FF0000",
-                fill    : "transparent"
-            }));
-        }
     }
 }

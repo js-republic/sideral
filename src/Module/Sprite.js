@@ -62,15 +62,27 @@ export default class Sprite extends AbstractModule {
      * @param {string} name: name of the animation
      * @param {number} duration: duration of the animation (in frames)
      * @param {Array<number>} frames: Array of frames to be displayed during the animation
+     * @param {number=} loopCount: number of loop. If loop == 0, there will be no limit of loop
      * @param {{x: number, y: number}=} offset: offset x and y related to the position of the Entity
      * @returns {Sprite} current instance to chain this function
      */
-    addAnimation (name, duration, frames, offset) {
+    addAnimation (name, duration, frames, loopCount, offset) {
         if (!name || !frames) {
             throw new Error("Sprite.addAnimation: You must set a name, duration and frames.");
         }
 
-        this.animations.push({ name: name, duration: duration, time: 0, frames: frames, frame: 0, loop: 0, fraction: Math.floor(duration / frames.length), offset: offset });
+        this.animations.push({
+            name    : name,
+            duration: duration,
+            time    : 0,
+            frames  : frames,
+            frameIndex: 0,
+            loop    : 0,
+            maxLoop : loopCount || 0,
+            fraction: Math.floor(duration / frames.length),
+            offset  : offset,
+            textureFrames: this._framesToRectangles(frames)
+        });
 
         if (this.animations.length === 1 && this.loaded) {
             this.setAnimation(name);
@@ -90,16 +102,16 @@ export default class Sprite extends AbstractModule {
 
         if (this.animation) {
             if (restart) {
-                this.animation.loop     = 0;
-                this.animation.frame    = 0;
-                this.animation.time     = 0;
+                this.animation.loop         = 0;
+                this.animation.frameIndex   = 0;
+                this.animation.time         = 0;
             }
 
             if (this.animation.offset) {
                 this.position(this.animation.offset.x, this.animation.offset.y);
             }
 
-            this.renderFrame(0);
+            this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
         }
     }
 
@@ -126,40 +138,47 @@ export default class Sprite extends AbstractModule {
      * @returns {void|null} -
      */
     updateAnimation () {
-        if (!this.animation || (this.animation && !this.animation.duration)) {
+        if (!this.image || !this.animation || (this.animation && !this.animation.duration)) {
+            return null;
+        }
+
+        if (this.animation.loop > this.animation.maxLoop) {
             return null;
         }
 
         this.animation.time++;
 
         if (this.animation.time >= this.animation.fraction) {
-            this.animation.time = 0;
-
-            if (this.animation.frame >= (this.animation.frames.length - 1)) {
-                this.animation.frame = 0;
+            if (this.animation.frameIndex >= (this.animation.frames.length - 1)) {
+                this.animation.frameIndex = 0;
                 this.animation.loop++;
 
             } else {
-                this.animation.frame++;
+                this.animation.frameIndex++;
 
             }
-        }
 
+            this.animation.time = 0;
+            this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
+        }
     }
 
     /**
-     * Render the current number of frame
-     * @param {number} frame: number of frame
-     * @returns {void}
+     * Convert frame indexes to pixi rectangles
+     * @private
+     * @param {Array<number>} frames: frames to convert
+     * @returns {Array<PIXI.Rectangle>} frames converted to pixi rectangles
      */
-    renderFrame (frame) {
-        const { width, height } = this.image,
-            frameWidth          = this.container.texture.frame.width;
+    _framesToRectangles (frames) {
+        if (!this.image) {
+            return [];
+        }
 
-        this.container.texture.frame.x = Math.floor(frame * frameWidth) % width;
-        this.container.texture.frame.y = Math.floor(frame * frameWidth / width) * height;
-
-        console.log(this.container.texture.frame.x, this.container.texture.frame.y);
+        return frames.map(frame => new PIXI.Rectangle(
+            Math.floor(frame * this.props.width) % this.image.width,
+            Math.floor(frame * this.props.width / this.image.width) * this.props.height,
+            this.props.width, this.props.height
+        ));
     }
 
 
@@ -175,13 +194,15 @@ export default class Sprite extends AbstractModule {
         loader.add(this.props.imagePath).load(() => {
             const texture = loader.resources[this.props.imagePath].texture;
 
-            texture.frame = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
+            texture.frame           = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
             this.container.texture  = texture;
             this.loaded             = true;
             this.image              = loader.resources[this.props.imagePath].data;
 
+            this.animations.forEach(animation => animation.textureFrames = this._framesToRectangles(animation.frames));
+
             if (this.animations.length && !this.animation) {
-                this.setAnimation(this.animations[0].name);
+                this.setAnimation(this.animations[0].name, true);
             }
         });
     }

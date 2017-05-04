@@ -111,7 +111,8 @@ export default class Scene extends AbstractClass {
             const material          = entity.body.shape.material = new p2.Material(),
                 contactMaterials    = this.materials.map(materialB => new p2.ContactMaterial(material, materialB, {
                     restitution : bounce,
-                    stiffness   : Number.MAX_VALUE
+                    friction    : 0.6
+                    // stiffness   : Number.MAX_VALUE
                 }));
 
             contactMaterials.forEach(contactMaterial => this.world.addContactMaterial(contactMaterial));

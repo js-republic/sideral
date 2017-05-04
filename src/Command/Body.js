@@ -1,6 +1,7 @@
 import p2 from "p2";
 
 import Util from "./Util";
+import Enum from "./Enum";
 
 
 export default class Body {
@@ -11,13 +12,14 @@ export default class Body {
      * @param {*=} props: properties to pass to p2
      */
     constructor (scene, props = {}) {
-        const { x, y, width, height } = props;
+        const { x, y, width, height, group } = props;
 
         delete props.x;
         delete props.y;
         delete props.width;
         delete props.height;
         delete props.scene;
+        delete props.group;
 
         this.offset = {
             x: width / 2,
@@ -30,6 +32,10 @@ export default class Body {
         this.shape.material = this.scene.DefaultMaterial;
 
         this.data.addShape(this.shape);
+
+        if (typeof group !== "undefined") {
+            this.setGroup(group);
+        }
     }
 
     /**
@@ -60,6 +66,44 @@ export default class Body {
         this.offset.x       = width / 2;
         this.offset.y       = height / 2;
     }
+
+    /**
+     * Set a new group for the shape of the body
+     * @param {number} group: group number (see Enum.js)
+     * @returns {null} -
+     */
+    setGroup (group) {
+        if (!this.shape) {
+            return null;
+        }
+
+        const toMask = groupNumber => Math.pow(2, groupNumber);
+
+        this.shape.collisionGroup = toMask(group);
+
+        switch (group) {
+        case Enum.GROUP.ALL: this.shape.collisionMask = -1;
+            break;
+
+        case Enum.GROUP.NONE: this.shape.collisionMask = 0;
+            break;
+
+        case Enum.GROUP.GROUND: this.shape.collisionMask    = -1;
+            break;
+
+        case Enum.GROUP.ALLY: this.shape.collisionMask      = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ENEMY);
+            break;
+
+        case Enum.GROUP.ENEMY: this.shape.collisionMask     = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ALLY);
+            break;
+
+        case Enum.GROUP.NEUTRAL: this.shape.collisionMask   = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND);
+            break;
+        }
+    }
+
+
+    /* ACCESSORS */
 
     /**
      * Get x position
@@ -175,7 +219,7 @@ Body.CircularBody = class extends Body {
 
 Body.BodyByType = type => {
     switch (type) {
-    case "circle": return Body.CircularBody;
+    case Enum.BOX.CIRCLE: return Body.CircularBody;
     default: return Body.RectangularBody;
     }
 };

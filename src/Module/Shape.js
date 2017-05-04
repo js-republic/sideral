@@ -1,5 +1,7 @@
 import AbstractModule from "./../Abstract/AbstractModule";
+
 import Util from "./../Command/Util";
+import Enum from "./../Command/Enum";
 
 
 export default class Shape extends AbstractModule {
@@ -15,7 +17,7 @@ export default class Shape extends AbstractModule {
         this.setProps({
             stroke  : "#FF0000",
             fill    : "#FFFFFF",
-            box     : Shape.BOX.RECTANGLE
+            box     : Enum.BOX.RECTANGLE
         });
 
         this.container = new PIXI.Graphics();
@@ -67,7 +69,7 @@ export default class Shape extends AbstractModule {
             height = withStroke ? this.props.height - 1 : this.props.height;
 
         switch (this.props.box) {
-        case Shape.BOX.CIRCLE:
+        case Enum.BOX.CIRCLE:
 
             if (width !== height) {
                 this.container.drawEllipse(width / 2, height / 2, width / 2, height / 2);
@@ -81,12 +83,3 @@ export default class Shape extends AbstractModule {
         }
     }
 }
-
-/**
- * All Shape Type
- * @type {{}}
- */
-Shape.BOX = {
-    CIRCLE              : "circle",
-    RECTANGLE           : "rectangle"
-};

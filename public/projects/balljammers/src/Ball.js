@@ -1,5 +1,7 @@
 import Entity from "src/Entity";
 
+import Enum from "src/Command/Enum";
+
 
 export default class Ball extends Entity {
 
@@ -19,10 +21,11 @@ export default class Ball extends Entity {
         });
 
         this.name   = "ball";
-        this.type   = Entity.TYPE.WEAK;
-        this.box    = Entity.BOX.CIRCLE;
+        this.type   = Enum.TYPE.WEAK;
+        this.box    = Enum.BOX.CIRCLE;
 
         this.signals.collision.bind("goal", this.onCollisionWithGoal.bind(this));
+        this.signals.collision.bind("player", this.onCollisionWithPlayer.bind(this));
 
         this.addSprite("images/ball.png", this.props.width, this.props.height);
     }
@@ -34,7 +37,7 @@ export default class Ball extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        this.setBounce(0.5);
+        // this.setBounce(0.5);
         this.respawn();
     }
 
@@ -61,6 +64,10 @@ export default class Ball extends Entity {
      */
     onCollisionWithGoal (goal) {
         this.respawn();
+    }
+
+    onCollisionWithPlayer (player) {
+        // this.props.vx = Math.abs(player.props.speed) * (player.props.x < this.props.x ? 1 : -1);
     }
 
 }

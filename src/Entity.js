@@ -2,6 +2,7 @@ import AbstractModule from "./Abstract/AbstractModule";
 
 import Signal from "./Command/Signal";
 import Body from "./Command/Body";
+import Enum from "./Command/Enum"
 
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
@@ -29,8 +30,9 @@ export default class Entity extends AbstractModule {
         });
 
         this.name       = "entity";
-        this.type       = Entity.TYPE.SOLID;
-        this.box        = Entity.BOX.RECTANGLE;
+        this.type       = Enum.TYPE.SOLID;
+        this.box        = Enum.BOX.RECTANGLE;
+        this.group      = Enum.GROUP.ALL;
         this.scene      = null;
 
         this.standing   = false;
@@ -57,11 +59,12 @@ export default class Entity extends AbstractModule {
         const settings = {
             mass            : this.type,
             gravityScale    : this.props.gravityFactor,
-            fixedRotation   : this.type === Entity.TYPE.SOLID
+            group           : this.group,
+            fixedRotation   : this.type === Enum.TYPE.SOLID
         };
 
         switch (this.box) {
-        case Entity.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+        case Enum.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
             break;
 
         default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
@@ -109,10 +112,7 @@ export default class Entity extends AbstractModule {
 
             if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
                 this.body.data.velocity[1] = this.props.vy;
-
-
             }
-
         }
 
         this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
@@ -171,7 +171,7 @@ export default class Entity extends AbstractModule {
      * @returns {number} the type
      */
     setType (type) {
-        if (Object.keys(Entity.TYPE).find(key => Entity.TYPE[key] === type)) {
+        if (Object.keys(Enum.TYPE).find(key => Enum.TYPE[key] === type)) {
             this.type = type;
 
             if (this.body) {
@@ -256,15 +256,3 @@ export default class Entity extends AbstractModule {
         this.body.angle = this.props.angle;
     }
 }
-
-Entity.TYPE = {
-    GHOST   : -1,
-    STATIC  : 0,
-    WEAK    : 1,
-    SOLID   : 2
-};
-
-Entity.BOX = {
-    RECTANGLE   : "rectangle",
-    CIRCLE      : "circle"
-};
