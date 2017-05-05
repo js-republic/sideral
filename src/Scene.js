@@ -26,13 +26,17 @@ export default class Scene extends AbstractClass {
         });
 
         this.DefaultMaterial    = new p2.Material();
+        this.WallMaterial       = new p2.Material();
 
         this._entities          = null;
         this.tilemap            = null;
         this.world              = new p2.World({ gravity: [0, 0] });
-        this.materials          = [this.DefaultMaterial];
+        this.materials          = [this.DefaultMaterial, this.WallMaterial];
 
-        this.world.on("endContact", this.onShapeContact.bind(this));
+        this.world.setGlobalStiffness(1e5);
+
+        this.world.on("beginContact", this.onBeginContact.bind(this));
+        this.world.on("endContact", this.onEndContact.bind(this));
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
 
@@ -111,8 +115,7 @@ export default class Scene extends AbstractClass {
             const material          = entity.body.shape.material = new p2.Material(),
                 contactMaterials    = this.materials.map(materialB => new p2.ContactMaterial(material, materialB, {
                     restitution : bounce,
-                    friction    : 0.6
-                    // stiffness   : Number.MAX_VALUE
+                    stiffness   : Number.MAX_VALUE
                 }));
 
             contactMaterials.forEach(contactMaterial => this.world.addContactMaterial(contactMaterial));
@@ -177,7 +180,35 @@ export default class Scene extends AbstractClass {
      * @param {p2.Body} bodyB: body entered in collision
      * @returns {void}
      */
-    onShapeContact ({ bodyA, bodyB }) {
+    onBeginContact ({ bodyA, bodyB }) {
+        const contact = this.resolveContact(bodyA, bodyB);
+
+        // console.log(contact, contact.entityA && contact.entityA._standing, contact.entityB && contact.entityB._standing);
+
+        if (contact.entityB && contact.entityB.props.playerLeft) {
+            console.log("begin contact", contact.entityB._standing);
+        }
+
+        if (contact.entityA && contact.entityB) {
+            contact.entityA.signals.collision.dispatch(contact.entityB.name, contact.entityB);
+            contact.entityB.signals.collision.dispatch(contact.entityA.name, contact.entityA);
+        }
+    }
+
+    onEndContact ({ bodyA, bodyB }) {
+        const contact = this.resolveContact(bodyA, bodyB);
+
+        if (contact.entityB && contact.entityB.props.playerLeft) {
+            console.log("end contact", contact.entityB._standing);
+        }
+
+        if (contact.entityA && contact.entityB) {
+            contact.entityA.signals.endCollision.dispatch(contact.entityB.name, contact.entityB);
+            contact.entityB.signals.endCollision.dispatch(contact.entityA.name, contact.entityA);
+        }
+    }
+
+    resolveContact (bodyA, bodyB) {
         const entities  = this.getEntities().filter(entity => entity.body && entity.body.data),
             walls       = (this.tilemap && this.tilemap.bodies) || [],
             findEntityByBody    = body => entities.find(entity => entity.body.data.id === body.id),
@@ -185,38 +216,25 @@ export default class Scene extends AbstractClass {
             entityA     = findEntityByBody(bodyA),
             entityB     = findEntityByBody(bodyB);
 
-        const resolveEntityWithWall = (entity, wall) => {
-            if ((wall.y >= entity.props.y + entity.props.height) && (entity.props.x > wall.x - entity.props.width) && (entity.props.x < wall.x + wall.width)) {
-                entity._standing = true;
-            }
-        };
+        let wall        = null;
 
-        if (entityA) {
-            entityA.setProps({
-                x       : entityA.body.x,
-                y       : entityA.body.y,
-                angle   : entityA.body.angle
-            });
+        const isAbove = (xA, yA, widthA, xB, yB, widthB) => yB >= yA && (xA > xB - widthA) && (xA < xB + widthB);
+
+        switch (true) {
+        case entityA && entityB:
+            entityA.standing = entityA.standing || isAbove(entityA.props.x, entityA.props.y, entityA.props.height, entityB.props.x, entityB.props.y, entityB.props.width);
+            entityB.standing = entityB.standing || isAbove(entityB.props.x, entityB.props.y, entityB.props.height, entityA.props.x, entityA.props.y, entityA.props.width);
+            break;
+
+        case entityA && !entityB: wall = findWallByBody(bodyB);
+            entityA.standing = entityA.standing || (wall && isAbove(entityA.props.x, entityA.props.y, entityA.props.height, wall.x, wall.y, wall.width));
+            break;
+
+        case entityB && !entityA: wall = findWallByBody(bodyA);
+            entityB.standing = entityB.standing || (wall && isAbove(entityB.props.x, entityB.props.y, entityB.props.height, wall.x, wall.y, wall.width));
+            break;
         }
 
-        if (entityB) {
-            entityB.setProps({
-                x       : entityB.body.x,
-                y       : entityB.body.y,
-                angle   : entityB.body.angle
-            });
-        }
-
-        if (entityA && !entityB) {
-            resolveEntityWithWall(entityA, findWallByBody(bodyB));
-
-        } else if (entityB && !entityA) {
-            resolveEntityWithWall(entityB, findWallByBody(bodyA));
-
-        } else {
-            entityA.signals.collision.dispatch(entityB.name, entityB);
-            entityB.signals.collision.dispatch(entityA.name, entityA);
-
-        }
+        return { entityA: entityA, entityB: entityB };
     }
 }

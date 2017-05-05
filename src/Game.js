@@ -21,7 +21,7 @@ class Game extends AbstractClass {
             background  : "#DDDDDD"
         });
 
-        this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true });
+        this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
         this.inputs     = {};
         this._inputs    = {};
         this.fps        = 60;

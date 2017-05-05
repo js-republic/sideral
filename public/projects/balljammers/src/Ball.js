@@ -14,8 +14,8 @@ export default class Ball extends Entity {
         super();
 
         this.setProps({
-            width           : 32,
-            height          : 32,
+            width           : 26,
+            height          : 28,
             friction        : 100,
             gravityFactor   : 1
         });
@@ -27,7 +27,7 @@ export default class Ball extends Entity {
         this.signals.collision.bind("goal", this.onCollisionWithGoal.bind(this));
         this.signals.collision.bind("player", this.onCollisionWithPlayer.bind(this));
 
-        this.addSprite("images/ball.png", this.props.width, this.props.height);
+        this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
     }
 
     /**
@@ -37,8 +37,14 @@ export default class Ball extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        // this.setBounce(0.5);
+        this.setBounce(0.45);
         this.respawn();
+        // this.toggleDebug();
+    }
+
+    update () {
+        super.update();
+
     }
 
 

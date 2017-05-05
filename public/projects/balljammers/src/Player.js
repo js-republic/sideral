@@ -24,6 +24,7 @@ export default class Player extends Entity {
         });
 
         this.group      = Enum.GROUP.ALLY;
+        this.type       = Enum.TYPE.SOLID;
         this.name       = "player";
         this.doubleJump = false;
     }
@@ -45,15 +46,7 @@ export default class Player extends Entity {
      * @override
      */
     update () {
-        this.props.accelX = this.props.vxFactor * this.props.speed * 150;
-
-        if (this.props.vxFactor === -1) {
-            this.props.flip = true;
-
-        } else if (this.props.vxFactor === 1) {
-            this.props.flip = false;
-
-        }
+        this.props.vx = this.props.vxFactor * this.props.speed;
 
         super.update();
     }
@@ -65,6 +58,7 @@ export default class Player extends Entity {
      */
     nextCycle () {
         super.nextCycle();
+        this._updateAnimation();
 
         this.props.vy = 0;
     }
@@ -134,6 +128,31 @@ export default class Player extends Entity {
                 this.props.vy = -Math.abs(this.props.jump);
             }
 
+        }
+    }
+
+
+    /* PRIVATE */
+
+    /**
+     * Update sprite animation
+     * @private
+     * @returns {void}
+     */
+    _updateAnimation () {
+        if (this.props.vxFactor) {
+            this.props.flip = this.props.vxFactor === -1;
+        }
+
+        if (this.props.playerLeft) {
+            console.log(this.standing);
+        }
+
+        if (this.standing) {
+            this.sprite.setAnimation(this.props.vxFactor ? "run" : "idle");
+
+        } else {
+            this.sprite.setAnimation("jump");
         }
     }
 

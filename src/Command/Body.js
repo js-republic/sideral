@@ -12,7 +12,7 @@ export default class Body {
      * @param {*=} props: properties to pass to p2
      */
     constructor (scene, props = {}) {
-        const { x, y, width, height, group } = props;
+        const { x, y, width, height, group, material } = props;
 
         delete props.x;
         delete props.y;
@@ -20,6 +20,7 @@ export default class Body {
         delete props.height;
         delete props.scene;
         delete props.group;
+        delete props.material;
 
         this.offset = {
             x: width / 2,
@@ -29,7 +30,7 @@ export default class Body {
         this.scene          = scene;
         this.shape          = props.shape || new p2.Box({ width: width, height: height });
         this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
-        this.shape.material = this.scene.DefaultMaterial;
+        this.shape.material = material || this.scene.DefaultMaterial;
 
         this.data.addShape(this.shape);
 
@@ -82,10 +83,10 @@ export default class Body {
         this.shape.collisionGroup = toMask(group);
 
         switch (group) {
-        case Enum.GROUP.ALL: this.shape.collisionMask = -1;
+        case Enum.GROUP.ALL: this.shape.collisionMask       = -1;
             break;
 
-        case Enum.GROUP.NONE: this.shape.collisionMask = 0;
+        case Enum.GROUP.NONE: this.shape.collisionMask      = 0;
             break;
 
         case Enum.GROUP.GROUND: this.shape.collisionMask    = -1;

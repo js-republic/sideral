@@ -1,3 +1,5 @@
+import p2 from "p2";
+
 import AbstractModule from "./../Abstract/AbstractModule";
 
 import Shape from "./Shape";
@@ -20,6 +22,8 @@ export default class Tilemap extends AbstractModule {
             tilewidth   : 0,
             tileheight  : 0
         });
+
+        this.wallMaterial           = new p2.Material();
 
         this.bodies                 = [];
         this._debugs                = [];
@@ -159,7 +163,7 @@ export default class Tilemap extends AbstractModule {
     _loadWalls (walls) {
         walls.forEach(wall => {
             const box      = wall[0],
-                settings    = { mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND };
+                settings    = { mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: this.scene.WallMaterial };
             let body        = null;
 
             switch (box) {

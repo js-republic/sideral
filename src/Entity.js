@@ -42,6 +42,7 @@ export default class Entity extends AbstractModule {
         this._standing  = false;
 
         this.signals.collision      = new Signal();
+        this.signals.endCollision   = new Signal();
 
         this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
@@ -60,7 +61,8 @@ export default class Entity extends AbstractModule {
             mass            : this.type,
             gravityScale    : this.props.gravityFactor,
             group           : this.group,
-            fixedRotation   : this.type === Enum.TYPE.SOLID
+            fixedRotation   : this.type === Enum.TYPE.SOLID,
+            angularVelocity : this.type === Enum.TYPE.WEAK ? 1 : 0
         };
 
         switch (this.box) {
@@ -93,6 +95,8 @@ export default class Entity extends AbstractModule {
      * @override
      */
     nextCycle () {
+        const lastVx = this.last.vx;
+
         super.nextCycle();
 
         this.setProps({
@@ -101,14 +105,22 @@ export default class Entity extends AbstractModule {
             angle   : this.body.angle
         });
 
+        if (this.props.playerLeft) {
+            // console.log(this._standing, this.standing);
+        }
+
         if (this.body) {
-            this.standing   = this._standing || !Math.ceil(this.body.data.velocity[1]);
-            this.moving     = Boolean(this.body.data.velocity[0]) || !this.standing;
+            // this.standing   = this._standing || !Math.ceil(this.body.data.velocity[1]);
+            this.moving     = Boolean(this.body.data.velocity[0]) || !this.standing;
+            // this.standing   = this._standing === null ? this.standing : this._standing;
             this._standing  = false;
 
             this.body.data.force[0]     = this.props.accelX;
-            this.body.data.velocity[0]  = this.props.vx;
             this.body.data.force[1]     = this.props.accelY;
+
+            if (!(lastVx === this.props.vx && !this.props.vx)) {
+                this.body.data.velocity[0] = this.props.vx;
+            }
 
             if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
                 this.body.data.velocity[1] = this.props.vy;
