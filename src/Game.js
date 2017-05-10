@@ -29,6 +29,7 @@ class Game extends AbstractClass {
         this.tick       = 1;
         this.lastUpdate = 0;
         this.stopped    = true;
+        this.preventInputPropagation = true;
 
         this.signals.keyPress = new Signal();
 
@@ -149,9 +150,9 @@ class Game extends AbstractClass {
      * @returns {void}
      */
     _updateInputs () {
-        const HOLD  = "HOLD",
-            PRESSED = "PRESSED",
-            RELEASED= "RELEASED";
+        const HOLD      = "HOLD",
+            PRESSED     = "PRESSED",
+            RELEASED    = "RELEASED";
 
         for (const key in this._inputs) {
             if (!this._inputs.hasOwnProperty(key)) {
@@ -237,20 +238,34 @@ class Game extends AbstractClass {
      * event on keydown
      * @event keydown
      * @param {*} e: event
-     * @returns {void}
+     * @returns {Boolean} Input propagation
      */
     _onKeydown (e) {
+        if (this.preventInputPropagation) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
         this._inputs[e.keyCode] = "PRESSED";
+
+        return !this.preventInputPropagation;
     }
 
     /**
      * event on keyup
      * @event keyup
      * @param {*} e: event
-     * @returns {void}
+     * @returns {Boolean} Input propagation
      */
     _onKeyup (e) {
+        if (this.preventInputPropagation) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
         this._inputs[e.keyCode] = "RELEASED";
+
+        return !this.preventInputPropagation;
     }
 }
 

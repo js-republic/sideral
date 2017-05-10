@@ -6,6 +6,7 @@ import Shape from "./Shape";
 
 import Body from "./../Command/Body";
 import Enum from "./../Command/Enum";
+import Wall from "./../Command/Wall";
 
 
 export default class Tilemap extends AbstractModule {
@@ -70,10 +71,10 @@ export default class Tilemap extends AbstractModule {
         }
 
         loader.load((currentLoader, resources) => {
+            this.bodies = data.walls.map(wall => new Wall(this.scene, ...wall));
             this._loadBackgrounds(data.backgrounds, resources);
             this._loadGrids(data.grid, data.path, data.debug);
             this._loadDecorators(data.decorators, resources);
-            this._loadWalls(data.walls);
         });
     }
 
@@ -152,32 +153,6 @@ export default class Tilemap extends AbstractModule {
         };
 
         image.src = path;
-    }
-
-    /**
-     * Load all walls of the maps
-     * @private
-     * @param {*} walls: wall data
-     * @returns {void}
-     */
-    _loadWalls (walls) {
-        walls.forEach(wall => {
-            const box      = wall[0],
-                settings    = { mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: this.scene.WallMaterial };
-            let body        = null;
-
-            switch (box) {
-            case Enum.BOX.CIRCLE: body = new Body.CircularBody(this.scene, wall[1], wall[2], wall[3], settings);
-                break;
-            default: body = new Body.RectangularBody(this.scene, wall[1], wall[2], wall[3], wall[4], settings);
-                break;
-            }
-
-            if (body) {
-                this.scene.world.addBody(body.data);
-                this.bodies.push(body);
-            }
-        });
     }
 
     /**

@@ -17,7 +17,14 @@ const enums = {
         GROUND  : 3,
         ALLY    : 4,
         ENEMY   : 5,
-        NEUTRAL : 6
+        NEUTRAL : 6,
+        ENTITIES: 7
+    },
+
+    DURATION_TYPE: {
+        FRAME           : "frame",
+        MS              : "ms",
+        ANIMATION_LOOP  : "animationLoop"
     }
 };
 

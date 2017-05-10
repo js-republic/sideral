@@ -37,7 +37,6 @@ export default class Player extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        this.toggleDebug();
     }
 
     /**
@@ -131,21 +130,29 @@ export default class Player extends Entity {
         }
     }
 
+    /**
+     * @event key attack
+     * @returns {void|null} -
+     */
+    attack () {
+        console.log(this.skills.run("attack"));
+    }
+
 
     /* PRIVATE */
 
     /**
      * Update sprite animation
      * @private
-     * @returns {void}
+     * @returns {void|null} -
      */
     _updateAnimation () {
         if (this.props.vxFactor) {
             this.props.flip = this.props.vxFactor === -1;
         }
 
-        if (this.props.playerLeft) {
-            console.log(this.standing);
+        if (this.skills.currentSkill) {
+            return null;
         }
 
         if (this.standing) {

@@ -16,16 +16,15 @@ export default class Ball extends Entity {
         this.setProps({
             width           : 26,
             height          : 28,
-            friction        : 100,
             gravityFactor   : 1
         });
 
-        this.name   = "ball";
-        this.type   = Enum.TYPE.WEAK;
-        this.box    = Enum.BOX.CIRCLE;
+        this.name       = "ball";
+        this.friction   = true;
+        this.type       = Enum.TYPE.WEAK;
+        this.box        = Enum.BOX.CIRCLE;
 
-        this.signals.collision.bind("goal", this.onCollisionWithGoal.bind(this));
-        this.signals.collision.bind("player", this.onCollisionWithPlayer.bind(this));
+        this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
 
         this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
     }
@@ -39,12 +38,6 @@ export default class Ball extends Entity {
 
         this.setBounce(0.45);
         this.respawn();
-        // this.toggleDebug();
-    }
-
-    update () {
-        super.update();
-
     }
 
 
@@ -69,11 +62,8 @@ export default class Ball extends Entity {
      * @returns {void}
      */
     onCollisionWithGoal (goal) {
-        this.respawn();
+        if (this.props.y > goal.props.y) {
+            this.respawn();
+        }
     }
-
-    onCollisionWithPlayer (player) {
-        // this.props.vx = Math.abs(player.props.speed) * (player.props.x < this.props.x ? 1 : -1);
-    }
-
 }

@@ -2,7 +2,8 @@ import AbstractModule from "./Abstract/AbstractModule";
 
 import Signal from "./Command/Signal";
 import Body from "./Command/Body";
-import Enum from "./Command/Enum"
+import Enum from "./Command/Enum";
+import SkillManager from "./Command/SkillManager";
 
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
@@ -22,7 +23,6 @@ export default class Entity extends AbstractModule {
             gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
-            friction        : 0,
             accelX          : 0,
             accelY          : 0,
             angle           : 0,
@@ -34,13 +34,17 @@ export default class Entity extends AbstractModule {
         this.box        = Enum.BOX.RECTANGLE;
         this.group      = Enum.GROUP.ALL;
         this.scene      = null;
+        this.friction   = false;
+        this.lastPos    = {x: 0, y: 0};
+        this.skills     = new SkillManager(this);
 
         this.standing   = false;
         this.moving     = false;
 
         this._bounce    = 0;
-        this._standing  = false;
+        this.collides   = [];
 
+        this.signals.beginCollision = new Signal();
         this.signals.collision      = new Signal();
         this.signals.endCollision   = new Signal();
 
@@ -58,22 +62,33 @@ export default class Entity extends AbstractModule {
         super.initialize(props);
 
         const settings = {
-            mass            : this.type,
+            mass            : this.type < 0 ? 0 : this.type,
             gravityScale    : this.props.gravityFactor,
             group           : this.group,
-            fixedRotation   : this.type === Enum.TYPE.SOLID,
+            fixedRotation   : this.type !== Enum.TYPE.WEAK,
             angularVelocity : this.type === Enum.TYPE.WEAK ? 1 : 0
         };
 
         switch (this.box) {
-        case Enum.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
-            break;
+            case Enum.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+                break;
 
-        default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
-            break;
+            default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
+                break;
         }
 
         this.onSizeChange();
+    }
+
+    /**
+     * @update
+     * @lifecycle
+     * @override
+     */
+    update () {
+        super.update();
+
+        this.skills.update();
     }
 
     /**
@@ -85,7 +100,7 @@ export default class Entity extends AbstractModule {
         super.kill();
 
         if (this.body) {
-            this.scene.world.removeBody(this.body.box);
+            this.scene.world.removeBody(this.body.data);
         }
     }
 
@@ -95,30 +110,32 @@ export default class Entity extends AbstractModule {
      * @override
      */
     nextCycle () {
-        const lastVx = this.last.vx;
-
         super.nextCycle();
 
-        this.setProps({
-            x       : this.body.x,
-            y       : this.body.y,
-            angle   : this.body.angle
-        });
-
-        if (this.props.playerLeft) {
-            // console.log(this._standing, this.standing);
-        }
-
         if (this.body) {
-            // this.standing   = this._standing || !Math.ceil(this.body.data.velocity[1]);
-            this.moving     = Boolean(this.body.data.velocity[0]) || !this.standing;
-            // this.standing   = this._standing === null ? this.standing : this._standing;
-            this._standing  = false;
+            if (this.last.x !== this.body.x) {
+                this.lastPos.x = this.last.x;
+            }
+
+            if (this.last.y !== this.body.y) {
+                this.lastPos.y = this.last.y;
+            }
+
+            this.setProps({
+                x: this.body.x,
+                y: this.body.y
+            });
+
+            this.moving         = Boolean(this.body.data.velocity[0]) || !this.standing;
+            this.standing       = Boolean(this.collides.find(collide => collide.isAbove));
+            this.props.x        = this.body.x;
+            this.props.y        = this.body.y;
+            this.props.angle    = this.body.angle;
 
             this.body.data.force[0]     = this.props.accelX;
             this.body.data.force[1]     = this.props.accelY;
 
-            if (!(lastVx === this.props.vx && !this.props.vx)) {
+            if (this.props.vx || (!this.props.vx && !this.friction)) {
                 this.body.data.velocity[0] = this.props.vx;
             }
 
@@ -126,6 +143,8 @@ export default class Entity extends AbstractModule {
                 this.body.data.velocity[1] = this.props.vy;
             }
         }
+
+        this.collides.forEach(collide => collide.entity && this.signals.collision.dispatch(collide.entity.name, collide.entity));
 
         this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
         this.container.rotation = this.body.data.angle;

@@ -61,6 +61,12 @@ export default class AbstractClass {
          * @type {*}
          */
         this.container  = new PIXI.Container();
+
+        /**
+         * Know if the object is killed
+         * @type {boolean}
+         */
+        this.killed     = false;
     }
 
     /**
@@ -86,6 +92,12 @@ export default class AbstractClass {
         if (this.container) {
             this.container.destroy(true);
         }
+
+        if (this.parent) {
+            this.parent.children = this.parent.children.filter(child => child.id !== this.id);
+        }
+
+        this.killed = true;
     }
 
     /**
@@ -95,10 +107,11 @@ export default class AbstractClass {
      */
     update () {
         this.children.forEach(child => child.update());
-        this.signals.update.dispatch();
 
         this.timers.forEach(timer => timer.update());
         this.timers = this.timers.filter(timer => !timer.finished);
+
+        this.signals.update.dispatch();
     }
 
     /**

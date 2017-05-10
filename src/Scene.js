@@ -2,6 +2,8 @@ import p2 from "p2";
 
 import AbstractClass from "./Abstract/AbstractClass";
 
+import Enum from "./Command/Enum";
+
 import Tilemap from "./Module/Tilemap";
 
 import Game from "./Game";
@@ -35,8 +37,9 @@ export default class Scene extends AbstractClass {
 
         this.world.setGlobalStiffness(1e5);
 
-        this.world.on("beginContact", this.onBeginContact.bind(this));
-        this.world.on("endContact", this.onEndContact.bind(this));
+        this.world.on("beginContact", this._onBeginContact.bind(this));
+        this.world.on("endContact", this._onEndContact.bind(this));
+        this.world.on("preSolve", this._onPreSolve.bind(this));
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
 
@@ -58,7 +61,6 @@ export default class Scene extends AbstractClass {
      */
     update () {
         super.update();
-
         this.world.step(1 / 60, Game.latency, 3);
     }
 
@@ -174,32 +176,72 @@ export default class Scene extends AbstractClass {
         this.world.gravity = [0, this.props.gravity];
     }
 
+
+    /* PRIVATE */
+
+    _onPreSolve ({ contactEquations }) {
+        const walls = (this.tilemap && this.tilemap.bodies) || [];
+
+        contactEquations.forEach(contactEquation => {
+            const wallA     = walls.find(wall => wall.id === contactEquation.bodyA.id),
+                wallB       = walls.find(wall => wall.id === contactEquation.bodyB.id),
+                entities    = this.getEntities().filter(entity => entity.body),
+                findEntity  = bodyId => entities.find(entity => entity.body.id === bodyId),
+                entityA     = wallA ? null : findEntity(contactEquation.bodyA.id),
+                entityB     = wallB ? null : findEntity(contactEquation.bodyB.id);
+
+            if ((entityA && entityA.type === Enum.TYPE.GHOST) || (entityB && entityB.type === Enum.TYPE.GHOST)) {
+                contactEquation.enabled = false;
+
+            } else if ((!wallA && wallB) || (wallA && !wallB)) {
+                const wall = wallA || wallB,
+                    entity  = wallA ? entityB : entityA;
+
+                if (entity) {
+                    contactEquation.enabled = !wall.isConstrainedByDirection(entity);
+                }
+            }
+        });
+    }
+
     /**
      * p2 JS event when two shapes starts to overlap
      * @param {p2.Body} bodyA: body entered in collision
      * @param {p2.Body} bodyB: body entered in collision
      * @returns {void}
      */
-    onBeginContact ({ bodyA, bodyB }) {
-        const contact = this.resolveContact(bodyA, bodyB);
+    _onBeginContact ({ bodyA, bodyB }) {
+        const contact = this._resolveContact(bodyA, bodyB);
 
-        // console.log(contact, contact.entityA && contact.entityA._standing, contact.entityB && contact.entityB._standing);
+        if (contact.entityA && contact.contactA) {
+            contact.entityA.collides.push(contact.contactA);
+        }
 
-        if (contact.entityB && contact.entityB.props.playerLeft) {
-            console.log("begin contact", contact.entityB._standing);
+        if (contact.entityB && contact.contactB) {
+            contact.entityB.collides.push(contact.contactB);
         }
 
         if (contact.entityA && contact.entityB) {
-            contact.entityA.signals.collision.dispatch(contact.entityB.name, contact.entityB);
-            contact.entityB.signals.collision.dispatch(contact.entityA.name, contact.entityA);
+            contact.entityA.signals.beginCollision.dispatch(contact.entityB.name, contact.entityB);
+            contact.entityB.signals.beginCollision.dispatch(contact.entityA.name, contact.entityA);
         }
     }
 
-    onEndContact ({ bodyA, bodyB }) {
-        const contact = this.resolveContact(bodyA, bodyB);
+    /**
+     * p2 JS event when two shapes ends to overlap
+     * @param {p2.Body} bodyA: body entered in collision
+     * @param {p2.Body} bodyB: body entered in collision
+     * @returns {void}
+     */
+    _onEndContact ({ bodyA, bodyB }) {
+        const contact = this._resolveContact(bodyA, bodyB);
 
-        if (contact.entityB && contact.entityB.props.playerLeft) {
-            console.log("end contact", contact.entityB._standing);
+        if (contact.entityA) {
+            contact.entityA.collides = contact.entityA.collides.filter(collide => collide.bodyId !== contact.contactA.bodyId);
+        }
+
+        if (contact.entityB) {
+            contact.entityB.collides = contact.entityB.collides.filter(collide => collide.bodyId !== contact.contactB.bodyId);
         }
 
         if (contact.entityA && contact.entityB) {
@@ -208,33 +250,45 @@ export default class Scene extends AbstractClass {
         }
     }
 
-    resolveContact (bodyA, bodyB) {
+    /**
+     * p2 JS event when two shapes is overlaping
+     * @param {p2.Body} bodyA: body entered in collision
+     * @param {p2.Body} bodyB: body entered in collision
+     * @returns {{ entityA: Entity, entityB: Entity, contactA: *, contactB: *}} resolve object
+     */
+    _resolveContact (bodyA, bodyB) {
         const entities  = this.getEntities().filter(entity => entity.body && entity.body.data),
             walls       = (this.tilemap && this.tilemap.bodies) || [],
             findEntityByBody    = body => entities.find(entity => entity.body.data.id === body.id),
-            findWallByBody      = body => walls.find(wall => wall.data.id === body.id),
+            findWallByBody      = body => walls.find(wall => wall.id === body.id),
             entityA     = findEntityByBody(bodyA),
             entityB     = findEntityByBody(bodyB);
 
-        let wall        = null;
+        let contactA    = null,
+            contactB    = null,
+            wall        = null;
 
         const isAbove = (xA, yA, widthA, xB, yB, widthB) => yB >= yA && (xA > xB - widthA) && (xA < xB + widthB);
 
         switch (true) {
-        case entityA && entityB:
-            entityA.standing = entityA.standing || isAbove(entityA.props.x, entityA.props.y, entityA.props.height, entityB.props.x, entityB.props.y, entityB.props.width);
-            entityB.standing = entityB.standing || isAbove(entityB.props.x, entityB.props.y, entityB.props.height, entityA.props.x, entityA.props.y, entityA.props.width);
-            break;
+            case Boolean(entityA) && Boolean(entityB):
+                contactA = { bodyId: bodyB.id, entity: entityB, isAbove: isAbove(entityA.props.x, entityA.props.y, entityA.props.height, entityB.props.x, entityB.props.y, entityB.props.width) };
+                contactB = { bodyId: bodyA.id, entity: entityA, isAbove: isAbove(entityB.props.x, entityB.props.y, entityB.props.height, entityA.props.x, entityA.props.y, entityA.props.width) };
+                break;
 
-        case entityA && !entityB: wall = findWallByBody(bodyB);
-            entityA.standing = entityA.standing || (wall && isAbove(entityA.props.x, entityA.props.y, entityA.props.height, wall.x, wall.y, wall.width));
-            break;
+            case entityA && !entityB: wall = findWallByBody(bodyB);
+                if (wall) {
+                    contactA = { bodyId: bodyB.id, isAbove: isAbove(entityA.props.x, entityA.props.y, entityA.props.height, wall.x, wall.y, wall.width) };
+                }
+                break;
 
-        case entityB && !entityA: wall = findWallByBody(bodyA);
-            entityB.standing = entityB.standing || (wall && isAbove(entityB.props.x, entityB.props.y, entityB.props.height, wall.x, wall.y, wall.width));
-            break;
+            case entityB && !entityA: wall = findWallByBody(bodyA);
+                if (wall) {
+                    contactB = { bodyId: bodyA.id, isAbove: isAbove(entityB.props.x, entityB.props.y, entityB.props.height, wall.x, wall.y, wall.width) };
+                }
+                break;
         }
 
-        return { entityA: entityA, entityB: entityB };
+        return { entityA: entityA, entityB: entityB, contactA: contactA, contactB: contactB };
     }
 }

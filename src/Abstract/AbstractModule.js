@@ -22,6 +22,15 @@ export default class AbstractModule extends AbstractClass {
         this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
     }
 
+    /**
+     * @update
+     * @lifecycle
+     * @override
+     */
+    update () {
+        super.update();
+    }
+
 
     /* METHODS */
 

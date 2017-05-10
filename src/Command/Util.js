@@ -90,7 +90,16 @@ export default class Util {
      * @returns {number} number of milliseconds
      */
     static frameToMs (frame) {
-        return frame / Game.fps;
+        return (frame / Game.fps) * 1000;
+    }
+
+    /**
+     * Convert milliseconds to frames
+     * @param {number} ms: number of milliseconds
+     * @returns {number} Number of frames
+     */
+    static msToFrame (ms) {
+        return (ms / Util.frameToMs(1)) * Game.fps;
     }
 
     /**

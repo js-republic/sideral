@@ -27,9 +27,11 @@ export default class Arena extends Scene {
         Game.signals.keyPress.bind(Game.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
         Game.signals.keyPress.bind(Game.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
         Game.signals.keyPress.bind(Game.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));
+        Game.signals.keyPress.bind(Game.KEY.SPACE, pressed => pressed && this.playerLeft && this.playerLeft.attack());
         Game.signals.keyPress.bind(Game.KEY.ARROW_LEFT, pressed => this.playerRight && this.playerRight.moveLeft(pressed));
         Game.signals.keyPress.bind(Game.KEY.ARROW_RIGHT, pressed => this.playerRight && this.playerRight.moveRight(pressed));
         Game.signals.keyPress.bind(Game.KEY.ARROW_UP, pressed => this.playerRight && this.playerRight.jump(pressed));
+        Game.signals.keyPress.bind(Game.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
     }
 
     /**
@@ -41,7 +43,7 @@ export default class Arena extends Scene {
         super.initialize(props);
 
         this.setTilemap(tilemapGrass);
-        this.addEntity(new Ball(), 0, 0);
+        this.addEntity(new Ball(), 100, 100);
 
         this.addEntity(new Goal(), 0, 448 - 130);
         this.addEntity(new Goal(), this.props.width - 45, 448 - 130, { debug: true, flip: true });

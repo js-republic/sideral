@@ -46,7 +46,7 @@
         "handle-callback-err": "error",
         "id-blacklist": "error",
         "id-match": "error",
-        "indent": "error",
+        "indent": ["error", 4, { "SwitchCase": 1 }],
         "init-declarations": "error",
         "jsx-quotes": "error",
         "keyword-spacing": "error",

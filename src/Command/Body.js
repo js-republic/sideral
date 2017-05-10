@@ -31,6 +31,7 @@ export default class Body {
         this.shape          = props.shape || new p2.Box({ width: width, height: height });
         this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
         this.shape.material = material || this.scene.DefaultMaterial;
+        this.id             = this.data.id;
 
         this.data.addShape(this.shape);
 
@@ -83,23 +84,26 @@ export default class Body {
         this.shape.collisionGroup = toMask(group);
 
         switch (group) {
-        case Enum.GROUP.ALL: this.shape.collisionMask       = -1;
-            break;
+            case Enum.GROUP.ALL: this.shape.collisionMask       = -1;
+                break;
 
-        case Enum.GROUP.NONE: this.shape.collisionMask      = 0;
-            break;
+            case Enum.GROUP.NONE: this.shape.collisionMask      = 0;
+                break;
 
-        case Enum.GROUP.GROUND: this.shape.collisionMask    = -1;
-            break;
+            case Enum.GROUP.GROUND: this.shape.collisionMask    = -1;
+                break;
 
-        case Enum.GROUP.ALLY: this.shape.collisionMask      = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ENEMY);
-            break;
+            case Enum.GROUP.ALLY: this.shape.collisionMask      = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ENEMY) | toMask(Enum.GROUP.ENTITIES);
+                break;
 
-        case Enum.GROUP.ENEMY: this.shape.collisionMask     = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ALLY);
-            break;
+            case Enum.GROUP.ENEMY: this.shape.collisionMask     = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ALLY) | toMask(Enum.GROUP.ENTITIES);
+                break;
 
-        case Enum.GROUP.NEUTRAL: this.shape.collisionMask   = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND);
-            break;
+            case Enum.GROUP.NEUTRAL: this.shape.collisionMask   = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.GROUND) | toMask(Enum.GROUP.ENTITIES);
+                break;
+
+            case Enum.GROUP.ENTITIES: this.shape.collisionMask  = toMask(Enum.GROUP.ALL) | toMask(Enum.GROUP.ALLY) | toMask(Enum.GROUP.ENEMY);
+                break;
         }
     }
 

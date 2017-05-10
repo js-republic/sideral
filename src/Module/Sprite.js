@@ -72,15 +72,15 @@ export default class Sprite extends AbstractModule {
         }
 
         this.animations.push({
-            name    : name,
-            duration: duration,
-            time    : 0,
-            frames  : frames,
-            frameIndex: 0,
-            loop    : 0,
-            maxLoop : loopCount,
-            fraction: Math.floor(duration / frames.length),
-            offset  : offset,
+            name        : name,
+            duration    : duration,
+            time        : 0,
+            frames      : frames,
+            frameIndex  : 0,
+            loop        : 0,
+            maxLoop     : loopCount,
+            fraction    : Math.floor(duration / frames.length),
+            offset      : offset,
             textureFrames: this._framesToRectangles(frames)
         });
 
@@ -155,7 +155,7 @@ export default class Sprite extends AbstractModule {
         if (this.animation.time >= this.animation.fraction) {
             if (this.animation.frameIndex >= (this.animation.frames.length - 1)) {
                 this.animation.loop++;
-                this.animation.frameIndex = this.animation.loop > this.animation.maxLoop ? this.animation.frames.length - 1 : 0;
+                this.animation.frameIndex = this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop ? this.animation.frames.length - 1 : 0;
 
             } else {
                 this.animation.frameIndex++;
@@ -164,7 +164,7 @@ export default class Sprite extends AbstractModule {
 
             this.animation.time = 0;
 
-            if (this.animation.loop <= this.animation.maxLoop) {
+            if (this.animation.maxLoop < 0 || this.animation.loop <= this.animation.maxLoop) {
                 this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
             }
         }
