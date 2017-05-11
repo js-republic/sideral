@@ -41,6 +41,12 @@ export default class Timer {
         this.eventComplete = onComplete;
 
         /**
+         * Event fired when updating
+         * @type {function}
+         */
+        this.eventUpdate    = options.onUpdate;
+
+        /**
          * Tendance value (used with reversible)
          * @type {number}
          */
@@ -79,7 +85,11 @@ export default class Timer {
         }
 
         this.value      = this.value + this.tendance;
-        const finished  = !this.value || (Math.abs(this.value) == Math.abs(this.duration));
+        const finished  = !this.value || (Math.abs(this.value) === Math.abs(this.duration));
+
+        if (this.eventUpdate) {
+            this.eventUpdate(this.duration - this.value, this.getValueRationed(true), this.duration);
+        }
 
         if (finished && this.recurrence) {
             this.recurrence--;
@@ -116,11 +126,11 @@ export default class Timer {
      * @returns {void}
      */
     stop (bypassComplete) {
+        this.finished = true;
+
         if (this.eventComplete && !bypassComplete) {
             this.eventComplete();
         }
-
-        this.finished = true;
     }
 
     /**

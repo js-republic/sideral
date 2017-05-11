@@ -29,7 +29,8 @@ class Game extends AbstractClass {
         this.tick       = 1;
         this.lastUpdate = 0;
         this.stopped    = true;
-        this.preventInputPropagation = true;
+        this.initialized                = true;
+        this.preventInputPropagation    = true;
 
         this.signals.keyPress = new Signal();
 

@@ -1,7 +1,3 @@
-import Enum from "src/Command/Enum";
-
-import Hitbox from "src/Module/Hitbox";
-
 import Player from "./../Player";
 
 
@@ -25,18 +21,5 @@ export default class PlayerCat extends Player {
             .addAnimation("run", 45, [36, 37, 38, 39, 40, 41, 42, 43])
             .addAnimation("jump", 55, [0, 1, 2, 3, 4, 5, 6, 7], 0)
             .addAnimation("attack", 15, [28, 29, 30, 31, 32]);
-
-        this.skills.add("attack", {
-            animation       : "attack",
-            duration        : 1,
-            durationType    : Enum.DURATION_TYPE.ANIMATION_LOOP,
-            hitboxClass     : Hitbox,
-            hitboxSettings  : {
-                offsetX : this.props.width / 2,
-                offsetY : this.props.height - 20,
-                width   : this.props.width,
-                height  : 20
-            }
-        });
     }
 }

@@ -25,6 +25,7 @@ export default class AbstractClass {
 
         /**
          * Last value of properties of the class
+         * @readonly
          * @type {{}}
          */
         this.last       = {};
@@ -40,9 +41,17 @@ export default class AbstractClass {
 
         /**
          * Children of AbstractClass
+         * @readonly
          * @type {Array<Object>}
          */
         this.children   = [];
+
+        /**
+         * Know when the object has been initialized by a parent
+         * @readonly
+         * @type {boolean}
+         */
+        this.initialized = false;
 
         /**
          * List of current timers
@@ -77,6 +86,8 @@ export default class AbstractClass {
      */
     initialize (props = {}) {
         Object.keys(props).forEach(key => this.props[key] = props[key]);
+
+        this.initialized = true;
     }
 
     /**

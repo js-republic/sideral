@@ -41,11 +41,14 @@ export default class AbstractModule extends AbstractClass {
      * @returns {void}
      */
     position (x, y) {
-        if (typeof x !== "undefined") {
-            this.props.x = x;
-        }
+        x = typeof x !== "undefined" ? x : this.props.x;
+        y = typeof y !== "undefined" ? y : this.props.y;
 
-        if (typeof y !== "undefined") {
+        if (!this.initialized) {
+            this.setProps({ x: x, y: y });
+
+        } else {
+            this.props.x = x;
             this.props.y = y;
         }
     }
@@ -57,11 +60,14 @@ export default class AbstractModule extends AbstractClass {
      * @returns {void}
      */
     size (width, height) {
-        if (typeof width !== "undefined") {
-            this.props.width = width;
-        }
+        width   = typeof width !== "undefined" ? width : this.props.width;
+        height  = typeof height !== "undefined" ? height : this.props.height;
 
-        if (typeof height !== "undefined") {
+        if (!this.initialized) {
+            this.setProps({ width: width, height: height });
+
+        } else {
+            this.props.width = width;
             this.props.height = height;
         }
     }

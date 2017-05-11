@@ -252,10 +252,6 @@ export default class Entity extends AbstractModule {
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
         }
-
-        if (this.body) {
-            this.body.size(this.props.width, this.props.height);
-        }
     }
 
     /**

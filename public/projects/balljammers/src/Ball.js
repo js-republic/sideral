@@ -31,13 +31,25 @@ export default class Ball extends Entity {
 
     /**
      * @initialize
+     * @lifecycle
      * @override
      */
     initialize (props) {
         super.initialize(props);
 
-        this.setBounce(0.45);
+        this.setBounce(0.65);
         this.respawn();
+    }
+
+    /**
+     * @update
+     * @lifecycle
+     * @override
+     */
+    update () {
+        super.update();
+
+        this.props.vx = this.props.vy = 0;
     }
 
 

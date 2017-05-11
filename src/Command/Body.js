@@ -57,19 +57,6 @@ export default class Body {
     }
 
     /**
-     * Set a new size of the shape
-     * @param {number} width: number corresponding of the width of the shape
-     * @param {number} height: number corresponding of the height of the shape
-     * @returns {void}
-     */
-    size (width, height) {
-        this.shape.width    = width;
-        this.shape.height   = height;
-        this.offset.x       = width / 2;
-        this.offset.y       = height / 2;
-    }
-
-    /**
      * Set a new group for the shape of the body
      * @param {number} group: group number (see Enum.js)
      * @returns {null} -
@@ -175,24 +162,6 @@ export default class Body {
      */
     set angle (value) {
         this.data.angle = Util.toRadians(value);
-    }
-
-    /**
-     * Set a new width for the shape
-     * @param {number} value: next value
-     */
-    set width (value) {
-        this.shape.width    = value;
-        this.offset.x       = value / 2;
-    }
-
-    /**
-     * Set a new height for the shape
-     * @param {number} value: next value
-     */
-    set height (value) {
-        this.shape.height   = value;
-        this.offset.y       = value / 2;
     }
 }
 

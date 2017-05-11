@@ -17,12 +17,13 @@ export default class Hitbox extends Entity {
             gravityFactor   : 0,
             offsetX         : 0,
             offsetY         : 0,
-            onHit           : null,
             multipleHit     : false,
             oncePerHit      : true,
+            maxHit          : 1,
             follow          : null
         });
 
+        this.hit    = 0;
         this.type   = Enum.TYPE.GHOST;
         this.group  = Enum.GROUP.ENTITIES;
 
@@ -30,12 +31,38 @@ export default class Hitbox extends Entity {
         this.signals.collision.add(this.onCollision.bind(this));
     }
 
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
     initialize (props) {
         super.initialize(props);
 
         this.toggleDebug();
     }
 
+
+    /* METHODS */
+
+    /**
+     * Add a new offset
+     * @param {number} offsetX: number of offset in x axis
+     * @param {number} offsetY: number of offset in y axis
+     * @returns {void}
+     */
+    offset (offsetX, offsetY) {
+        offsetX = typeof offsetX !== "undefined" ? offsetX : this.props.offsetX;
+        offsetY = typeof offsetY !== "undefined" ? offsetY : this.props.offsetY;
+
+        if (!this.initialized) {
+            this.setProps({ offsetX: offsetX, offsetY: offsetY });
+
+        } else {
+            this.props.offsetX = offsetX;
+            this.props.offsetY = offsetY;
+        }
+    }
 
     /* EVENTS */
 
@@ -45,20 +72,33 @@ export default class Hitbox extends Entity {
      * @returns {void}
      */
     updateFollow () {
-        if (this.follow) {
-            this.props.x = this.follow.props.x + this.props.offsetX;
-            this.props.y = this.follow.props.y + this.props.offsetY;
+        const { offsetX, offsetY, width, follow } = this.props;
+
+        if (follow) {
+            this.props.x = follow.props.x + offsetX - (follow.props.flip ? width : 0);
+            this.props.y = follow.props.y + offsetY;
+        }
+    }
+
+    onCollision (otherName, other) {
+        const result = this.onHit(otherName, other);
+
+        if (result) {
+            this.hit++;
+
+            if (this.hit >= this.props.maxHit) {
+                this.kill();
+            }
         }
     }
 
     /**
-     * When entering in collision with other
-     * @event collision
-     * @param {string} otherName: name of the other entity
-     * @param {Entity} other: other entity
-     * @returns {void}
+     * Event fired when hitbox hit an entity
+     * @param {string} otherName: name of the entity
+     * @param {Entity} other: entity
+     * @returns {boolean} Consider the hit like a correct hit
      */
-    onCollision (otherName, other) {
-        console.log("collision");
+    onHit (otherName, other) {
+        return true;
     }
 }

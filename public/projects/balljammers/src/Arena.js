@@ -4,7 +4,7 @@ import Game from "src/Game";
 import Ball from "./Ball";
 import Goal from "./Goal";
 
-import PlayerCat from "./Player/Cat";
+import PlayerCat from "./Player/Cat/Cat";
 
 import tilemapGrass from "./../tilemaps/grass.json";
 
@@ -20,17 +20,19 @@ export default class Arena extends Scene {
         super();
 
         this.setProps({
-            gravity : 1000,
+            gravity : 250,
             spawnX  : 100
         });
 
         Game.signals.keyPress.bind(Game.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
         Game.signals.keyPress.bind(Game.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
         Game.signals.keyPress.bind(Game.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));
+        Game.signals.keyPress.bind(Game.KEY.S, pressed => this.playerLeft && this.playerLeft.fall(pressed));
         Game.signals.keyPress.bind(Game.KEY.SPACE, pressed => pressed && this.playerLeft && this.playerLeft.attack());
         Game.signals.keyPress.bind(Game.KEY.ARROW_LEFT, pressed => this.playerRight && this.playerRight.moveLeft(pressed));
         Game.signals.keyPress.bind(Game.KEY.ARROW_RIGHT, pressed => this.playerRight && this.playerRight.moveRight(pressed));
         Game.signals.keyPress.bind(Game.KEY.ARROW_UP, pressed => this.playerRight && this.playerRight.jump(pressed));
+        Game.signals.keyPress.bind(Game.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
         Game.signals.keyPress.bind(Game.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
     }
 

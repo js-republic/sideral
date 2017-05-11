@@ -2,6 +2,8 @@ import Entity from "src/Entity";
 
 import Enum from "src/Command/Enum";
 
+import PlayerAttackHitbox from "./PlayerAttackHitbox";
+
 
 export default class Player extends Entity {
 
@@ -14,19 +16,27 @@ export default class Player extends Entity {
         super();
 
         this.setProps({
-            speed       : 300,
-            power       : 100,
-            jump        : 500,
+            speed       : 100,
+            power       : 300,
+            jump        : 300,
             doubleDash  : false,
             vxFactor    : 0,
             holdLeft    : false,
             holdRight   : false
         });
 
-        this.group      = Enum.GROUP.ALLY;
-        this.type       = Enum.TYPE.SOLID;
-        this.name       = "player";
-        this.doubleJump = false;
+        this.group          = Enum.GROUP.ALLY;
+        this.type           = Enum.TYPE.SOLID;
+        this.name           = "player";
+        this.doubleJump     = false;
+
+        this.skills.add("attack", {
+            animation       : "attack",
+            movable         : false,
+            duration        : 1,
+            durationType    : Enum.DURATION_TYPE.ANIMATION_LOOP,
+            hitboxClass     : PlayerAttackHitbox
+        });
     }
 
     /**
@@ -131,11 +141,22 @@ export default class Player extends Entity {
     }
 
     /**
+     * @event key fall
+     * @param {boolean} pressed: is pressed
+     * @returns {void}
+     */
+    fall (pressed) {
+        if (pressed) {
+            this.props.vy += Math.abs(this.props.jump * 2);
+        }
+    }
+
+    /**
      * @event key attack
      * @returns {void|null} -
      */
     attack () {
-        console.log(this.skills.run("attack"));
+        this.skills.run("attack");
     }
 
 
@@ -162,85 +183,6 @@ export default class Player extends Entity {
             this.sprite.setAnimation("jump");
         }
     }
-
-    /*
-    update () {
-        super.update();
-
-        const speedDash = this.doubleDash > 0 ? 10 : 1;
-
-        this.vx = this.currentMove.x * this.speed * speedDash;
-        this.vy = this.currentMove.y * this.speed * speedDash;
-
-        if (this.doubleDash > 0) {
-            this.doubleDash--;
-        }
-
-        if (this.attackCooldown) {
-            this.attackCooldown--;
-        }
-
-        if (this.hasAttacked) {
-            this.hasAttacked--;
-
-            if (!this.hasAttacked) {
-                this.attackCooldown = 10;
-            }
-        }
-    }
-
-    onCollisionWith (entity) {
-        super.onCollisionWith(entity);
-
-        switch (entity.name) {
-        case "ball": this.onCollisionWithBall(entity);
-            break;
-        }
-    }
-
-    move (factorX = 0, factorY = 0) {
-        if (this.currentMove.x || this.currentMove.y) {
-            this.lastMove.x = this.currentMove.x;
-            this.lastMove.y = this.currentMove.y;
-        }
-
-        this.currentMove = {x: factorX, y: factorY};
-
-        if (!this.doubleDash && !this._timers.dash && (factorX || factorY) && this.currentMove.x === this.lastMove.x && this.currentMove.y === this.lastMove.y) {
-            this.doubleDash = 3;
-            this.addTimer("dash", 30, () => this.lastMove = {x: 0, y: 0});
-
-        } else if (this.doubleDash && (this.currentMove.x !== this.lastMove.x || this.currentMove.y !== this.lastMove.y || (factorX && factorY))) {
-            this.doubleDash = 0;
-
-        }
-    }
-
-    attack () {
-        if (!this.hasAttacked) {
-            this.hasAttacked    = 50;
-            this.attackCooldown = 0;
-        }
-    }
-
-    onCollisionWithBall (ball) {
-        if (!this.hasAttacked) {
-            return null;
-        }
-
-        if (ball.vx) {
-            ball.vx = ball.vx > 0 ? ball.vx + this.power : ball.vx - this.power;
-        }
-
-        if (ball.vy) {
-            ball.vy = ball.vy > 0 ? ball.vy + this.power : ball.vy - this.power;
-        }
-
-        if (!this.vy) {
-            ball.vy = 0;
-        }
-    }
-    */
 }
 
 Player.SIDE = {

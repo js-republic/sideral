@@ -81,7 +81,7 @@ export default class Util {
      * @returns {number} the value limited
      */
     static limit (value, min, max) {
-        Math.max(min, Math.min(max, value));
+        return Math.max(min, Math.min(max, value));
     }
 
     /**
@@ -99,7 +99,7 @@ export default class Util {
      * @returns {number} Number of frames
      */
     static msToFrame (ms) {
-        return (ms / Util.frameToMs(1)) * Game.fps;
+        return (ms / 1000) * Game.fps;
     }
 
     /**
