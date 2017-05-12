@@ -19,11 +19,27 @@ export default class Arena extends Scene {
     constructor () {
         super();
 
+        // props
         this.setProps({
-            gravity : 250,
+            gravity : 200,
             spawnX  : 100
         });
 
+        // read-only
+
+        /**
+         * The Player Left
+         * @type {Player}
+         */
+        this.playerLeft     = null;
+
+        /**
+         * The Player Right
+         * @type {Player}
+         */
+        this.playerRight    = null;
+
+        // signals
         Game.signals.keyPress.bind(Game.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
         Game.signals.keyPress.bind(Game.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
         Game.signals.keyPress.bind(Game.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));

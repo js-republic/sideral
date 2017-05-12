@@ -1,5 +1,5 @@
 import Signal from "./../Command/Signal";
-import Timer from "./../Command/Timer";
+import TimerManager from "./../Command/TimerManager";
 
 
 export default class AbstractClass {
@@ -55,9 +55,9 @@ export default class AbstractClass {
 
         /**
          * List of current timers
-         * @type {Array<Timer>}
+         * @type {TimerManager}
          */
-        this.timers     = [];
+        this.timers     = new TimerManager();
 
         /**
          * Parent of the object
@@ -118,10 +118,7 @@ export default class AbstractClass {
      */
     update () {
         this.children.forEach(child => child.update());
-
-        this.timers.forEach(timer => timer.update());
-        this.timers = this.timers.filter(timer => !timer.finished);
-
+        this.timers.update();
         this.signals.update.dispatch();
     }
 
@@ -208,21 +205,6 @@ export default class AbstractClass {
         }
 
         return item;
-    }
-
-    /**
-     * Add a new timer
-     * @param {number} duration: duration of the timer
-     * @param {function} onComplete: callback function when finished
-     * @param {*=} options: options to implement to the timer
-     * @returns {Timer} the timer created
-     */
-    addTimer (duration, onComplete, options = {}) {
-        const timer = new Timer(duration, onComplete, options);
-
-        this.timers.push(timer);
-
-        return timer;
     }
 
     /**

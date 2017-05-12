@@ -2,7 +2,8 @@ import Entity from "src/Entity";
 
 import Enum from "src/Command/Enum";
 
-import PlayerAttackHitbox from "./PlayerAttackHitbox";
+import PlayerAttackSkill from "./PlayerAttackSkill";
+import PlayerDashSkill from "./PlayerDashSkill";
 
 
 export default class Player extends Entity {
@@ -15,38 +16,30 @@ export default class Player extends Entity {
     constructor () {
         super();
 
+        // props
         this.setProps({
-            speed       : 100,
-            power       : 300,
-            jump        : 300,
-            doubleDash  : false,
-            vxFactor    : 0,
-            holdLeft    : false,
-            holdRight   : false
+            speed       : 80,
+            power       : 120,
+            jump        : 200
         });
 
-        this.group          = Enum.GROUP.ALLY;
+        // read-only
+        this.group          = Enum.GROUP.ALL;
         this.type           = Enum.TYPE.SOLID;
         this.name           = "player";
+        this.speedFactor    = 0;
+        this.fallPressed    = true;
         this.doubleJump     = false;
+        this.dashSide       = false;
+        this.holdLeft       = false;
+        this.holdRight      = false;
 
-        this.skills.add("attack", {
-            animation       : "attack",
-            movable         : false,
-            duration        : 1,
-            durationType    : Enum.DURATION_TYPE.ANIMATION_LOOP,
-            hitboxClass     : PlayerAttackHitbox
-        });
-    }
+        // signals
+        this.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
 
-    /**
-     * @initialize
-     * @lifecycle
-     * @override
-     */
-    initialize (props) {
-        super.initialize(props);
-
+        // skills
+        this.skills.add("attack", new PlayerAttackSkill());
+        this.skills.add("dash", new PlayerDashSkill());
     }
 
     /**
@@ -55,7 +48,7 @@ export default class Player extends Entity {
      * @override
      */
     update () {
-        this.props.vx = this.props.vxFactor * this.props.speed;
+        this.props.vx = this.speedFactor * this.props.speed;
 
         super.update();
     }
@@ -81,16 +74,17 @@ export default class Player extends Entity {
      * @returns {void}
      */
     moveLeft (pressed) {
-        this.props.holdLeft = pressed;
+        this.holdLeft = pressed;
 
-        if (pressed && !this.props.vxFactor) {
-            this.props.vxFactor = -1;
+        if (pressed && !this.speedFactor) {
+            this.speedFactor = -1;
+            this.dash("left");
 
-        } else if ((pressed && this.props.vxFactor === 1) || (!pressed && this.props.vxFactor === -1)) {
-            this.props.vxFactor = 0;
+        } else if ((pressed && this.speedFactor === 1) || (!pressed && this.speedFactor === -1)) {
+            this.speedFactor = 0;
 
-        } else if (!pressed && this.props.holdRight) {
-            this.props.vxFactor = 1;
+        } else if (!pressed && this.holdRight) {
+            this.speedFactor = 1;
 
         }
     }
@@ -101,16 +95,17 @@ export default class Player extends Entity {
      * @returns {void}
      */
     moveRight (pressed) {
-        this.props.holdRight = pressed;
+        this.holdRight = pressed;
 
-        if (pressed && !this.props.vxFactor) {
-            this.props.vxFactor = 1;
+        if (pressed && !this.speedFactor) {
+            this.speedFactor = 1;
+            this.dash("right");
 
-        } else if ((pressed && this.props.vxFactor === -1) || (!pressed && this.props.vxFactor === 1)) {
-            this.props.vxFactor = 0;
+        } else if ((pressed && this.speedFactor === -1) || (!pressed && this.speedFactor === 1)) {
+            this.speedFactor = 0;
 
-        } else if (!pressed && this.props.holdLeft) {
-            this.props.vxFactor = -1;
+        } else if (!pressed && this.holdLeft) {
+            this.speedFactor = -1;
 
         }
     }
@@ -134,7 +129,8 @@ export default class Player extends Entity {
             }
 
             if (canJump) {
-                this.props.vy = -Math.abs(this.props.jump);
+                this.fallPressed    = false;
+                this.props.vy       = -Math.abs(this.props.jump);
             }
 
         }
@@ -146,8 +142,9 @@ export default class Player extends Entity {
      * @returns {void}
      */
     fall (pressed) {
-        if (pressed) {
-            this.props.vy += Math.abs(this.props.jump * 2);
+        if (pressed && !this.standing) {
+            this.props.vy   += Math.abs(this.props.jump * 2);
+            this.fallPressed = true;
         }
     }
 
@@ -159,6 +156,48 @@ export default class Player extends Entity {
         this.skills.run("attack");
     }
 
+    /**
+     * run dash
+     * @param {string} side: side of dash
+     * @returns {void}
+     */
+    dash (side) {
+        if (this.dashSide === side && !this.skills.isRunning("dash")) {
+            this.skills.run("dash", { side: side });
+
+        } else {
+            this.dashSide = side;
+            this.timers.add("dash", 100, () => this.dashSide = false);
+        }
+    }
+
+
+    /* EVENTS */
+
+    /**
+     * When entering in collision with ball
+     * @param {Ball} ball: the ball
+     * @returns {void}
+     */
+    onCollisionWithBall (ball) {
+        if (!this.standing && this.props.y < ball.props.y && this.props.x + this.props.width > ball.props.x && this.props.x < ball.props.x + ball.props.width) {
+            const centerX   = this.props.x + (this.props.width / 2),
+                ballCenterX = ball.props.x + (this.props.width / 2),
+                factor      = this.fallPressed ? 1.5 : 0.3;
+
+            switch (true) {
+                case centerX < ballCenterX: ball.props.vx = this.props.power * factor;
+                    break;
+                case centerX > ballCenterX: ball.props.vx = this.props.power * -factor;
+                    break;
+                default: ball.props.vx = this.props.power * factor * (this.props.flip ? -1 : 1);
+                    break;
+            }
+
+            ball.props.vy = 0;
+        }
+    }
+
 
     /* PRIVATE */
 
@@ -168,8 +207,8 @@ export default class Player extends Entity {
      * @returns {void|null} -
      */
     _updateAnimation () {
-        if (this.props.vxFactor) {
-            this.props.flip = this.props.vxFactor === -1;
+        if (this.speedFactor) {
+            this.props.flip = this.speedFactor === -1;
         }
 
         if (this.skills.currentSkill) {
@@ -177,7 +216,7 @@ export default class Player extends Entity {
         }
 
         if (this.standing) {
-            this.sprite.setAnimation(this.props.vxFactor ? "run" : "idle");
+            this.sprite.setAnimation(this.speedFactor ? "run" : "idle");
 
         } else {
             this.sprite.setAnimation("jump");

@@ -4,10 +4,10 @@ import AbstractClass from "./Abstract/AbstractClass";
 
 import Enum from "./Command/Enum";
 
-import Tilemap from "./Module/Tilemap";
-
 import Game from "./Game";
 import Entity from "./Entity";
+
+import Tilemap from "./Module/Tilemap";
 
 
 export default class Scene extends AbstractClass {

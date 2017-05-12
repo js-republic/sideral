@@ -177,6 +177,21 @@ export default class Entity extends AbstractModule {
     }
 
     /**
+     * Remove all velocity from the entity
+     * @returns {void}
+     */
+    idle () {
+        this.props.vx = this.props.vy = this.props.accelX = this.props.accelY = 0;
+
+        if (this.body) {
+            this.body.data.velocity[0] = 0;
+            this.body.data.velocity[1] = 0;
+            this.body.data.force[0] = 0;
+            this.body.data.force[1] = 0;
+        }
+    }
+
+    /**
      * set or remove the debug mode
      * @returns {void}
      */

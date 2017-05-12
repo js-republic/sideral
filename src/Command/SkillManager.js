@@ -50,18 +50,14 @@ export default class SkillManager {
     /**
      * Add a new skill
      * @param {string} name: name of the skill
-     * @param {*} props: properties to transmit to the skill
+     * @param {Skill} skill: Skill corresponding of the name
      * @returns {Skill} The skill created
      */
-    add (name, props = {}) {
-        props.owner = this.owner;
-        props.onEnd = this._createEventSkillEnd(props.onEnd);
+    add (name, skill) {
+        skill.owner = this.owner;
+        skill.signals.skillComplete.add(this._onSkillComplete.bind(this));
 
-        const skill = new Skill(props);
-
-        this.skills[name] = skill;
-
-        return skill;
+        return this.skills[name] = skill;
     }
 
     /**
@@ -74,12 +70,21 @@ export default class SkillManager {
     }
 
     /**
+     * Check if the skill with the name passed in parameter is running
+     * @param {string} name: name of the skill
+     * @returns {boolean} if the skill is running
+     */
+    isRunning (name) {
+        return this.currentSkill && this.currentSkill[name] === this.skills[name] && this.currentSkill.active;
+    }
+
+    /**
      * Run a skill
      * @param {string} name: name of the skill
-     * @param {Object=} settings: settings to add for the run
+     * @param {Object=} props: properties to add for the run
      * @returns {Boolean} Return true if the skill has ben launched
      */
-    run (name, settings) {
+    run (name, props) {
         const skill = this.get(name);
 
         if (!skill || (skill && !skill.ready) || (this.currentSkill && this.currentSkill.unstoppable)) {
@@ -91,7 +96,7 @@ export default class SkillManager {
         }
 
         this.currentSkill = skill;
-        this.currentSkill.run(settings);
+        this.currentSkill.run(props);
 
         return true;
     }
@@ -109,24 +114,16 @@ export default class SkillManager {
     /* PRIVATE */
 
     /**
-     * Encaps the event onEnd with SkillManager process
-     * @param {function} onEnd: function to encaps
-     * @returns {function(this:SkillManager)} New Event
+     * When a skill is complete
+     * @param {Skill} skill: skill
+     * @returns {void}
      * @private
      */
-    _createEventSkillEnd (onEnd) {
-        const event = skill => {
-            if (this.currentSkill.name === skill.name) {
-                this.currentSkill = null;
-            }
+    _onSkillComplete (skill) {
+        if (this.currentSkill.name === skill.name) {
+            this.currentSkill = null;
+        }
 
-            this.lastSkill      = skill;
-
-            if (onEnd) {
-                onEnd.bind(this.owner, skill)();
-            }
-        };
-
-        return event.bind(this);
+        this.lastSkill = skill;
     }
 }

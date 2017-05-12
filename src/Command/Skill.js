@@ -1,6 +1,7 @@
 import Enum from "./Enum";
 import Timer from "./Timer";
 import Util from "./Util";
+import Signal from "./Signal";
 
 
 export default class Skill {
@@ -9,137 +10,80 @@ export default class Skill {
 
     /**
      * @constructor
-     * @param {*} props: properties to merge
      */
-    constructor (props = {}) {
+    constructor () {
 
         /**
          * Owner of the skill
          * @type Entity
          */
-        this.owner          = props.owner;
+        this.owner          = null;
 
         /**
          * Animation of the owner to run during the skill
          * @type {string}
          */
-        this.animation      = props.animation;
+        this.animation      = null;
 
         /**
          * Class to instanciate for the hitbox
          * @type {Entity}
          */
-        this.hitboxClass    = props.hitboxClass;
+        this.hitboxClass    = null;
 
         /**
          * Settings to pass to the hitbox when initialized
          * @type {*}
          */
-        this.hitboxSettings = props.hitboxSettings || {};
+        this.hitboxSettings = {};
 
         /**
          * Duration of the skill
          * @type {number}
          */
-        this.duration       = props.duration;
+        this.duration       = 0;
 
         /**
          * Type of duration (see Enum.DURATION_TYPE)
          * @type {string}
          */
-        this.durationType   = props.durationType || Enum.DURATION_TYPE.FRAME;
+        this.durationType   = Enum.DURATION_TYPE.FRAME;
 
         /**
          * Duration of the preparation
          * @type {number}
          */
-        this.preparation    = props.preparation || 0;
+        this.preparation    = 0;
 
         /**
          * Preparation type (see Enum.DURATION_TYPE)
          * @type {string}
          */
-        this.preparationType = props.preparationType || Enum.DURATION_TYPE.FRAME;
+        this.preparationType = Enum.DURATION_TYPE.FRAME;
 
         /**
          * Duration of the reloading
          * @type {number}
          */
-        this.reload         = props.reload || 0;
+        this.reload         = 0;
 
         /**
          * Reload type (see Enum.DURATION_TYPE)
          * @type {string}
          */
-        this.reloadType     = props.reloadType || Enum.DURATION_TYPE.FRAME;
+        this.reloadType     = Enum.DURATION_TYPE.FRAME;
 
         /**
          * If false, the skill can be stopped before it was finished
          * @type {boolean}
          */
-        this.unstoppable    = typeof props.unstoppable === "undefined" ? true : props.unstoppable;
+        this.unstoppable    = true;
 
         /**
          * If false, the entity cannot move during preparation and duration of the skill
          * @type {boolean}
          */
-        this.movable        = typeof props.movable === "undefined" ? true : props.movable;
-
-        // event
-
-        /**
-         * When skill is launched
-         * @type {function}
-         */
-        this.onStart        = props.onStart;
-
-        /**
-         * Fired every step of the skill during its run
-         * @type {function}
-         */
-        this.onUpdate       = props.onUpdate;
-
-        /**
-         * Fired when the skill is finished
-         * @type {function}
-         */
-        this.onEnd          = props.onEnd;
-
-        /**
-         * Fired when the reloading is started
-         * @type {function}
-         */
-        this.onReloadStart  = props.onReloadStart;
-
-        /**
-         * Fired every step of the reloading
-         * @type {function}
-         */
-        this.onReloadUpdate = props.onReloadUpdate;
-
-        /**
-         * Fired when the reloading is finished
-         * @type {function}
-         */
-        this.onReloadEnd    = props.onReloadEnd;
-
-        /**
-         * Fired when the preparation is started
-         * @type {function}
-         */
-        this.onPreparationStart     = props.onPreparationStart;
-
-        /**
-         * Fired when the preparation is updating
-         * @type {function}
-         */
-        this.onPreparationUpdate    = props.onPreparationUpdate;
-
-        /**
-         * Fired when the preparation is ended
-         * @type {function}
-         */
-        this.onPreparationEnd       = props.onPreparationEnd;
+        this.movable        = true;
 
         // read-only
 
@@ -184,6 +128,26 @@ export default class Skill {
          * @type {boolean}
          */
         this.ready  = true;
+
+        /**
+         * List of all signals
+         * @type {*}
+         */
+        this.signals = {
+            preparationStart    : new Signal(),
+            preparationUpdate   : new Signal(),
+            preparationComplete : new Signal(),
+            skillStart          : new Signal(),
+            skillUpdate         : new Signal(),
+            skillComplete       : new Signal(),
+            reloadStart         : new Signal(),
+            reloadUpdate        : new Signal(),
+            reloadComplete      : new Signal()
+        };
+
+        // signals
+
+        this.signals.skillComplete.add(this.onSkillComplete.bind(this));
     }
 
     /**
@@ -218,15 +182,15 @@ export default class Skill {
 
     /**
      * Run the skill
-     * @param {Object=} settings: settings for the run
+     * @param {Object=} props: properties for the run
      * @returns {void}
      */
-    run (settings = {}) {
+    run (props = {}) {
         const startSkill = () => {
-            Object.assign(this, settings);
+            Object.assign(this, props);
 
-            this.timer  = new Timer(this.getTimerDuration(this.duration, this.durationType), this.onTimerFinish.bind(this), {
-                onUpdate: this.onUpdate
+            this.timer  = new Timer(this.getTimerDuration(this.duration, this.durationType), () => this.signals.skillComplete.dispatch(this), {
+                onUpdate: (value, ratio, duration) => this.signals.skillUpdate.dispatch(this, value, ratio, duration)
             });
 
             if (this.animation) {
@@ -238,18 +202,20 @@ export default class Skill {
                 this.hitbox                 = this._createHitbox(this.hitboxClass, this.hitboxSettings);
             }
 
-            if (this.onStart) {
-                this.onStart(this);
-            }
+            this.signals.skillStart.dispatch(this);
         };
 
         this.active = true;
         this.ready  = !this.unstoppable;
 
         if (this.preparation) {
-            this.timerPreparation = new Timer(this.getTimerDuration(this.preparation, this.preparationType), startSkill.bind(this), {
-                onUpdate: this.onPreparationUpdate
-            });
+            this.signals.preparationStart.dispatch(this);
+
+            this.timerPreparation = new Timer(this.getTimerDuration(this.preparation, this.preparationType), () => {
+                this.signals.preparationComplete.dispatch(this);
+                startSkill();
+
+            }, { onUpdate: (value, ratio, duration) => this.signals.preparationUpdate.dispatch(this, value, ratio, duration) });
 
         } else {
             startSkill();
@@ -262,7 +228,11 @@ export default class Skill {
      * @returns {void}
      */
     stop () {
-        if (this.active) {
+        if (this.timerPreparation) {
+            this.timerPreparation.stop();
+        }
+
+        if (this.timer) {
             this.timer.stop();
         }
     }
@@ -291,38 +261,22 @@ export default class Skill {
     /* EVENTS */
 
     /**
-     * When timer is finished
+     * When the skill is complete
      * @returns {void}
      */
-    onTimerFinish () {
+    onSkillComplete () {
         if (this.reload) {
-            this.timerReload = new Timer(this.getTimerDuration(this.reload, this.reloadType), this.onTimerReloadFinish.bind(this), {
-                onUpdate: this.onReloadUpdate
-            });
-
-        } else {
-            this.onTimerReloadFinish();
+            this.timerReload = new Timer(this.getTimerDuration(this.reload, this.reloadType), () => {
+                this.ready = true;
+                this.signals.reloadComplete.dispatch(this);
+            }, { onUpdate: (value, ratio, duration) => this.signals.reloadUpdate.dispatch(this, value, ratio, duration) });
         }
+
+        this.ready = !this.reload;
 
         if (this.hitbox) {
             this.hitbox.kill();
             this.hitbox = null;
-        }
-
-        if (this.onEnd) {
-            this.onEnd(this);
-        }
-    }
-
-    /**
-     * When timer of reloading is finished
-     * @returns {void}
-     */
-    onTimerReloadFinish () {
-        this.ready = true;
-
-        if (this.onReloadEnd) {
-            this.onReloadEnd();
         }
     }
 
@@ -337,8 +291,22 @@ export default class Skill {
      * @private
      */
     _createHitbox (hitboxClass, hitboxSettings = {}) {
-        const hitbox            = new hitboxClass();
+        const hitbox    = new hitboxClass();
+        let x           = this.owner.props.x,
+            y           = this.owner.props.y;
 
-        return this.owner.scene.addEntity(hitbox, (hitboxSettings.follow ? hitboxSettings.follow.props.x : 0) + hitboxSettings.offsetX, (hitboxSettings.follow ? hitboxSettings.follow.props.y : 0) + hitboxSettings.offsetY, hitboxSettings);
+        switch (true) {
+            case hitboxSettings.follow:
+                x = hitboxSettings.follow.props.x;
+                y = hitboxSettings.follow.props.y;
+                break;
+
+            case typeof hitboxSettings.x !== "undefined" || typeof hitboxSettings.y !== "undefined":
+                x = hitboxSettings.x || 0;
+                y = hitboxSettings.y || 0;
+                break;
+        }
+
+        return this.owner.scene.addEntity(hitbox, x, y, Object.assign({}, hitboxSettings));
     }
 }

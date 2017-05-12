@@ -17,6 +17,7 @@ export default class Hitbox extends Entity {
             gravityFactor   : 0,
             offsetX         : 0,
             offsetY         : 0,
+            offsetFlip      : null,
             multipleHit     : false,
             oncePerHit      : true,
             maxHit          : 1,
@@ -28,7 +29,7 @@ export default class Hitbox extends Entity {
         this.group  = Enum.GROUP.ENTITIES;
 
         this.signals.update.add(this.updateFollow.bind(this));
-        this.signals.collision.add(this.onCollision.bind(this));
+        this.signals.beginCollision.add(this.onCollision.bind(this));
     }
 
     /**
@@ -38,6 +39,11 @@ export default class Hitbox extends Entity {
      */
     initialize (props) {
         super.initialize(props);
+
+        const owner = this.props.owner;
+
+        this.props.x += this.props.offsetFlip !== null && owner.props.flip ? this.props.offsetFlip : this.props.offsetX || 0;
+        this.props.y += this.props.offsetY || 0;
 
         this.toggleDebug();
     }
@@ -49,18 +55,21 @@ export default class Hitbox extends Entity {
      * Add a new offset
      * @param {number} offsetX: number of offset in x axis
      * @param {number} offsetY: number of offset in y axis
+     * @param {number} offsetFlip: number of offset in x axis when owner is flipping
      * @returns {void}
      */
-    offset (offsetX, offsetY) {
-        offsetX = typeof offsetX !== "undefined" ? offsetX : this.props.offsetX;
-        offsetY = typeof offsetY !== "undefined" ? offsetY : this.props.offsetY;
+    offset (offsetX, offsetY, offsetFlip) {
+        offsetX     = typeof offsetX !== "undefined" ? offsetX : this.props.offsetX;
+        offsetY     = typeof offsetY !== "undefined" ? offsetY : this.props.offsetY;
+        offsetFlip  = typeof offsetFlip !== "undefined" ? offsetFlip : this.props.offsetFlip;
 
         if (!this.initialized) {
-            this.setProps({ offsetX: offsetX, offsetY: offsetY });
+            this.setProps({ offsetX: offsetX, offsetY: offsetY, offsetFlip: offsetFlip });
 
         } else {
-            this.props.offsetX = offsetX;
-            this.props.offsetY = offsetY;
+            this.props.offsetX      = offsetX;
+            this.props.offsetY      = offsetY;
+            this.props.offsetFlip   = offsetFlip;
         }
     }
 
@@ -94,11 +103,11 @@ export default class Hitbox extends Entity {
 
     /**
      * Event fired when hitbox hit an entity
-     * @param {string} otherName: name of the entity
+     * @param {string} name: name of the entity
      * @param {Entity} other: entity
      * @returns {boolean} Consider the hit like a correct hit
      */
-    onHit (otherName, other) {
+    onHit (name, other) {
         return true;
     }
 }
