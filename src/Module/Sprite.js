@@ -1,7 +1,7 @@
-import AbstractModule from "./../Abstract/AbstractModule";
+import Module from "./../Module";
 
 
-export default class Sprite extends AbstractModule {
+export default class Sprite extends Module {
 
     /* LIFECYCLE */
 

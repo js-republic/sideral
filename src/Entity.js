@@ -1,15 +1,15 @@
-import AbstractModule from "./Abstract/AbstractModule";
+import Module from "./Module";
 
-import Signal from "./Command/Signal";
-import Body from "./Command/Body";
-import Enum from "./Command/Enum";
-import SkillManager from "./Command/SkillManager";
+import Signal from "./Tool/Signal";
+import Body from "./Tool/Body";
+import Enum from "./Tool/Enum";
+import SkillManager from "./Tool/SkillManager";
 
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
 
 
-export default class Entity extends AbstractModule {
+export default class Entity extends Module {
 
     /* LIFECYCLE */
 
@@ -60,6 +60,10 @@ export default class Entity extends AbstractModule {
      */
     initialize (props) {
         super.initialize(props);
+
+        if (this.type === Enum.TYPE.NONE) {
+            return this.onSizeChange();
+        }
 
         const settings = {
             mass            : this.type < 0 ? 0 : this.type,
@@ -142,12 +146,13 @@ export default class Entity extends AbstractModule {
             if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
                 this.body.data.velocity[1] = this.props.vy;
             }
+
+            this.container.rotation = this.body.data.angle;
         }
 
         this.collides.forEach(collide => collide.entity && this.signals.collision.dispatch(collide.entity.name, collide.entity));
 
         this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
-        this.container.rotation = this.body.data.angle;
     }
 
 

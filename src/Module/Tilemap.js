@@ -1,15 +1,14 @@
 import p2 from "p2";
 
-import AbstractModule from "./../Abstract/AbstractModule";
+import Module from "./../Module";
 
 import Shape from "./Shape";
 
-import Body from "./../Command/Body";
-import Enum from "./../Command/Enum";
-import Wall from "./../Command/Wall";
+import Enum from "./../Tool/Enum";
+import Wall from "./../Tool/Wall";
 
 
-export default class Tilemap extends AbstractModule {
+export default class Tilemap extends Module {
 
     /* LIFECYCLE */
 

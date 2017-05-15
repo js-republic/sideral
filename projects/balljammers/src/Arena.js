@@ -1,4 +1,4 @@
-import Scene from "src/Scene";
+import World from "src/Scene/World";
 import Game from "src/Game";
 
 import Ball from "./Ball";
@@ -9,7 +9,7 @@ import PlayerCat from "./Player/Cat/Cat";
 import tilemapGrass from "./../tilemaps/grass.json";
 
 
-export default class Arena extends Scene {
+export default class Arena extends World {
 
     /* LIFECYCLE */
 

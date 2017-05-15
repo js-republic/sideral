@@ -1,7 +1,7 @@
-import AbstractClass from "./AbstractClass";
+import SideralObject from "./SideralObject";
 
 
-export default class AbstractModule extends AbstractClass {
+export default class Module extends SideralObject {
 
     /* LIFECYCLE */
 

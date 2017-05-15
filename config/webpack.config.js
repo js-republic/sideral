@@ -4,12 +4,12 @@ const webpack   = require("webpack"),
 
 module.exports = {
     output: {
-        path: path.join(__dirname, "../public/"),
+        path: path.join(__dirname, "../projects"),
         filename: "[name].js"
     },
 
     entry: {
-        "projects/balljammers/sideral":"./public/projects/balljammers/src"
+        "balljammers/sideral":"./projects/balljammers/src"
     },
 
     resolve: {
@@ -38,7 +38,7 @@ module.exports = {
     },
 
     devServer: {
-        contentBase : path.join(__dirname, "../public/projects/balljammers"),
+        contentBase : path.join(__dirname, "../projects/balljammers"),
         compress    : true,
         port        : 3332,
     },

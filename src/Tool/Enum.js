@@ -1,5 +1,6 @@
 const enums = {
     TYPE: {
+        NONE    : -2,
         GHOST   : -1,
         STATIC  : 0,
         WEAK    : 1,

@@ -1,10 +1,10 @@
-import AbstractClass from "./Abstract/AbstractClass";
-import Util from "./Command/Util";
-import Signal from "./Command/Signal";
+import SideralObject from "./SideralObject";
+import Util from "./Tool/Util";
+import Signal from "./Tool/Signal";
 import Scene from "./Scene";
 
 
-class Game extends AbstractClass {
+class Game extends SideralObject {
 
     /* LIFECYCLE */
 

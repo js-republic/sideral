@@ -1,6 +1,6 @@
 import Entity from "src/Entity";
 
-import Enum from "src/Command/Enum";
+import Enum from "src/Tool/Enum";
 
 import PlayerAttackSkill from "./PlayerAttackSkill";
 import PlayerDashSkill from "./PlayerDashSkill";
@@ -129,6 +129,7 @@ export default class Player extends Entity {
             }
 
             if (canJump) {
+                this.dashSide       = null;
                 this.fallPressed    = false;
                 this.props.vy       = -Math.abs(this.props.jump);
             }

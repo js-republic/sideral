@@ -1,7 +1,7 @@
-import Hitbox from "src/Module/Hitbox";
+import Hitbox from "src/Entity/Hitbox";
 
-import Skill from "src/Command/Skill";
-import Enum from "src/Command/Enum";
+import Skill from "src/Tool/Skill";
+import Enum from "src/Tool/Enum";
 
 
 class PlayerAttackHitbox extends Hitbox {

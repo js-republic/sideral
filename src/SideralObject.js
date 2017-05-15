@@ -1,8 +1,10 @@
-import Signal from "./../Command/Signal";
-import TimerManager from "./../Command/TimerManager";
+import Signal from "./Tool/Signal";
+import TimerManager from "./Tool/TimerManager";
 
-
-export default class AbstractClass {
+/**
+ * The entry class of all object in Sideral
+ */
+class SideralObject {
 
     /* LIFECYCLE */
 
@@ -15,7 +17,7 @@ export default class AbstractClass {
          * Unique id for the current object
          * @type {string}
          */
-        this.id = AbstractClass.generateId();
+        this.id = SideralObject.generateId();
 
         /**
          * Properties of the class
@@ -187,8 +189,8 @@ export default class AbstractClass {
      * @returns {Object} the item initialized
      */
     add (item, settings = {}, index) {
-        if (!(item instanceof AbstractClass)) {
-            throw new Error("AbstractClass.add : item must be an instance of Sideral Abstract Class");
+        if (!(item instanceof SideralObject)) {
+            throw new Error("SideralObject.add : item must be an instance of Sideral Abstract Class");
         }
 
         item.parent = this;
@@ -231,3 +233,6 @@ export default class AbstractClass {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
 }
+
+
+export default SideralObject;

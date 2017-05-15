@@ -1,6 +1,6 @@
 import Entity from "src/Entity";
 
-import Enum from "src/Command/Enum";
+import Enum from "src/Tool/Enum";
 
 
 export default class Goal extends Entity {

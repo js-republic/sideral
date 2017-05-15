@@ -1,10 +1,10 @@
-import AbstractModule from "./../Abstract/AbstractModule";
+import Module from "./../Module";
 
-import Util from "./../Command/Util";
-import Enum from "./../Command/Enum";
+import Util from "./../Tool/Util";
+import Enum from "./../Tool/Enum";
 
 
-export default class Shape extends AbstractModule {
+export default class Shape extends Module {
 
     /* LIFECYCLE */
 

@@ -1,6 +1,6 @@
-import Skill from "src/Command/Skill";
+import Skill from "src/Tool/Skill";
 
-import Effect from "src/Module/Effect";
+import Effect from "src/Entity/Effect";
 
 
 export default class PlayerDashSkill extends Skill {
@@ -12,7 +12,7 @@ export default class PlayerDashSkill extends Skill {
         super();
 
         this.movable    = false;
-        this.duration   = 4;
+        this.duration   = 6;
 
         this.signals.skillStart.add(this.onSkillStart.bind(this));
         this.signals.skillUpdate.add(this.onSkillUpdate.bind(this));
@@ -25,15 +25,18 @@ export default class PlayerDashSkill extends Skill {
      * @returns {void}
      */
     onSkillStart () {
-        this.owner.scene.addEntity(new Effect(), this.owner.props.x, this.owner.props.y, {
-            path    : "images/effects/smoke.png",
-            width   : 128,
-            height  : 128,
-            follow  : this.owner,
-            centered: true,
-            offsetX : this.owner.width / 2,
-            offsetY : this.owner.height / 2,
-            duration: 1
+        this.owner.scene.addEntity(new Effect(), this.owner.props.x + (this.owner.props.width / 2), this.owner.props.y + (this.owner.props.height / 2), {
+            path            : "images/effects/smoke.png",
+            width           : 128,
+            height          : 128,
+            follow          : this.owner,
+            centered        : true,
+            offsetX         : this.owner.width / 2,
+            offsetY         : this.owner.height / 2,
+            flip            : this.owner.props.flip,
+            frames          : [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+            duration        : 20,
+            maxLoop         : 1
         });
     }
 
