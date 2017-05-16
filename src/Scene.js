@@ -1,13 +1,14 @@
-import SideralObject from "./SideralObject";
+import Module from "./Module";
 
 import Game from "./Game";
 
 
 /**
  * Class representing the simplest scene to add Entity
- * @extends SideralObject
+ * @class Scene
+ * @extends Module
  */
-export default class Scene extends SideralObject {
+export default class Scene extends Module {
 
     /* LIFECYCLE */
 
@@ -18,24 +19,50 @@ export default class Scene extends SideralObject {
         super();
 
         this.setProps({
+
+            /**
+             * The scale of the scene
+             * @name Scene#scale
+             * @type {number}
+             * @default 1
+             */
             scale   : 1,
+
+            /**
+             * Follow and center the camera position to the following entity
+             * @name Scene#follow
+             * @type {Entity}
+             * @default null
+             */
+            follow  : null,
+
             width   : Game.props.width,
             height  : Game.props.height
         });
 
-        this.camera = {x: 0, y: 0};
+        this.signals.update.add(this.updateFollow.bind(this));
     }
 
 
-    /* METHODS */
+    /* EVENTS */
 
     /**
-     * Get the real position relative to the camera position
-     * @param {number} x: position in x axis
-     * @param {number} y: position in y axis
-     * @returns {{x: number, y: number}} the real position relative to the camera
+     * Update the position of the camera related to the following entity
+     * @event update
+     * @returns {void}
      */
-    getScreenPosition (x, y) {
-        return {x: x - this.camera.x, y: y - this.camera.y};
+    updateFollow () {
+        if (this.props.follow) {
+            const follow = this.props.follow;
+
+            if (!follow.killed) {
+                this.props.x = -(follow.props.x + (follow.props.width / 2) - (this.props.width / 2));
+                this.props.y = -(follow.props.y + (follow.props.height / 2) - (this.props.height / 2));
+
+            } else {
+                this.props.follow = null;
+
+            }
+        }
     }
 }

@@ -1,5 +1,7 @@
 import SideralObject from "./SideralObject";
 
+import Signal from "./Tool/Signal";
+
 
 export default class Module extends SideralObject {
 
@@ -18,17 +20,10 @@ export default class Module extends SideralObject {
             height  : 0
         });
 
+        this.signals.click = new Signal(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+
         this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
         this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
-    }
-
-    /**
-     * @update
-     * @lifecycle
-     * @override
-     */
-    update () {
-        super.update();
     }
 
 
@@ -100,5 +95,29 @@ export default class Module extends SideralObject {
      */
     onSizeChange () {
         this.updateContainerPosition();
+    }
+
+    /**
+     * Fired when a listener is added to the signal click
+     * @returns {void}
+     */
+    onBindClick () {
+        if (this.container && this.signals.click.listenerLength) {
+            this.container.interactive  = true;
+            this.container.buttonMode   = true;
+            this.container.on("click", this.signals.click.dispatch.bind(this));
+        }
+    }
+
+    /**
+     * Fired when a listener is removed from the signal click
+     * @returns {void}
+     */
+    onRemoveClick () {
+        if (this.container && !this.signals.click.listenerLength) {
+            this.container.interactive  = false;
+            this.container.buttonMode   = false;
+            this.container.off("click", this.signals.click.dispatch.bind(this));
+        }
     }
 }

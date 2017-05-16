@@ -4,6 +4,10 @@ import Signal from "./Tool/Signal";
 import Scene from "./Scene";
 
 
+/**
+ * The engine of the game
+ * @class Game
+ */
 class Game extends SideralObject {
 
     /* LIFECYCLE */
@@ -14,6 +18,15 @@ class Game extends SideralObject {
     constructor () {
         super();
 
+        /**
+         * Properties of the class
+         * @name Game#props
+         * @type {Object}
+         * @property {number} width - The width of the game
+         * @property {number} height - The height of the game
+         * @property {Element} dom - The DOM Element to attach the game
+         * @property {string} background - The color of the background of the game
+         */
         this.setProps({
             width       : 10,
             height      : 10,
@@ -21,17 +34,74 @@ class Game extends SideralObject {
             background  : "#DDDDDD"
         });
 
+        /**
+         * @override
+         */
         this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
+
+        /**
+         * List of all keyboard input pressed or released
+         * @type {Object}
+         * @name Game#inputs
+         * @readonly
+         */
         this.inputs     = {};
         this._inputs    = {};
+
+        /**
+         * The current frame per second of the engine
+         * @readonly
+         * @name Game#fps
+         * @type {number}
+         */
         this.fps        = 60;
+
+        /**
+         * The current latency of the game (in ms)
+         * @readonly
+         * @name Game#latency
+         * @type {number}
+         */
         this.latency    = 0;
+
+        /**
+         * The factor of velocity of object related to the latency
+         * @readonly
+         * @name Game#tick
+         * @type {number}
+         */
         this.tick       = 1;
+
+        /**
+         * The date of the last update in timestamp
+         * @readonly
+         * @name Game#lastUpdate
+         * @type {number}
+         */
         this.lastUpdate = 0;
+
+        /**
+         * Know if the game is currently looping or not
+         * @readonly
+         * @name Game#stopped
+         * @type {boolean}
+         */
         this.stopped    = true;
-        this.initialized                = true;
+
+        /**
+         * If true, the keyboard event will not be propaged
+         * @name Game#preventInputPropagation
+         * @type {boolean}
+         */
         this.preventInputPropagation    = true;
 
+        /**
+         * Fired every time a keyboard input has been pressed or released
+         * @name Game#keyPress
+         * @event keyPress
+         * @param {number} keyCode - The key code corresponding of the key input
+         * @param {boolean} pressed - Check if the key input has been pressed or released
+         */
         this.signals.keyPress = new Signal();
 
         this.signals.propChange.bind("dom", this._attachGame.bind(this));
@@ -44,7 +114,6 @@ class Game extends SideralObject {
 
     /**
      * @override
-     * @lifecycle
      */
     kill () {
         super.kill();
@@ -57,7 +126,7 @@ class Game extends SideralObject {
      * Update loop
      * @override
      * @lifecycle
-     * @param {number=} performance: performance returned by the navigator
+     * @param {number=} performance - performance returned by the navigator
      * @returns {void|null} -
      */
     update (performance) {
@@ -88,10 +157,11 @@ class Game extends SideralObject {
     /* METHODS */
 
     /**
-     * Add a new Sideral Scene
-     * @param {*} scene: item to add to the lifecycle
-     * @param {{}=} props: properties to pass to the object
-     * @returns {*} current item
+     * Add a new Scene into the game
+     * @access public
+     * @param {Scene} scene - scene to add to the lifecycle
+     * @param {Object=} props - properties to pass to the object
+     * @returns {Scene} The scene initialized
      */
     addScene (scene, props) {
         if (!(scene instanceof Scene)) {
@@ -106,10 +176,11 @@ class Game extends SideralObject {
 
     /**
      * Start the game loop
-     * @param {number=} width: width of the game
-     * @param {number=} height: height of the game
-     * @param {DOM=} dom: dom to attach the game
-     * @returns {*} current instance
+     * @acess public
+     * @param {number=} width - width of the game
+     * @param {number=} height - height of the game
+     * @param {Element=} dom - dom to attach the game
+     * @returns {Game} current instance
      */
     start (width, height, dom) {
         this.setProps({
@@ -238,7 +309,7 @@ class Game extends SideralObject {
     /**
      * event on keydown
      * @event keydown
-     * @param {*} e: event
+     * @param {*} e - event
      * @returns {Boolean} Input propagation
      */
     _onKeydown (e) {
@@ -255,7 +326,7 @@ class Game extends SideralObject {
     /**
      * event on keyup
      * @event keyup
-     * @param {*} e: event
+     * @param {*} e - event
      * @returns {Boolean} Input propagation
      */
     _onKeyup (e) {
@@ -276,6 +347,12 @@ PIXI.utils.skipHello();
 
 const currentGame = new Game();
 
+/**
+ * List of all Key Input
+ * @name Game#KEY
+ * @static
+ * @type {Object}
+ */
 currentGame.KEY = {
     "BACKSPACE": "8",
     "TAB": "9",

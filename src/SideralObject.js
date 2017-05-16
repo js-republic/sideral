@@ -3,6 +3,7 @@ import TimerManager from "./Tool/TimerManager";
 
 /**
  * The entry class of all object in Sideral
+ * @class SideralObject
  */
 class SideralObject {
 
@@ -15,75 +16,110 @@ class SideralObject {
 
         /**
          * Unique id for the current object
+         * @name SideralObject#id
          * @type {string}
+         * @default SideralObject.generateId()
          */
         this.id = SideralObject.generateId();
 
         /**
          * Properties of the class
-         * @type {{}}
+         * @name SideralObject#props
+         * @type {Object}
+         * @default {}
          */
         this.props      = {};
 
         /**
          * Last value of properties of the class
+         * @name SideralObject#last
          * @readonly
-         * @type {{}}
+         * @type {Object}
+         * @default {}
          */
         this.last       = {};
 
         /**
          * Slots for signals
-         * @type {*}
+         * @name SideralObject#signals
+         * @type {Object}
          */
         this.signals    = {
+
+            /**
+             * Fired every time the SideralObject updates
+             * @event update
+             */
             update      : new Signal(),
+
+            /**
+             * Fired every time the value of a property change
+             * @event propChange
+             * @param {string} name - The name of the property
+             * @param {*} value - The new value of the property
+             * @example
+             *  this.signals.propChange.add("x", () => console.log("x has changed !"));
+             *  this.props.x = 2; // The event below will be executed
+             */
             propChange  : new Signal()
         };
 
         /**
          * Children of AbstractClass
+         * @name SideralObject#children
          * @readonly
-         * @type {Array<Object>}
+         * @type {Array<SideralObject>}
+         * @default []
          */
         this.children   = [];
 
         /**
          * Know when the object has been initialized by a parent
+         * @name SideralObject#initialized
          * @readonly
          * @type {boolean}
+         * @default false
          */
         this.initialized = false;
 
         /**
          * List of current timers
          * @type {TimerManager}
+         * @name SideralObject#timers
+         * @default new TimerManager()
          */
         this.timers     = new TimerManager();
 
         /**
          * Parent of the object
-         * @type {*}
+         * @type {SideralObject}
+         * @name SideralObject#parent
+         * @default null
          */
         this.parent     = null;
 
         /**
          * PIXI Container
-         * @type {*}
+         * @type {PIXI.Container}
+         * @name SideralObject#container
+         * @default new PIXI.Container()
          */
         this.container  = new PIXI.Container();
 
         /**
          * Know if the object is killed
          * @type {boolean}
+         * @default false
+         * @readonly
+         * @name SideralObject#killed
          */
         this.killed     = false;
     }
 
     /**
-     * When initialized by a parent
-     * @lifecycle
-     * @param {Object} props: properties to merge
+     * Lifecycle - When initialized by a parent (called only once when the instance is attached to the lifecycle of the game)
+     * @access public
+     * @param {Object} props - properties to merge
      * @returns {void}
      */
     initialize (props = {}) {
@@ -93,8 +129,8 @@ class SideralObject {
     }
 
     /**
-     * Kill event
-     * @lifecycle
+     * Lifecycle - Destroy the current instance
+     * @access public
      * @returns {void}
      */
     kill () {
@@ -114,8 +150,8 @@ class SideralObject {
     }
 
     /**
-     * Update called every loop
-     * @lifecycle
+     * Lifecycle - Called every loop
+     * @access protected
      * @returns {void}
      */
     update () {
@@ -125,8 +161,8 @@ class SideralObject {
     }
 
     /**
-     * Called before a new game loop
-     * @lifecycle
+     * Lifecycle - Called before a next game loop
+     * @access protected
      * @returns {void}
      */
     nextCycle () {
@@ -145,9 +181,17 @@ class SideralObject {
     /* METHODS */
 
     /**
-     * Set new properties to the object
-     * @param {Object} props: properties to merge
+     * Set new properties to the object. All attribute contained in "props" are public and can be edited by external source.
+     * Properties can be observe via the "propChange" event. Update a property attribute via "setProps" will not fire the "propChange" event.
+     * @access public
+     * @param {Object} props - properties to merge
      * @returns {*} current instance
+     * @example
+     *  this.setProps({
+     *      test: 1
+     *  });
+     *
+     *  this.props.test; // 1
      */
     setProps (props) {
         Object.keys(props).forEach(key => this.last[key] = this.props[key] = props[key]);
@@ -156,8 +200,10 @@ class SideralObject {
     }
 
     /**
-     * Swap the current PIXI container to another PIXI container
-     * @param {*} nextContainer: PIXI Container
+     * Swap the current PIXI container to another PIXI container. This is usefull if you want to change
+     * the PIXI Object without destroy children and parent relationship.
+     * @param {PIXI.DisplayObject} nextContainer: PIXI Container
+     * @access protected
      * @returns {void|null} -
      */
     swapContainer (nextContainer) {
@@ -182,11 +228,13 @@ class SideralObject {
     }
 
     /**
-     * Add an item to the current object
-     * @param {Object} item: an AbstractClass inheritance item
-     * @param {Object=} settings: props to merge to the item
-     * @param {number=} index: set an index position for the item
-     * @returns {Object} the item initialized
+     * Add an item to the current object. The item added will enter into the lifecycle of the object and will become a children
+     * of this object. The method "initialize" of the item will be called.
+     * @access public
+     * @param {SideralObject} item - a SideralObject
+     * @param {Object=} settings - props to merge to the item
+     * @param {number=} index - set an index position for the item
+     * @returns {SideralObject} The item initialized
      */
     add (item, settings = {}, index) {
         if (!(item instanceof SideralObject)) {
@@ -210,8 +258,9 @@ class SideralObject {
     }
 
     /**
-     * Check if a property has changed
-     * @param {string} propName: name of the property to check
+     * Check if a property (an attribute from "this.props") has changed
+     * @access public
+     * @param {string} propName - name of the property to check
      * @returns {boolean} property has changed ?
      */
     hasChanged (propName) {
@@ -227,7 +276,8 @@ class SideralObject {
 
     /**
      * Generate an unique id
-     * @returns {string} return the unique id
+     * @access public
+     * @returns {string} The unique id
      */
     static generateId () {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);

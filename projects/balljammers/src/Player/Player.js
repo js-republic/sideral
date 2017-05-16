@@ -19,7 +19,7 @@ export default class Player extends Entity {
         // props
         this.setProps({
             speed       : 80,
-            power       : 120,
+            power       : 90,
             jump        : 200
         });
 
@@ -154,7 +154,7 @@ export default class Player extends Entity {
      * @returns {void|null} -
      */
     attack () {
-        this.skills.run("attack");
+        this.skills.run("attack", { follow: this });
     }
 
     /**
@@ -163,12 +163,12 @@ export default class Player extends Entity {
      * @returns {void}
      */
     dash (side) {
-        if (this.dashSide === side && !this.skills.isRunning("dash")) {
+        if (this.dashSide === side && !this.skills.isRunning("dash") && !this.timers.isFinished("dash")) {
             this.skills.run("dash", { side: side });
 
         } else {
             this.dashSide = side;
-            this.timers.add("dash", 100, () => this.dashSide = false);
+            this.timers.add("dash", 20, () => this.dashSide = false);
         }
     }
 

@@ -54,4 +54,16 @@ export default class TimerManager {
     remove (name) {
         delete this.timers[name];
     }
+
+    /**
+     * Check if a timer is finished or not
+     * @acess public
+     * @param {string} name - The name of the timer
+     * @returns {boolean} The timer is finished ?
+     */
+    isFinished (name) {
+        const timer = this.timers[name];
+
+        return timer ? timer.finished : true;
+    }
 }

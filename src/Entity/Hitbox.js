@@ -44,8 +44,6 @@ export default class Hitbox extends Entity {
 
         this.props.x += this.props.offsetFlip !== null && owner.props.flip ? this.props.offsetFlip : this.props.offsetX || 0;
         this.props.y += this.props.offsetY || 0;
-
-        this.toggleDebug();
     }
 
 
@@ -81,10 +79,10 @@ export default class Hitbox extends Entity {
      * @returns {void}
      */
     updateFollow () {
-        const { offsetX, offsetY, width, follow } = this.props;
+        const { offsetX, offsetY, offsetFlip, follow } = this.props;
 
         if (follow) {
-            this.props.x = follow.props.x + offsetX - (follow.props.flip ? width : 0);
+            this.props.x = follow.props.x + (follow.props.flip && offsetFlip !== null ? offsetFlip : offsetX);
             this.props.y = follow.props.y + offsetY;
         }
     }

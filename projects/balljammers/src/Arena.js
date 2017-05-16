@@ -21,22 +21,12 @@ export default class Arena extends World {
 
         // props
         this.setProps({
-            gravity : 200,
+            gravity : 150,
             spawnX  : 100
         });
 
         // read-only
-
-        /**
-         * The Player Left
-         * @type {Player}
-         */
         this.playerLeft     = null;
-
-        /**
-         * The Player Right
-         * @type {Player}
-         */
         this.playerRight    = null;
 
         // signals
@@ -69,9 +59,6 @@ export default class Arena extends World {
         this.playerLeft     = this.addEntity(new PlayerCat(), this.props.spawnX, 150, { playerLeft: true });
         this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });
 
-        window.scene = this;
+        window.scene        = this;
     }
-
-
-    /* METHODS */
 }

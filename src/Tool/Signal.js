@@ -4,11 +4,65 @@ export default class Signal extends Signals {
 
     /**
      * @constructor
+     * @param {function=} onBindEvent - Event fired when there is a new bind into this signal
+     * @param {function=} onRemoveEvent - Event fired when there is a remove into this signal
      */
-    constructor () {
+    constructor (onBindEvent, onRemoveEvent) {
         super();
 
-        this.keysBound = [];
+        this.onBindEvent    = onBindEvent;
+        this.onRemoveEvent  = onRemoveEvent;
+        this.keysBound      = [];
+    }
+
+    /**
+     * @override
+     */
+    add (listener, listenerContext, priority) {
+        const signalBinding = super.add(listener, listenerContext, priority);
+
+        if (this.onBindEvent) {
+            this.onBindEvent(listener, listenerContext, priority);
+        }
+
+        return signalBinding;
+    }
+
+    /**
+     * @override
+     */
+    addOnce (listener, listenerContext, priority) {
+        const signalBinding = super.addOnce(listener, listenerContext, priority);
+
+        if (this.onBindEvent) {
+            this.onBindEvent(listener, listenerContext, priority);
+        }
+
+        return signalBinding;
+    }
+
+    /**
+     * @override
+     */
+    remove (listener, context) {
+        super.remove(listener, context);
+
+        if (this.onRemoveEvent) {
+            this.onRemoveEvent(listener, context);
+        }
+
+        return listener;
+    }
+
+    /**
+     * @override
+     */
+    removeAll () {
+        if (this.onRemoveEvent) {
+            this.onRemoveEvent();
+        }
+
+        super.removeAll();
     }
 
     /**
@@ -37,5 +91,9 @@ export default class Signal extends Signals {
         this.dispatch();
 
         this.keysBound.forEach(keys => this.dispatch(keys[0]));
+    }
+
+    get listenerLength () {
+        return this._bindings.length;
     }
 }

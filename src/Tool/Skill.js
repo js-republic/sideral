@@ -199,7 +199,7 @@ export default class Skill {
 
             if (this.hitboxClass) {
                 this.hitboxSettings.owner   = this.hitboxSettings.owner || this.owner;
-                this.hitbox                 = this._createHitbox(this.hitboxClass, this.hitboxSettings);
+                this.hitbox                 = this.addHitbox(this.hitboxClass, this.hitboxSettings);
             }
 
             this.signals.skillStart.dispatch(this);
@@ -288,9 +288,8 @@ export default class Skill {
      * @param {*} hitboxClass: The class to instanciate
      * @param {*} hitboxSettings: The settings to transmit to the hitbox instance
      * @returns {*} The hitbox instance
-     * @private
      */
-    _createHitbox (hitboxClass, hitboxSettings = {}) {
+    addHitbox (hitboxClass, hitboxSettings = {}) {
         const hitbox    = new hitboxClass();
         let x           = this.owner.props.x,
             y           = this.owner.props.y;
