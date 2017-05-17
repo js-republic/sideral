@@ -13,7 +13,7 @@ module.exports = {
     },
 
     resolve: {
-        extensions: [".js", ".json", ".jsx"],
+        extensions: [".js", ".json", ".jsx", ".ts"],
         modules: [path.resolve("./"), "node_modules"]
     },
 
@@ -21,6 +21,10 @@ module.exports = {
 
     module: {
         loaders: [
+            {
+                test: /\.tsx?$/,
+                loader: 'awesome-typescript-loader'
+            },
             {
                 test: /\.jsx?$/,
                 loader: "babel-loader",

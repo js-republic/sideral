@@ -1,6 +1,6 @@
-import Entity from "src/Entity";
+import Entity from "../../../../src/Entity";
 
-import Enum from "src/Tool/Enum";
+import Enum from "../../../../src/Tool/Enum";
 
 import PlayerAttackSkill from "./PlayerAttackSkill";
 import PlayerDashSkill from "./PlayerDashSkill";
