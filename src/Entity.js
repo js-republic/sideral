@@ -1,12 +1,20 @@
-import AbstractModule from "./Abstract/AbstractModule";
+import Module from "./Module";
+
+import Signal from "./Tool/Signal";
+import Body from "./Tool/Body";
+import Enum from "./Tool/Enum";
+import SkillManager from "./Tool/SkillManager";
 
 import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
 
-import Game from "./Game";
 
-
-export default class Entity extends AbstractModule {
+/**
+ * Module with physics and interaction
+ * @class Entity
+ * @extends Module
+ */
+export default class Entity extends Module {
 
     /* LIFECYCLE */
 
@@ -20,25 +28,136 @@ export default class Entity extends AbstractModule {
             gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
-            fricX           : 0,
-            fricY           : 0,
             accelX          : 0,
             accelY          : 0,
-            limit           : { vx: 2000, vy: 2000 },
-            bouncing        : 0,
-            mass            : Entity.MASS.WEAK,
-            debug           : false
+            angle           : 0,
+            flip            : false
         });
+
+        this.name       = "entity";
+        this.type       = Enum.TYPE.SOLID;
+        this.box        = Enum.BOX.RECTANGLE;
+        this.group      = Enum.GROUP.ALL;
+        this.scene      = null;
+        this.friction   = false;
+        this.lastPos    = {x: 0, y: 0};
+        this.skills     = new SkillManager(this);
 
         this.standing   = false;
         this.moving     = false;
-        this.scene      = null;
-        this.collide    = {x: false, y: false};
 
-        this._debug     = null;
+        this._bounce    = 0;
+        this.collides   = [];
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("debug"), this.createAction(this._onDebugChange)).
-            bind(this.SIGNAL.UPDATE(), this.createAction(this.updateVelocity));
+        this.signals.beginCollision = new Signal();
+        this.signals.collision      = new Signal();
+        this.signals.endCollision   = new Signal();
+
+        this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
+        this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
+        this.signals.propChange.bind("gravityFactor", this.onGravityFactorChange.bind(this));
+    }
+
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
+    initialize (props) {
+        super.initialize(props);
+
+        if (this.type === Enum.TYPE.NONE) {
+            return this.onSizeChange();
+        }
+
+        const settings = {
+            mass            : this.type < 0 ? 0 : this.type,
+            gravityScale    : this.props.gravityFactor,
+            group           : this.group,
+            fixedRotation   : this.type !== Enum.TYPE.WEAK,
+            angularVelocity : this.type === Enum.TYPE.WEAK ? 1 : 0
+        };
+
+        switch (this.box) {
+            case Enum.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+                break;
+
+            default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
+                break;
+        }
+
+        this.onSizeChange();
+    }
+
+    /**
+     * @update
+     * @lifecycle
+     * @override
+     */
+    update () {
+        super.update();
+
+        this.skills.update();
+    }
+
+    /**
+     * @kill
+     * @lifecycle
+     * @override
+     */
+    kill () {
+        super.kill();
+
+        if (this.body) {
+            this.scene.world.removeBody(this.body.data);
+        }
+    }
+
+    /**
+     * @nextCycle
+     * @lifecycle
+     * @override
+     */
+    nextCycle () {
+        super.nextCycle();
+
+        if (this.body) {
+            if (this.last.x !== this.body.x) {
+                this.lastPos.x = this.last.x;
+            }
+
+            if (this.last.y !== this.body.y) {
+                this.lastPos.y = this.last.y;
+            }
+
+            this.setProps({
+                x: this.body.x,
+                y: this.body.y
+            });
+
+            this.moving         = Boolean(this.body.data.velocity[0]) || !this.standing;
+            this.standing       = Boolean(this.collides.find(collide => collide.isAbove));
+            this.props.x        = this.body.x;
+            this.props.y        = this.body.y;
+            this.props.angle    = this.body.angle;
+
+            this.body.data.force[0]     = this.props.accelX;
+            this.body.data.force[1]     = this.props.accelY;
+
+            if (this.props.vx || (!this.props.vx && !this.friction)) {
+                this.body.vx = this.props.vx;
+            }
+
+            if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
+                this.body.vy = this.props.vy;
+            }
+
+            this.container.rotation = this.body.data.angle;
+
+            this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
+        }
+
+        this.collides.forEach(collide => collide.entity && this.signals.collision.dispatch(collide.entity.name, collide.entity));
     }
 
 
@@ -58,23 +177,94 @@ export default class Entity extends AbstractModule {
         settings.width      = tilewidth;
         settings.height     = tileheight;
 
-        return this.add(new Sprite(), settings, index);
+        const sprite = this.add(new Sprite(), settings, index);
+
+        if (!this.sprite) {
+            this.sprite = sprite;
+        }
+
+        return sprite;
     }
 
     /**
-     * Get vector to entity to target
-     * @param {Entity} entity: the target
-     * @returns {{x: number, y: number}} the vector
+     * Remove all velocity from the entity
+     * @returns {void}
      */
-    vectorPositionTo (entity) {
-        return {
-            x: entity.props.x <= (this.props.x + (this.props.width / 2)) ? -1 : 1,
-            y: entity.props.y <= (this.props.y + (this.props.height / 2)) ? -1 : 1
-        };
+    idle () {
+        this.props.vx = this.props.vy = this.props.accelX = this.props.accelY = 0;
+
+        if (this.body) {
+            this.body.data.velocity[0] = 0;
+            this.body.data.velocity[1] = 0;
+            this.body.data.force[0] = 0;
+            this.body.data.force[1] = 0;
+        }
+    }
+
+    /**
+     * set or remove the debug mode
+     * @returns {void}
+     */
+    toggleDebug () {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+
+        } else {
+            this._debug = this.add(new Shape(), {
+                box     : this.box,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            });
+        }
+    }
+
+    /**
+     * Set a new type for the current entity
+     * @param {number} type: type corresponding of Entity.TYPE Object
+     * @returns {number} the type
+     */
+    setType (type) {
+        if (Object.keys(Enum.TYPE).find(key => Enum.TYPE[key] === type)) {
+            this.type = type;
+
+            if (this.body) {
+                this.body.data.mass = this.props.mass;
+                this.body.data.updateMassProperties();
+            }
+        }
+
+        return this.type;
+    }
+
+    /**
+     * Set a new bounce factor
+     * @param {number} bounceFactor: next factor of bounce
+     * @returns {number} the next bounceFactor
+     */
+    setBounce (bounceFactor) {
+        this._bounce = this.scene.setEntityBouncing(this, bounceFactor, this._bounce);
+
+        return this._bounce;
     }
 
 
     /* EVENTS */
+
+    /**
+     * onPositionChange
+     * @override
+     */
+    onPositionChange () {
+        super.onPositionChange();
+
+        if (this.body) {
+            this.body.x = this.props.x;
+            this.body.y = this.props.y;
+        }
+    }
 
     /**
      * When "width" or "height" attributes change
@@ -82,234 +272,39 @@ export default class Entity extends AbstractModule {
      * @returns {void}
      */
     onSizeChange () {
+        super.onSizeChange();
+
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
         }
     }
 
     /**
-     * When vx or vy attributes change
+     * When "flip" attribute change
      * @returns {void}
      */
-    updateVelocity () {
-        const { x, y, vx, vy, fricX, fricY, limit } = this.props,
-            resolveFriction = (vel, friction) => {
-                if (friction && vel) {
-                    const tendance  = Math.sign(vel),
-                        delta       = Math.abs(friction) * Game.tick * tendance;
-
-                    return Math[tendance > 0 ? "max" : "min"](0, vel - delta);
-                }
-
-                return vel;
-            };
-
-        this.props.vx   = resolveFriction(Math.min(limit.vx, Math.max(-limit.vx, vx)), fricX);
-        this.props.vy   = resolveFriction(Math.min(limit.vy, Math.max(-limit.vy, vy)), fricY);
-
-        const nextX     = x + (vx * Game.tick),
-            nextY       = y + (vy * Game.tick),
-            moveInX     = x !== nextX,
-            moveInY     = this.props.gravityFactor ? moveInX || this.hasChanged("x") || this.hasChanged("y") || (y !== nextY) || !this.collide.y : y !== nextY,
-            gravity     = this.scene.props.gravity * this.props.gravityFactor * Game.tick;
-
-        if (moveInY) {
-            this.props.vy += gravity;
-
-            if (!moveInX) {
-                this.resolveMovementY(nextY + gravity);
-            }
-        }
-
-        if (moveInX && !moveInY) {
-            this.resolveMovementX(nextX);
-
-        } else if (moveInX && moveInY) {
-            this.resolveMovement(nextX, nextY + gravity);
-
+    onFlipChange () {
+        if (this.sprite) {
+            this.sprite.props.flip = this.props.flip;
         }
     }
 
     /**
-     * Event triggered when the current entity enter in collision with another entity
-     * @param {*} entity: target entity (instance of Sideral Entity class)
+     * When gravityFactor property change
      * @returns {void}
      */
-    onCollisionWith (entity) { }
-
-    /**
-     * Resolve logic of physic when entity enter in collision with an other entity
-     * @param {Entity} other: target entity
-     * @param {number} shift : number of pixel shift
-     * @returns {number} number of pixel shift
-     */
-    resolveMass (other, shift) {
-        const isGhost   = entity => entity.props.mass === Entity.MASS.NONE;
-
-        if (isGhost(this) || isGhost(other)) {
-            return shift;
+    onGravityFactorChange () {
+        if (this.body) {
+            this.body.data.gravityScale = this.props.gravityFactor;
         }
-
-        if (other.props.mass === Entity.MASS.SOLID) {
-            shift = 0;
-        }
-
-        return shift;
     }
 
     /**
-     * Return the position of collision of entity when entered in collision with an other entity
-     * @param {Entity} target: target in collision
-     * @param {string} axis: axis of the collision (x or y)
-     * @returns {number} the next position of the entity
-     */
-    resolveCollision (target, axis) {
-        const pEntity   = this.props[axis],
-            pTarget     = target.props[axis],
-            vEntity     = this.props["v" + axis] * Game.tick,
-            vTarget     = target.props["v" + axis] * Game.tick;
-
-        if (!vEntity || !vTarget || (Math.sign(vEntity) + Math.sign(vTarget)) !== 0) {
-            return NaN;
-        }
-
-        return pEntity + (Math.abs(pTarget - pEntity) / (1 + (Math.abs(vTarget) / Math.abs(vEntity))));
-    }
-
-    resolveBouncing (target, axis) {
-        const bEntity   = this.props.bouncing,
-            bTarget     = target.props.bouncing,
-            vEntity     = this.props["v" + axis],
-            vTarget     = target.props["v" + axis],
-            vSign       = Math.sign(target.props[axis] - this.props[axis]);
-
-        if (bEntity && vTarget && Math.sign(vTarget) === vSign) {
-            this.props["v" + axis] = vTarget * bEntity;
-        }
-
-        if (bTarget && target.props.mass !== Entity.MASS.SOLID && Math.sign(vEntity) === vSign) {
-            target.props["v" + axis] = vEntity * bTarget;
-        }
-
-        return vEntity;
-    }
-
-    resolveMovement (nextX, nextY) {
-        if (nextY > this.props.y) {
-            this.resolveMovementX(nextX);
-            this.resolveMovementY(nextY);
-
-        } else {
-            this.resolveMovementY(nextY);
-            this.resolveMovementX(nextX);
-
-        }
-    }
-
-    resolveMovementX (nextX) {
-        if (nextX === this.props.x) {
-            return nextX;
-        }
-
-        const tilemap       = this.scene.tilemap,
-            fromLeft        = nextX > this.props.x,
-            logic           = tilemap ? tilemap.getLogicXAt(this.props.x, nextX, this.props.y, this.props.y + this.props.height, this.props.width) : { collide: false, value: nextX },
-            xmin            = Math.min(this.props.x, logic.value),
-            xmax            = Math.max(this.props.x, logic.value) + this.props.width,
-            other           = this.scene.getEntitiesInRange(xmin, xmax, this.props.y, this.props.y + this.props.height, this.id).sort((a, b) => fromLeft ? a.props.x - b.props.x : b.props.x - a.props.x)[0];
-
-        if (other && other.props.mass !== Entity.MASS.NONE && this.props.mass !== Entity.MASS.NONE) {
-            const otherX    = other.resolveMovementX(other.props.x + this.resolveMass(other, fromLeft ? this.props.width + logic.value - other.props.x : logic.value - other.props.x - other.props.width));
-
-            this.props.x    = (nextX = fromLeft ? otherX - this.props.width : otherX + other.props.width);
-            this.resolveBouncing(other, "x");
-
-        } else {
-            this.props.x    = (nextX = logic.value);
-        }
-
-        return nextX;
-    }
-
-    resolveMovementY (nextY) {
-        if (nextY === this.props.y) {
-            return nextY;
-        }
-
-        const tilemap       = this.scene.tilemap,
-            fromTop         = nextY > this.props.y,
-            logic           = tilemap ? tilemap.getLogicYAt(this.props.y, nextY, this.props.x, this.props.x + this.props.width, this.props.height) : { collide: false, value: nextY },
-            ymin            = Math.min(this.props.y, logic.value),
-            ymax            = Math.max(this.props.y, logic.value) + this.props.height,
-            other           = this.scene.getEntitiesInRange(this.props.x, this.props.x + this.props.width, ymin, ymax, this.id).sort((a, b) => fromTop ? a.props.y - b.props.y : b.props.y - a.props.y)[0];
-
-        if (other  && other.props.mass !== Entity.MASS.NONE && this.props.mass !== Entity.MASS.NONE) {
-            const otherY    = other.resolveMovementY(other.props.y + this.resolveMass(other, fromTop ? this.props.height + logic.value - other.props.y : logic.value - other.props.y - other.props.height));
-
-            this.props.y    = (nextY = fromTop ? otherY - this.props.height : otherY + other.props.height);
-            this.resolveBouncing(other, "y");
-
-            if (other.props.y < this.props.y) {
-                other.standing  = true;
-
-            } else {
-                this.standing   = true;
-
-            }
-
-        } else {
-            this.props.y    = (nextY = logic.value);
-        }
-
-        this.standing   = fromTop ? logic.collide || Boolean(other) : false;
-        this.props.vy   = this.standing ? Math.max(0, this.props.vy) : this.props.vy;
-
-        return nextY;
-    }
-
-    /**
-     * Get the speed of the velocity
-     * @returns {number} speed velocity
-     */
-    getKineticEnergy () {
-        const x = (this.props.x + (this.props.width / 2)) - (this.props.x + (this.props.vx * Game.tick)),
-            y   = (this.props.y + (this.props.height / 2)) - (this.props.y + (this.props.vy * Game.tick));
-
-        return this.props.mass * Math.sqrt((x * x) + (y * y));
-    }
-
-
-    /* PRIVATE */
-
-    /**
-     * When "debug" attribute change
-     * @private
+     * When angle attribute change
      * @returns {void}
      */
-    _onDebugChange () {
-        if (this._debug) {
-            this._debug.kill();
-            this._debug = null;
-        }
-
-        if (this.props.debug) {
-            this._debug = this.add(new Shape(), {
-                type    : Shape.TYPE.RECTANGLE,
-                width   : this.props.width,
-                height  : this.props.height,
-                stroke  : "#FF0000",
-                fill    : "transparent"
-            }, 0);
-        }
+    onAngleChange () {
+        this.updateContainerPosition();
+        this.body.angle = this.props.angle;
     }
-
-
-    /* STATIC */
-
 }
-
-Entity.MASS = {
-    NONE    : 0,
-    WEAK    : 1,
-    SOLID   : 2
-};

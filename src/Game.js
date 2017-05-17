@@ -1,10 +1,15 @@
-import AbstractClass from "./Abstract/AbstractClass";
-import Util from "./Command/Util";
-import Signal from "./Command/Signal";
+import SideralObject from "./SideralObject";
+import Util from "./Tool/Util";
+import Signal from "./Tool/Signal";
 import Scene from "./Scene";
 
 
-class Game extends AbstractClass {
+/**
+ * The engine of the game
+ * @class Game
+ * @extends SideralObject
+ */
+class Game extends SideralObject {
 
     /* LIFECYCLE */
 
@@ -14,6 +19,15 @@ class Game extends AbstractClass {
     constructor () {
         super();
 
+        /**
+         * Properties of the class
+         * @name Game#props
+         * @type {Object}
+         * @property {number} width - The width of the game
+         * @property {number} height - The height of the game
+         * @property {Element} dom - The DOM Element to attach the game
+         * @property {string} background - The color of the background of the game
+         */
         this.setProps({
             width       : 10,
             height      : 10,
@@ -21,20 +35,87 @@ class Game extends AbstractClass {
             background  : "#DDDDDD"
         });
 
-        this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true });
+        /**
+         * @override
+         */
+        this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
+
+        /**
+         * List of all keyboard input pressed or released
+         * @type {Object}
+         * @name Game#inputs
+         * @readonly
+         */
         this.inputs     = {};
         this._inputs    = {};
+
+        /**
+         * The current frame per second of the engine
+         * @readonly
+         * @name Game#fps
+         * @type {number}
+         */
         this.fps        = 60;
+
+        /**
+         * The current latency of the game (in ms)
+         * @readonly
+         * @name Game#latency
+         * @type {number}
+         */
         this.latency    = 0;
+
+        /**
+         * The factor of velocity of object related to the latency
+         * @readonly
+         * @name Game#tick
+         * @type {number}
+         */
         this.tick       = 1;
+
+        /**
+         * The date of the current update in timestamp
+         * @readonly
+         * @name Game#currentUpdate
+         * @type {number}
+         */
+        this.currentUpdate = 0;
+
+        /**
+         * The date of the last update in timestamp
+         * @readonly
+         * @name Game#lastUpdate
+         * @type {number}
+         */
         this.lastUpdate = 0;
+
+        /**
+         * Know if the game is currently looping or not
+         * @readonly
+         * @name Game#stopped
+         * @type {boolean}
+         */
         this.stopped    = true;
 
-        this.SIGNAL.KEY_PRESS = property => new Signal("KEY_PRESS", property);
+        /**
+         * If true, the keyboard event will not be propaged
+         * @name Game#preventInputPropagation
+         * @type {boolean}
+         */
+        this.preventInputPropagation    = true;
 
-        this.bind(this.SIGNAL.VALUE_CHANGE("dom"), this.createAction(this._attachGame)).
-            bind(this.SIGNAL.VALUE_CHANGE(["width", "height"]), this.createAction(this._resizeGame)).
-            bind(this.SIGNAL.VALUE_CHANGE("background"), this.createAction(this._backgroundChange));
+        /**
+         * Fired every time a keyboard input has been pressed or released
+         * @name Game#keyPress
+         * @event keyPress
+         * @param {number} keyCode - The key code corresponding of the key input
+         * @param {boolean} pressed - Check if the key input has been pressed or released
+         */
+        this.signals.keyPress = new Signal();
+
+        this.signals.propChange.bind("dom", this._attachGame.bind(this));
+        this.signals.propChange.bind(["width", "height"], this._resizeGame.bind(this));
+        this.signals.propChange.bind("background", this._backgroundChange.bind(this));
 
         window.addEventListener("keydown", this._onKeydown.bind(this));
         window.addEventListener("keyup", this._onKeyup.bind(this));
@@ -42,7 +123,6 @@ class Game extends AbstractClass {
 
     /**
      * @override
-     * @lifecycle
      */
     kill () {
         super.kill();
@@ -55,7 +135,7 @@ class Game extends AbstractClass {
      * Update loop
      * @override
      * @lifecycle
-     * @param {number=} performance: performance returned by the navigator
+     * @param {number=} performance - performance returned by the navigator
      * @returns {void|null} -
      */
     update (performance) {
@@ -67,10 +147,11 @@ class Game extends AbstractClass {
         requestAnimationFrame(this.update.bind(this));
 
         // 100ms latency max
-        this.latency    = Math.min(performance - this.lastUpdate, 100);
-        this.fps        = Math.floor(1000 / this.latency);
-        this.tick       = 1000 / (this.fps * 1000);
-        this.tick       = this.tick < 0 ? 0 : this.tick;
+        this.currentUpdate  = performance;
+        this.latency        = Util.limit(performance - this.lastUpdate, 0, 100);
+        this.fps            = Math.floor(1000 / this.latency);
+        this.tick           = 1000 / (this.fps * 1000);
+        this.tick           = this.tick < 0 ? 0 : this.tick;
 
         this._updateInputs();
 
@@ -79,17 +160,18 @@ class Game extends AbstractClass {
 
         this.nextCycle();
 
-        this.lastUpdate = window.performance.now();
+        this.lastUpdate     = window.performance.now();
     }
 
 
     /* METHODS */
 
     /**
-     * Add a new Sideral Scene
-     * @param {*} scene: item to add to the lifecycle
-     * @param {{}=} props: properties to pass to the object
-     * @returns {*} current item
+     * Add a new Scene into the game
+     * @access public
+     * @param {Scene} scene - scene to add to the lifecycle
+     * @param {Object=} props - properties to pass to the object
+     * @returns {Scene} The scene initialized
      */
     addScene (scene, props) {
         if (!(scene instanceof Scene)) {
@@ -104,10 +186,11 @@ class Game extends AbstractClass {
 
     /**
      * Start the game loop
-     * @param {number=} width: width of the game
-     * @param {number=} height: height of the game
-     * @param {DOM=} dom: dom to attach the game
-     * @returns {*} current instance
+     * @acess public
+     * @param {number=} width - width of the game
+     * @param {number=} height - height of the game
+     * @param {Element=} dom - dom to attach the game
+     * @returns {Game} current instance
      */
     start (width, height, dom) {
         this.setProps({
@@ -149,9 +232,9 @@ class Game extends AbstractClass {
      * @returns {void}
      */
     _updateInputs () {
-        const HOLD  = "HOLD",
-            PRESSED = "PRESSED",
-            RELEASED= "RELEASED";
+        const HOLD      = "HOLD",
+            PRESSED     = "PRESSED",
+            RELEASED    = "RELEASED";
 
         for (const key in this._inputs) {
             if (!this._inputs.hasOwnProperty(key)) {
@@ -168,7 +251,7 @@ class Game extends AbstractClass {
 
                 } else if (input !== HOLD) {
                     this.inputs[key] = PRESSED;
-                    this.trigger(this.SIGNAL.KEY_PRESS(key), true);
+                    this.signals.keyPress.dispatch(key, true);
 
                 }
 
@@ -183,7 +266,7 @@ class Game extends AbstractClass {
 
                 } else {
                     this.inputs[key] = RELEASED;
-                    this.trigger(this.SIGNAL.KEY_PRESS(key), false);
+                    this.signals.keyPress.dispatch(key, false);
 
                 }
             }
@@ -236,21 +319,35 @@ class Game extends AbstractClass {
     /**
      * event on keydown
      * @event keydown
-     * @param {*} e: event
-     * @returns {void}
+     * @param {*} e - event
+     * @returns {Boolean} Input propagation
      */
     _onKeydown (e) {
+        if (this.preventInputPropagation) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
         this._inputs[e.keyCode] = "PRESSED";
+
+        return !this.preventInputPropagation;
     }
 
     /**
      * event on keyup
      * @event keyup
-     * @param {*} e: event
-     * @returns {void}
+     * @param {*} e - event
+     * @returns {Boolean} Input propagation
      */
     _onKeyup (e) {
+        if (this.preventInputPropagation) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
         this._inputs[e.keyCode] = "RELEASED";
+
+        return !this.preventInputPropagation;
     }
 }
 
@@ -260,6 +357,12 @@ PIXI.utils.skipHello();
 
 const currentGame = new Game();
 
+/**
+ * List of all Key Input
+ * @name Game#KEY
+ * @static
+ * @type {Object}
+ */
 currentGame.KEY = {
     "BACKSPACE": "8",
     "TAB": "9",

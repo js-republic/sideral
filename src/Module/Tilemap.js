@@ -1,7 +1,14 @@
-import AbstractModule from "./../Abstract/AbstractModule";
+import p2 from "p2";
+
+import Module from "./../Module";
+
+import Shape from "./Shape";
+
+import Enum from "./../Tool/Enum";
+import Wall from "./../Tool/Wall";
 
 
-export default class Tilemap extends AbstractModule {
+export default class Tilemap extends Module {
 
     /* LIFECYCLE */
 
@@ -16,6 +23,10 @@ export default class Tilemap extends AbstractModule {
             tileheight  : 0
         });
 
+        this.wallMaterial           = new p2.Material();
+
+        this.bodies                 = [];
+        this._debugs                = [];
         this.grid                   = {};
         this.gridContainer          = null;
         this.backgroundContainers   = [];
@@ -42,12 +53,12 @@ export default class Tilemap extends AbstractModule {
         this.grid               = data.grid;
 
         // Determine the size of the tilemap
-        data.grid.visual.forEach(layer => layer.forEach(line => {
+        data.grid.forEach(layer => layer.forEach(line => {
             this.props.width = line.length > this.props.width ? line.length : this.props.width;
         }));
 
         this.props.width *= this.props.tilewidth;
-        this.props.height = data.grid.visual[0].length * this.props.tileheight;
+        this.props.height = data.grid[0].length * this.props.tileheight;
 
         // Load all assets
         if (data.backgrounds) {
@@ -59,8 +70,9 @@ export default class Tilemap extends AbstractModule {
         }
 
         loader.load((currentLoader, resources) => {
+            this.bodies = data.walls.map(wall => new Wall(this.scene, ...wall));
             this._loadBackgrounds(data.backgrounds, resources);
-            this._loadGrids(data.grid, data.path);
+            this._loadGrids(data.grid, data.path, data.debug);
             this._loadDecorators(data.decorators, resources);
         });
     }
@@ -70,7 +82,7 @@ export default class Tilemap extends AbstractModule {
      * @returns {void}
      */
     removeData () {
-        [].concat(this.gridContainer || [], this.backgroundContainers, this.decoratorContainers).forEach(container => {
+        [].concat(this.gridContainer || [], this.backgroundContainers, this.decoratorContainers).forEach(container => {
             this.container.removeChild(container);
             container.destroy(true);
         });
@@ -81,87 +93,21 @@ export default class Tilemap extends AbstractModule {
     }
 
     /**
-     * Determine if there is a collision on X axis
-     * @param {number} posX: position X
-     * @param {number} nextX: position X needed
-     * @param {number} ymin: position Y Min
-     * @param {number} ymax: position Y Max
-     * @param {number} width: width of the object
-     * @returns {{collide: boolean, value: number}} get the position x
+     * when debug attributes change
+     * @return {void}
      */
-    getLogicXAt (posX, nextX, ymin, ymax, width) {
-        const orientation   = nextX > posX ? 1 : -1,
-            cellXMin        = orientation > 0 ? Math.floor((posX + width) / this.props.tilewidth) : Math.floor(posX / this.props.tilewidth) - 1,
-            cellXMax        = orientation > 0 ? Math.floor((nextX + width) / this.props.tilewidth) : Math.floor(nextX / this.props.tileheight),
-            cellYMin        = Math.floor(Math.abs(ymin) / this.props.tileheight),
-            cellYMax        = Math.floor(Math.abs(ymax - 1) / this.props.tileheight),
-            grid            = this.grid.logic,
-            result          = { collide: false, value: nextX };
+    toggleDebug () {
+        this._debugs.forEach(_debug => _debug.kill());
 
-        let cellY           = null;
-
-        for (let y = cellYMin; y <= cellYMax; y++) {
-            cellY = grid[y];
-
-            if (!cellY) {
-                continue;
-            }
-
-            for (let x = cellXMin; x !== (cellXMax + orientation); x += orientation) {
-                if (cellY[x]) {
-                    result.collide  = true;
-                    result.value    = orientation > 0 ? (x * this.props.tilewidth) - width : (x + 1) * this.props.tilewidth;
-
-                    return result;
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Determine if there is a collision on y axis
-     * @param {number} posY : position in y axis
-     * @param {number} nextY : position needed in y axis
-     * @param {number} xmin : position min in x axis
-     * @param {number} xmax : position max in x axis
-     * @param {number} height : height of the object
-     * @returns {{collide: boolean, value: number}} get the position y
-     */
-    getLogicYAt (posY, nextY, xmin, xmax, height) {
-        const orientation   = nextY > posY ? 1 : -1,
-            cellYMin        = orientation > 0 ? Math.floor((posY + height) / this.props.tileheight) : Math.floor(nextY / this.props.tileheight),
-            cellYMax        = orientation > 0 ? Math.floor((nextY + height) / this.props.tileheight) : Math.floor(posY / this.props.tileheight),
-            cellXMin        = Math.floor(Math.abs(xmin) / this.props.tilewidth),
-            cellXMax        = Math.floor(Math.abs(xmax - 1) / this.props.tilewidth),
-            result          = { collide: false, value: nextY };
-
-        let grid            = null;
-
-        const loopParameter = {
-            start: orientation > 0 ? cellYMin : cellYMax,
-            end: orientation > 0 ? cellYMax : cellYMin
-        };
-
-        for (let y = loopParameter.start; y !== (loopParameter.end + orientation); y += orientation) {
-            grid = this.grid.logic[y];
-
-            if (!grid) {
-                continue;
-            }
-
-            for (let x = cellXMin; x <= cellXMax; x++) {
-                if (grid[x]) {
-                    result.collide  = true;
-                    result.value    = orientation > 0 ? (y * this.props.tileheight) - height : (y + 1) * this.props.tileheight;
-
-                    return result;
-                }
-            }
-        }
-
-        return result;
+        this._debugs = this.bodies.map(body => this.add(new Shape(), {
+            x       : body.x,
+            y       : body.y,
+            box     : Enum.BOX.RECTANGLE,
+            width   : body.width,
+            height  : body.height,
+            stroke  : "#FF0000",
+            fill    : "transparent"
+        }));
     }
 
 
@@ -172,9 +118,10 @@ export default class Tilemap extends AbstractModule {
      * @private
      * @param {*} grid: grid provided by the data
      * @param {string} path: path to the image
+     * @param {Boolean=} debug: Active the debug mode
      * @returns {void}
      */
-    _loadGrids (grid, path) {
+    _loadGrids (grid, path, debug) {
         const canvas    = document.createElement("canvas"),
             ctx         = canvas.getContext("2d"),
             image       = new Image();
@@ -186,7 +133,7 @@ export default class Tilemap extends AbstractModule {
 
         // Render the tilemap into the canvas
         image.onload = () => {
-            grid.visual.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
+            grid.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
                 ctx.drawImage(image,
                     Math.floor(tile * tilewidth) % image.width,
                     Math.floor(tile * tilewidth / image.width) * tileheight,
@@ -198,6 +145,10 @@ export default class Tilemap extends AbstractModule {
 
             this.gridContainer = PIXI.Sprite.from(canvas);
             this.container.addChild(this.gridContainer);
+
+            if (debug) {
+                this.toggleDebug();
+            }
         };
 
         image.src = path;
