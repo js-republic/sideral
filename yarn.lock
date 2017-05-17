@@ -2,6 +2,10 @@
 # yarn lockfile v1
 
 
+"@types/pixi.js@^4.4.4":
+  version "4.4.4"
+  resolved "https://registry.yarnpkg.com/@types/pixi.js/-/pixi.js-4.4.4.tgz#d6a3bdbdcd3719c99934215a6c6ad26315b9fb78"
+
 abbrev@1, abbrev@1.0.x, abbrev@~1.0.4:
   version "1.0.9"
   resolved "https://registry.yarnpkg.com/abbrev/-/abbrev-1.0.9.tgz#91b4792588a7738c25f35dd6f63752a2f8776135"

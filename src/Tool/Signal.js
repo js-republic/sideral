@@ -7,7 +7,7 @@ export default class Signal extends Signals {
      * @param {function=} onBindEvent - Event fired when there is a new bind into this signal
      * @param {function=} onRemoveEvent - Event fired when there is a remove into this signal
      */
-    constructor (onBindEvent, onRemoveEvent) {
+    constructor (onBindEvent = null, onRemoveEvent = null) {
         super();
 
         this.onBindEvent    = onBindEvent;

@@ -20,6 +20,7 @@
     ]
   },
   "files": [
+      "src/typings.d.ts",
       "projects/balljammers/src/index.ts"
   ]
 }

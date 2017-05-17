@@ -1,4 +1,5 @@
 .idea
+/dist/
 public/lib
 **/*/sideral.js
 **/*/sideral.js.map
