@@ -199,7 +199,7 @@ export default class Skill {
 
             if (this.hitboxClass) {
                 this.hitboxSettings.owner   = this.hitboxSettings.owner || this.owner;
-                this.hitbox                 = this.addHitbox(this.hitboxClass, this.hitboxSettings);
+                this.hitbox                 = this.addHitbox(new this.hitboxClass(), this.hitboxSettings);
             }
 
             this.signals.skillStart.dispatch(this);
@@ -285,12 +285,11 @@ export default class Skill {
 
     /**
      * Instanciate a hitbox item for the time of the skill
-     * @param {*} hitboxClass: The class to instanciate
+     * @param {*} hitboxObject: The object to add
      * @param {*} hitboxSettings: The settings to transmit to the hitbox instance
      * @returns {*} The hitbox instance
      */
-    addHitbox (hitboxClass, hitboxSettings = {}) {
-        const hitbox    = new hitboxClass();
+    addHitbox (hitboxObject, hitboxSettings = {}) {
         let x           = this.owner.props.x,
             y           = this.owner.props.y;
 
@@ -306,6 +305,6 @@ export default class Skill {
                 break;
         }
 
-        return this.owner.scene.addEntity(hitbox, x, y, Object.assign({}, hitboxSettings));
+        return this.owner.scene.addEntity(hitboxObject, x, y, Object.assign({}, hitboxSettings));
     }
 }

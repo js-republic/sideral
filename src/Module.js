@@ -3,6 +3,11 @@ import SideralObject from "./SideralObject";
 import Signal from "./Tool/Signal";
 
 
+/**
+ * SideralObject visible on screen
+ * @class Module
+ * @extends SideralObject
+ */
 export default class Module extends SideralObject {
 
     /* LIFECYCLE */
@@ -17,6 +22,7 @@ export default class Module extends SideralObject {
             x       : 0,
             y       : 0,
             width   : 0,
+            follow  : null,
             height  : 0
         });
 
@@ -24,10 +30,30 @@ export default class Module extends SideralObject {
 
         this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
         this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
+
+        this.signals.update.add(this.updateFollow.bind(this));
     }
 
 
     /* METHODS */
+
+    /**
+     * Use this method to follow this entity by an other entity
+     * @param {boolean} centered - if True, the follower will be centered to the followed
+     * @param {number} offsetX - Offset in x axis
+     * @param {number} offsetY - Offset in y axis
+     * @param {number|null} offsetFlipX - Set a special offset in x axis if the followed is flipped
+     * @returns {Object} Configuration object to follow this entity
+     */
+    beFollowed (centered = false, offsetX = 0, offsetY = 0, offsetFlipX = null) {
+        return {
+            target      : this,
+            centered    : centered,
+            offsetX     : offsetX,
+            offsetY     : offsetY,
+            offsetFlipX : offsetFlipX
+        };
+    }
 
     /**
      * Change the position of the current module
@@ -82,6 +108,19 @@ export default class Module extends SideralObject {
     /* EVENTS */
 
     /**
+     * Update the position of this entity if it follows a target
+     * @returns {void}
+     */
+    updateFollow () {
+        if (this.props.follow) {
+            const { offsetX, offsetY, offsetFlipX, centered, target } = this.props.follow;
+
+            this.props.x = target.props.x + (target.props.flip && offsetFlipX !== null ? offsetFlipX : offsetX) + (centered ? (target.props.width / 2) - (this.props.width / 2) : 0);
+            this.props.y = target.props.y + offsetY + (centered ? (target.props.height / 2) - (this.props.height / 2) : 0);
+        }
+    }
+
+    /**
      * When x or y attributes change
      * @returns {void}
      */
@@ -102,7 +141,7 @@ export default class Module extends SideralObject {
      * @returns {void}
      */
     onBindClick () {
-        if (this.container && this.signals.click.listenerLength) {
+        if (this.container && this.signals.click.listenerLength === 1) {
             this.container.interactive  = true;
             this.container.buttonMode   = true;
             this.container.on("click", this.signals.click.dispatch.bind(this));

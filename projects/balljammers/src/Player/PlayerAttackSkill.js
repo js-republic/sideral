@@ -14,10 +14,7 @@ class PlayerAttackHitbox extends Hitbox {
      * @lifecycle
      */
     initialize (props) {
-        const owner = props.owner;
-
         this.size(20, 30);
-        this.offset(owner.props.width, owner.props.height - this.props.height, -this.props.width);
 
         super.initialize(props);
     }
@@ -63,9 +60,9 @@ export default class PlayerAttackSkill extends Skill {
         this.hitboxClass    = PlayerAttackHitbox;
     }
 
-    addHitbox (hitboxClass, hitboxSettings = {}) {
-        hitboxSettings.follow = this.owner;
+    addHitbox (hitboxObject, hitboxSettings = {}) {
+        hitboxSettings.follow = this.owner.beFollowed(false, this.owner.props.width, (this.owner.props.height / 2) - hitboxObject.props.height, -hitboxObject.props.width);
 
-        return super.addHitbox(hitboxClass, hitboxSettings);
+        return super.addHitbox(hitboxObject, hitboxSettings);
     }
 }

@@ -57,7 +57,7 @@ export default class Arena extends World {
         this.addEntity(new Goal(), this.props.width - 45, 448 - 130, { debug: true, flip: true });
 
         this.playerLeft     = this.addEntity(new PlayerCat(), this.props.spawnX, 150, { playerLeft: true });
-        this.playerRight    = this.addEntity(new PlayerCat(), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });
+        this.playerRight    = this.addEntity(new PlayerCat(true), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });
 
         window.scene        = this;
     }

@@ -114,6 +114,22 @@ export default class Body {
     }
 
     /**
+     * Get velocity x of the body
+     * @returns {number} Velocity in x axis
+     */
+    get vx () {
+        return this.data.velocity[0];
+    }
+
+    /**
+     * Get the velocity y of the body
+     * @returns {number} Velocity in y axis
+     */
+    get vy () {
+        return this.data.velocity[1];
+    }
+
+    /**
      * Get the width
      * @returns {number} the width of the shape
      */
@@ -153,6 +169,24 @@ export default class Body {
      */
     set y (value) {
         this.data.position[1] = value + this.offset.y;
+    }
+
+    /**
+     * Set a new velocity in x axis
+     * @param {number} value - The new velocity in x axis
+     * @returns {void}
+     */
+    set vx (value) {
+        this.data.velocity[0] = value;
+    }
+
+    /**
+     * Set a new velocity in y axis
+     * @param {number} value - The new velocity in y axis
+     * @returns {void}
+     */
+    set vy (value) {
+        this.data.velocity[1] = value;
     }
 
     /**

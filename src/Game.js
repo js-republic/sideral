@@ -7,6 +7,7 @@ import Scene from "./Scene";
 /**
  * The engine of the game
  * @class Game
+ * @extends SideralObject
  */
 class Game extends SideralObject {
 
@@ -71,6 +72,14 @@ class Game extends SideralObject {
          * @type {number}
          */
         this.tick       = 1;
+
+        /**
+         * The date of the current update in timestamp
+         * @readonly
+         * @name Game#currentUpdate
+         * @type {number}
+         */
+        this.currentUpdate = 0;
 
         /**
          * The date of the last update in timestamp
@@ -138,10 +147,11 @@ class Game extends SideralObject {
         requestAnimationFrame(this.update.bind(this));
 
         // 100ms latency max
-        this.latency    = Util.limit(performance - this.lastUpdate, 0, 100);
-        this.fps        = Math.floor(1000 / this.latency);
-        this.tick       = 1000 / (this.fps * 1000);
-        this.tick       = this.tick < 0 ? 0 : this.tick;
+        this.currentUpdate  = performance;
+        this.latency        = Util.limit(performance - this.lastUpdate, 0, 100);
+        this.fps            = Math.floor(1000 / this.latency);
+        this.tick           = 1000 / (this.fps * 1000);
+        this.tick           = this.tick < 0 ? 0 : this.tick;
 
         this._updateInputs();
 
@@ -150,7 +160,7 @@ class Game extends SideralObject {
 
         this.nextCycle();
 
-        this.lastUpdate = window.performance.now();
+        this.lastUpdate     = window.performance.now();
     }
 
 

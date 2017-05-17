@@ -9,6 +9,11 @@ import Shape from "./Module/Shape";
 import Sprite from "./Module/Sprite";
 
 
+/**
+ * Module with physics and interaction
+ * @class Entity
+ * @extends Module
+ */
 export default class Entity extends Module {
 
     /* LIFECYCLE */
@@ -140,19 +145,19 @@ export default class Entity extends Module {
             this.body.data.force[1]     = this.props.accelY;
 
             if (this.props.vx || (!this.props.vx && !this.friction)) {
-                this.body.data.velocity[0] = this.props.vx;
+                this.body.vx = this.props.vx;
             }
 
             if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
-                this.body.data.velocity[1] = this.props.vy;
+                this.body.vy = this.props.vy;
             }
 
             this.container.rotation = this.body.data.angle;
+
+            this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
         }
 
         this.collides.forEach(collide => collide.entity && this.signals.collision.dispatch(collide.entity.name, collide.entity));
-
-        this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
     }
 
 
