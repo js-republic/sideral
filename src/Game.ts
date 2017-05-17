@@ -2,13 +2,23 @@ import SideralObject from "./SideralObject";
 import Util from "./Tool/Util";
 import Signal from "./Tool/Signal";
 import Scene from "./Scene";
-
+// import * as PIXI from 'pixi.js';
 
 /**
  * The engine of the game
  * @class Game
  */
 class Game extends SideralObject {
+    container: any;
+    inputs: any = {};
+    _inputs: any = {};
+    fps: number = 60;
+    latency: number = 0;
+    tick: number = 1;
+    lastUpdate: number = 0;
+    stopped: boolean = true;
+    preventInputPropagation: boolean = true;
+    KEY: any;
 
     /* LIFECYCLE */
 
@@ -129,7 +139,7 @@ class Game extends SideralObject {
      * @param {number=} performance - performance returned by the navigator
      * @returns {void|null} -
      */
-    update (performance) {
+    update (performance?: number) {
         if (this.stopped) {
             return null;
         }
@@ -163,7 +173,7 @@ class Game extends SideralObject {
      * @param {Object=} props - properties to pass to the object
      * @returns {Scene} The scene initialized
      */
-    addScene (scene, props) {
+    addScene (scene: Scene, props: any = {}): Scene {
         if (!(scene instanceof Scene)) {
             throw new Error("Game.add : object must be an instance of Sideral Scene Class.");
         }
@@ -182,7 +192,7 @@ class Game extends SideralObject {
      * @param {Element=} dom - dom to attach the game
      * @returns {Game} current instance
      */
-    start (width, height, dom) {
+    start (width: number, height: number, dom?): this {
         this.setProps({
             width   : width || this.props.width,
             height  : height || this.props.height,
@@ -242,7 +252,6 @@ class Game extends SideralObject {
                 } else if (input !== HOLD) {
                     this.inputs[key] = PRESSED;
                     this.signals.keyPress.dispatch(key, true);
-
                 }
 
             // Released
@@ -257,7 +266,6 @@ class Game extends SideralObject {
                 } else {
                     this.inputs[key] = RELEASED;
                     this.signals.keyPress.dispatch(key, false);
-
                 }
             }
         }
