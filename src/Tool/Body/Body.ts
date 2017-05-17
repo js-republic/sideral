@@ -1,17 +1,22 @@
-import p2 from "p2";
+import * as p2 from "p2";
 
-import Util from "./Util";
-import Enum from "./Enum";
+import Util from "../Util";
+import Enum from "../Enum";
 
 
-export default class Body {
+export class Body {
+    offset: {x: number; y: number};
+    scene: any;
+    shape: p2.Box;
+    data: p2.Body;
+    id: number;
 
     /**
      * @constructor
      * @param {Scene} scene: scene world
      * @param {*=} props: properties to pass to p2
      */
-    constructor (scene, props = {}) {
+    constructor (scene, props: any = {}) {
         const { x, y, width, height, group, material } = props;
 
         delete props.x;
@@ -164,36 +169,3 @@ export default class Body {
         this.data.angle = Util.toRadians(value);
     }
 }
-
-
-Body.RectangularBody = class extends Body {
-    constructor (scene, x, y, width, height, props = {}) {
-        super(scene, Object.assign(props, {
-            x       : x,
-            y       : y,
-            width   : width,
-            height  : height,
-            shape   : new p2.Box({ width: width, height: height })
-        }));
-    }
-};
-
-
-Body.CircularBody = class extends Body {
-    constructor (scene, x, y, radius, props = {}) {
-        super(scene, Object.assign(props, {
-            x       : x,
-            y       : y,
-            width   : radius * 2,
-            height  : radius * 2,
-            shape   : new p2.Circle({ radius: radius })
-        }));
-    }
-};
-
-Body.BodyByType = type => {
-    switch (type) {
-    case Enum.BOX.CIRCLE: return Body.CircularBody;
-    default: return Body.RectangularBody;
-    }
-};

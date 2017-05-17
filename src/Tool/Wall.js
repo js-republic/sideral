@@ -1,4 +1,4 @@
-import Body from "./Body";
+import { Body, CircularBody, RectangularBody } from "./Body";
 import Enum from "./Enum";
 
 
@@ -33,13 +33,20 @@ const resolveDirectionConstraint = (directionConstraint, x, y, width, height, en
  * @returns {*} Body corresponding to the wall
  */
 const createWall = (scene, box, x, y, width, height, directionConstraint) => {
-    const settings  = { mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: scene.WallMaterial };
-    let body        = null;
+    const settings = {
+        mass: 0,
+        gravityScale: 0,
+        fixedX: true,
+        fixedY: true,
+        group: Enum.GROUP.GROUND,
+        material: scene.WallMaterial
+    };
+    let body = null;
 
     switch (box) {
-        case Enum.BOX.CIRCLE: body = new Body.CircularBody(scene, x, y, width, settings);
+        case Enum.BOX.CIRCLE: body = new CircularBody(scene, x, y, width, settings);
             break;
-        default: body = new Body.RectangularBody(scene, x, y, width, height, settings);
+        default: body = new RectangularBody(scene, x, y, width, height, settings);
             break;
     }
 

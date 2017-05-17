@@ -4,6 +4,9 @@ import Enum from "../../../src/Tool/Enum";
 
 
 export default class Goal extends Entity {
+    name = "goal";
+    type = Enum.TYPE.STATIC;
+    group = Enum.GROUP.ALL;
 
     /* LIFECYCLE */
 
@@ -18,10 +21,6 @@ export default class Goal extends Entity {
             height          : 130
         });
 
-        this.name   = "goal";
-        this.type   = Enum.TYPE.STATIC;
-        this.group  = Enum.GROUP.ALL;
-
-        this.addSprite("images/goal.png", this.props.width, this.props.height);
+        this.addSprite("images/goal.png", (<any>this.props).width, (<any>this.props).height);
     }
 }

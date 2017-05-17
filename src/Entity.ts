@@ -1,7 +1,8 @@
 import Module from "./Module";
 
 import Signal from "./Tool/Signal";
-import Body from "./Tool/Body";
+import SideralObject from './SideralObject';
+import { CircularBody, RectangularBody } from './Tool/Body';
 import Enum from "./Tool/Enum";
 import SkillManager from "./Tool/SkillManager";
 
@@ -10,6 +11,25 @@ import Sprite from "./Module/Sprite";
 
 
 export default class Entity extends Module {
+
+    name       = "entity";
+    type       = Enum.TYPE.SOLID;
+    box        = Enum.BOX.RECTANGLE;
+    group      = Enum.GROUP.ALL;
+    scene      = null;
+    friction   = false;
+    lastPos    = {x: 0, y: 0};
+    skills     = new SkillManager(this);
+
+    standing   = false;
+    moving     = false;
+
+    _bounce    = 0;
+    collides   = [];
+    body: any;
+    sprite: Sprite;
+    _debug: any;
+
 
     /* LIFECYCLE */
 
@@ -28,21 +48,6 @@ export default class Entity extends Module {
             angle           : 0,
             flip            : false
         });
-
-        this.name       = "entity";
-        this.type       = Enum.TYPE.SOLID;
-        this.box        = Enum.BOX.RECTANGLE;
-        this.group      = Enum.GROUP.ALL;
-        this.scene      = null;
-        this.friction   = false;
-        this.lastPos    = {x: 0, y: 0};
-        this.skills     = new SkillManager(this);
-
-        this.standing   = false;
-        this.moving     = false;
-
-        this._bounce    = 0;
-        this.collides   = [];
 
         this.signals.beginCollision = new Signal();
         this.signals.collision      = new Signal();
@@ -74,10 +79,10 @@ export default class Entity extends Module {
         };
 
         switch (this.box) {
-            case Enum.BOX.CIRCLE: this.body = new Body.CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+            case Enum.BOX.CIRCLE: this.body = new CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
                 break;
 
-            default: this.body = new Body.RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
+            default: this.body = new RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
                 break;
         }
 
@@ -167,12 +172,12 @@ export default class Entity extends Module {
      * @param {number=} index: z index position of the entity
      * @returns {Object} the current spritesheet
      */
-    addSprite (imagePath, tilewidth, tileheight, settings = {}, index) {
+    addSprite (imagePath: string, tilewidth: number, tileheight: number, settings: any = {}, index?): Sprite {
         settings.imagePath  = imagePath;
         settings.width      = tilewidth;
         settings.height     = tileheight;
 
-        const sprite = this.add(new Sprite(), settings, index);
+        const sprite: Sprite = this.add(new Sprite(), settings, index) as Sprite;
 
         if (!this.sprite) {
             this.sprite = sprite;
@@ -221,7 +226,7 @@ export default class Entity extends Module {
      * @param {number} type: type corresponding of Entity.TYPE Object
      * @returns {number} the type
      */
-    setType (type) {
+    setType (type: number): number {
         if (Object.keys(Enum.TYPE).find(key => Enum.TYPE[key] === type)) {
             this.type = type;
 
@@ -239,7 +244,7 @@ export default class Entity extends Module {
      * @param {number} bounceFactor: next factor of bounce
      * @returns {number} the next bounceFactor
      */
-    setBounce (bounceFactor) {
+    setBounce (bounceFactor: number): number {
         this._bounce = this.scene.setEntityBouncing(this, bounceFactor, this._bounce);
 
         return this._bounce;

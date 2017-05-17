@@ -8,10 +8,10 @@ import TimerManager from "./Tool/TimerManager";
  * @class SideralObject
  */
 class SideralObject {
-    id: string;
-    props: Object = {};
-    readonly last: Object = {};
-    signals: {update: Signal, propChange: Signal} = {
+    id: string = SideralObject.generateId();
+    props: any = {};
+    last: any = {};
+    signals: {[key: string]: Signal} = {
         update: null,
         propChange: null,
     };
@@ -137,7 +137,7 @@ class SideralObject {
      * @param {Object} props - properties to merge
      * @returns {void}
      */
-    initialize (props = {}) {
+    initialize (props: any = {}) {
         Object.keys(props).forEach(key => this.props[key] = props[key]);
 
         this.initialized = true;
@@ -208,7 +208,7 @@ class SideralObject {
      *
      *  this.props.test; // 1
      */
-    setProps (props) {
+    setProps (props: any): this {
         Object.keys(props).forEach(key => this.last[key] = this.props[key] = props[key]);
 
         return this;
@@ -251,7 +251,7 @@ class SideralObject {
      * @param {number=} index - set an index position for the item
      * @returns {SideralObject} The item initialized
      */
-    add (item, settings = {}, index) {
+    add(item: SideralObject, settings: any = {}, index?: number): SideralObject {
         if (!(item instanceof SideralObject)) {
             throw new Error("SideralObject.add : item must be an instance of Sideral Abstract Class");
         }
@@ -278,7 +278,7 @@ class SideralObject {
      * @param {string} propName - name of the property to check
      * @returns {boolean} property has changed ?
      */
-    hasChanged (propName) {
+    hasChanged(propName: string): boolean {
         if (!this.props[propName]) {
             return false;
         }
@@ -294,7 +294,7 @@ class SideralObject {
      * @access public
      * @returns {string} The unique id
      */
-    static generateId () {
+    static generateId(): string {
         return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
 }
