@@ -1,8 +1,10 @@
-import AbstractModule from "./../Abstract/AbstractModule";
-import Util from "./../Command/Util";
+import Module from "./../Module";
+
+import Util from "./../Tool/Util";
+import Enum from "./../Tool/Enum";
 
 
-export default class Shape extends AbstractModule {
+export default class Shape extends Module {
 
     /* LIFECYCLE */
 
@@ -15,20 +17,24 @@ export default class Shape extends AbstractModule {
         this.setProps({
             stroke  : "#FF0000",
             fill    : "#FFFFFF",
-            type    : Shape.TYPE.RECTANGLE
+            box     : Enum.BOX.RECTANGLE
         });
 
         this.container = new PIXI.Graphics();
 
-        this.bind(this.SIGNAL.VALUE_CHANGE(["type", "fill", "stroke"]), this.createAction(this._updateShape));
+        this.signals.propChange.bind(["box", "fill", "stroke"], this._updateShape.bind(this));
     }
 
 
     /* EVENTS */
 
+    /**
+     * @override
+     */
     onSizeChange () {
         this._updateShape();
     }
+
 
     /* PRIVATE */
 
@@ -59,26 +65,21 @@ export default class Shape extends AbstractModule {
      */
     _drawShape () {
         const withStroke = this.props.stroke !== "transparent",
-            x = withStroke ? this.props.x + 1 : this.props.x,
-            y = withStroke ? this.props.y + 1 : this.props.y,
             width = withStroke ? this.props.width - 1 : this.props.width,
             height = withStroke ? this.props.height - 1 : this.props.height;
 
-        switch (this.props.type) {
-        default: this.container.drawRect(x, y, width, height);
+        switch (this.props.box) {
+        case Enum.BOX.CIRCLE:
+
+            if (width !== height) {
+                this.container.drawEllipse(width / 2, height / 2, width / 2, height / 2);
+            } else {
+                this.container.drawCircle(width / 2, width / 2, width / 2);
+            }
+            break;
+
+        default: this.container.drawRect(0, 0, width, height);
             break;
         }
     }
 }
-
-/**
- * All Shape Type
- * @type {{}}
- */
-Shape.TYPE = {
-    CIRCLE              : "circle",
-    RECTANGLE           : "rectangle",
-    POLYGON             : "polygon",
-    ELLIPSE             : "ellipse",
-    ROUNDED_RECTANGLE   : "roundedRectangle"
-};

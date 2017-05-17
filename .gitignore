@@ -7,4 +7,5 @@ logs
 npm-debug.log*
 coverage
 node_modules
+docs
 .DS_Store
