@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node --harmony ./app.js",
-    "start:dev": "./node_modules/.bin/webpack-dev-server --config config/webpack.config.js --hot --progress --colors --profile --open",
+    "start:dev": "./node_modules/.bin/webpack-dev-server --config config/webpack.config.js --hot --progress --colors --profile",
     "build": "yarn install && yarn run build-src && yarn run build-webpack",
     "build-src": "yarn run eslint && yarn test && ./node_modules/.bin/babel src --out-dir lib",
     "build-src-dev": "./node_modules/.bin/babel src --watch --out-dir lib",
@@ -41,7 +41,9 @@
   },
   "homepage": "https://github.com/js-republic/sideral#readme",
   "devDependencies": {
+    "@types/p2": "^0.7.29",
     "@types/pixi.js": "^4.4.4",
+    "@types/signals": "^0.0.17",
     "awesome-typescript-loader": "^3.1.3",
     "babel-cli": "^6.18.0",
     "babel-core": "^6.24.1",
