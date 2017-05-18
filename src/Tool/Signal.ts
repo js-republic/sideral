@@ -1,25 +1,24 @@
-import Signals from "signals";
+import * as signals from "signals";
 
-export default class Signal extends Signals {
+type EventFunction = (listener: Function, listenerContext?: any, priority?: number) => void;
+
+export default class Signal extends signals.Signal {
+    keysBound = [];
 
     /**
      * @constructor
      * @param {function=} onBindEvent - Event fired when there is a new bind into this signal
      * @param {function=} onRemoveEvent - Event fired when there is a remove into this signal
      */
-    constructor (onBindEvent = null, onRemoveEvent = null) {
+    constructor (private onBindEvent?: EventFunction, private onRemoveEvent?: EventFunction) {
         super();
-
-        this.onBindEvent    = onBindEvent;
-        this.onRemoveEvent  = onRemoveEvent;
-        this.keysBound      = [];
     }
 
     /**
      * @override
      */
-    add (listener, listenerContext, priority) {
-        const signalBinding = super.add(listener, listenerContext, priority);
+    add (listener: Function, listenerContext?: any, priority?: number): signals.SignalBinding {
+        const signalBinding: signals.SignalBinding = super.add(listener, listenerContext, priority);
 
         if (this.onBindEvent) {
             this.onBindEvent(listener, listenerContext, priority);
@@ -31,8 +30,8 @@ export default class Signal extends Signals {
     /**
      * @override
      */
-    addOnce (listener, listenerContext, priority) {
-        const signalBinding = super.addOnce(listener, listenerContext, priority);
+    addOnce (listener: Function, listenerContext?: any, priority?: any): signals.SignalBinding {
+        const signalBinding: signals.SignalBinding = super.addOnce(listener, listenerContext, priority);
 
         if (this.onBindEvent) {
             this.onBindEvent(listener, listenerContext, priority);
@@ -44,7 +43,7 @@ export default class Signal extends Signals {
     /**
      * @override
      */
-    remove (listener, context) {
+    remove (listener: Function, context?: any) {
         super.remove(listener, context);
 
         if (this.onRemoveEvent) {
@@ -59,7 +58,7 @@ export default class Signal extends Signals {
      */
     removeAll () {
         if (this.onRemoveEvent) {
-            this.onRemoveEvent();
+            this.onRemoveEvent(null);
         }
 
         super.removeAll();
@@ -71,7 +70,7 @@ export default class Signal extends Signals {
      * @param {Function} listener: Signal handler function
      * @returns {*} An Object representing the binding between the Signal and listener
      */
-    bind (key, listener) {
+    bind (key: string | string[], listener: Function) {
         const keys = [].concat(key);
 
         this.keysBound.push(keys);
@@ -94,6 +93,6 @@ export default class Signal extends Signals {
     }
 
     get listenerLength () {
-        return this._bindings.length;
+        return (<any>this)._bindings.length;
     }
 }

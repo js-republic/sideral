@@ -1,4 +1,14 @@
 export default class Timer {
+    duration: number;
+    recurrence: number;
+    reversible: boolean;
+    eventInit: () => void;
+    eventComplete: () => void;
+    eventUpdate: (timeLeft: number, ratio: number, duration: number) => any;
+    tendance: number;
+    value: number;
+    pause: boolean;
+    finished: boolean;
 
     /* LIFECYCLE */
 
@@ -8,7 +18,7 @@ export default class Timer {
      * @param {function} onComplete: callback function when finished
      * @param {*=} options: options to implement to the timer
      */
-    constructor (duration, onComplete, options = {}) {
+    constructor (duration: number, onComplete, options: any = {}) {
 
         /**
          * Duration of the timer
@@ -116,7 +126,7 @@ export default class Timer {
      * @param {boolean=} reversed: to 0 to 1 or to 1 to 0
      * @returns {number} the value rationed
      */
-    getValueRationed (reversed) {
+    getValueRationed (reversed: boolean): number {
         return reversed ? (this.duration - this.value) / this.duration : this.value / this.duration;
     }
 
@@ -125,7 +135,7 @@ export default class Timer {
      * @param {boolean=} bypassComplete: bypass the complete event or not
      * @returns {void}
      */
-    stop (bypassComplete) {
+    stop (bypassComplete: boolean = false) {
         this.finished = true;
 
         if (this.eventComplete && !bypassComplete) {

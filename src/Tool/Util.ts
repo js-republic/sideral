@@ -1,4 +1,4 @@
-import Game from "./../Game";
+import Game from "../Game";
 
 
 export default class Util {
@@ -12,15 +12,15 @@ export default class Util {
      * @param {boolean} immediate: if true, the function will be called immediately
      * @returns {function} the debounce function
      */
-    static debounce (func, wait = 200, immediate = false) {
+    static debounce (func: Function, wait: number = 200, immediate: boolean = false) {
         let timeout = null;
 
-        return function debounceCallback () {
+        return function debounceCallback (...args) {
             const later = () => {
                 timeout = null;
 
                 if (!immediate) {
-                    func(...arguments);
+                    func(...args);
                 }
             };
 
@@ -30,7 +30,7 @@ export default class Util {
             timeout = setTimeout(later, wait);
 
             if (callNow) {
-                func(...arguments);
+                func(...args);
             }
         };
     }
@@ -40,7 +40,7 @@ export default class Util {
      * @param {number} degree: number of degree
      * @returns {number} number of radians
      */
-    static toRadians (degree) {
+    static toRadians (degree: number): number {
         return degree * Math.PI / 180;
     }
 
@@ -49,7 +49,7 @@ export default class Util {
      * @param {number} radians: number of radians
      * @returns {number} number of degrees
      */
-    static toDegree (radians) {
+    static toDegree (radians: number): number {
         return radians * 180 / Math.PI;
     }
 
@@ -59,7 +59,7 @@ export default class Util {
      * @param {Boolean=} inversed: if true, the value will be inversed
      * @returns {number} number of meters
      */
-    static pixelToMeter (px, inversed) {
+    static pixelToMeter (px: number, inversed?: boolean): number {
         return px * 0.05 * (inversed ? -1 : 1);
     }
 
@@ -69,7 +69,7 @@ export default class Util {
      * @param {Boolean=} inversed: if true, the value will be inversed
      * @returns {number} number of pixels
      */
-    static meterToPixel (meter, inversed) {
+    static meterToPixel (meter: number, inversed?: boolean): number {
         return meter * 20 * (inversed ? -1 : 1);
     }
 
@@ -80,7 +80,7 @@ export default class Util {
      * @param {number} max: number max
      * @returns {number} the value limited
      */
-    static limit (value, min, max) {
+    static limit (value: number, min: number, max: number): number {
         return Math.max(min, Math.min(max, value));
     }
 
@@ -89,7 +89,7 @@ export default class Util {
      * @param {number} frame: number of frames
      * @returns {number} number of milliseconds
      */
-    static frameToMs (frame) {
+    static frameToMs (frame: number): number {
         return (frame / Game.fps) * 1000;
     }
 
@@ -98,7 +98,7 @@ export default class Util {
      * @param {number} ms: number of milliseconds
      * @returns {number} Number of frames
      */
-    static msToFrame (ms) {
+    static msToFrame (ms: number): number {
         return (ms / 1000) * Game.fps;
     }
 
@@ -107,7 +107,7 @@ export default class Util {
      * @param {number} decimal: number to format
      * @returns {string} hex value in string
      */
-    static decimalToHex (decimal) {
+    static decimalToHex (decimal: number): string {
         if (decimal < 0) {
             decimal = 0xFFFFFFFF + decimal + 1;
         }
@@ -120,7 +120,7 @@ export default class Util {
      * @param {string} hex: hexadecimal value
      * @returns {Number} decimal value
      */
-    static hexToDecimal (hex) {
+    static hexToDecimal (hex: string): number {
         if (hex.indexOf("#") === 0) {
             hex = hex.substring(1);
         }
@@ -133,14 +133,22 @@ export default class Util {
      * @param {string|Array<number>} rgb: rgb value
      * @returns {string} hex value
      */
-    static rgbToHex (rgb) {
-        const rgbArray = rgb instanceof Array ? rgb : rgb.replace(/[a-zA-Z() ]/g, "").split(",");
+    static rgbToHex (rgb: string | [number, number, number]) {
+        let rgbArray: [number, number, number];
+        if (typeof rgb === 'string') {
+            rgbArray = <[number, number, number]> rgb.replace(/[a-zA-Z() ]/g, "").split(",").map(parseInt);
+        } else {
+            rgbArray = rgb;
+        }
 
         if (rgbArray.length > 3) {
             rgbArray.pop();
         }
 
-        return rgbArray.reduce((acc, value) => acc + parseInt(value).toString(16), "");
+        return rgbArray.reduce(
+            (acc, value) => acc + value.toString(16),
+            ''
+        );
     }
 
     /**
@@ -148,15 +156,21 @@ export default class Util {
      * @param {string|number} color: color value (rgb or hex)
      * @returns {number} Decimal value
      */
-    static colorToDecimal (color = 0) {
-        if (typeof color === "number") {
-            return color;
+    static colorToDecimal (color: (number | string | [number, number, number]) = 0): number {
+        switch (typeof color) {
+            case 'string':
+                color = color as string;
+                // if (color.toLowerCase().indexOf("rgb") > 1) {
+                    return Util.hexToDecimal(Util.rgbToHex(color));
+                // } else {
+                //     return color;
+                // }
+            case 'number':
+                return color as number;
+            case 'object':
+                if (color instanceof Array) {
+                    return Util.hexToDecimal(Util.rgbToHex(color));
+                }
         }
-
-        return Util.hexToDecimal(
-            (color instanceof Array) || (typeof color === "string" && color.toLowerCase().indexOf("rgb") > -1)
-                ? Util.rgbToHex(color)
-                : color
-        );
     }
 }

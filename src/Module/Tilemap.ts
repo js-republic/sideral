@@ -1,14 +1,23 @@
-import p2 from "p2";
+import * as p2 from "p2";
 
-import Module from "./../Module";
+import Module from "../Module";
 
 import Shape from "./Shape";
 
 import Enum from "./../Tool/Enum";
-import Wall from "./../Tool/Wall";
+import createWall from "./../Tool/Wall";
 
 
 export default class Tilemap extends Module {
+
+    wallMaterial = new p2.Material(Tilemap.generateIdNumber());
+
+    bodies = [];
+    _debugs = [];
+    grid = {};
+    gridContainer = null;
+    backgroundContainers = [];
+    decoratorContainers = [];
 
     /* LIFECYCLE */
 
@@ -22,15 +31,6 @@ export default class Tilemap extends Module {
             tilewidth   : 0,
             tileheight  : 0
         });
-
-        this.wallMaterial           = new p2.Material();
-
-        this.bodies                 = [];
-        this._debugs                = [];
-        this.grid                   = {};
-        this.gridContainer          = null;
-        this.backgroundContainers   = [];
-        this.decoratorContainers    = [];
     }
 
 
@@ -70,7 +70,7 @@ export default class Tilemap extends Module {
         }
 
         loader.load((currentLoader, resources) => {
-            this.bodies = data.walls.map(wall => new Wall(this.scene, ...wall));
+            this.bodies = data.walls.map(wall => createWall(this.scene, ...wall));
             this._loadBackgrounds(data.backgrounds, resources);
             this._loadGrids(data.grid, data.path, data.debug);
             this._loadDecorators(data.decorators, resources);

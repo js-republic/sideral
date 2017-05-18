@@ -307,7 +307,7 @@ class Game extends SideralObject {
      * @returns {void}
      */
     _backgroundChange () {
-        const color = Util.colorToDecimal(this.props.background);
+        const color = Util.colorToDecimal(this.props.background) as number;
 
         if (!isNaN(color)) {
             this.container.backgroundColor = color;

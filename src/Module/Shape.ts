@@ -5,6 +5,7 @@ import Enum from "./../Tool/Enum";
 
 
 export default class Shape extends Module {
+    container = new PIXI.Graphics();
 
     /* LIFECYCLE */
 
@@ -19,8 +20,6 @@ export default class Shape extends Module {
             fill    : "#FFFFFF",
             box     : Enum.BOX.RECTANGLE
         });
-
-        this.container = new PIXI.Graphics();
 
         this.signals.propChange.bind(["box", "fill", "stroke"], this._updateShape.bind(this));
     }

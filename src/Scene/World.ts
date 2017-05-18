@@ -1,16 +1,22 @@
-import p2 from "p2";
+import * as p2 from "p2";
 
-import Scene from "./../Scene";
+import Scene from "../Scene";
 
-import Enum from "./../Tool/Enum";
+import Enum from "../Tool/Enum";
 
-import Game from "./../Game";
-import Entity from "./../Entity";
+import Game from "../Game";
+import Entity from "../Entity";
 
-import Tilemap from "./../Module/Tilemap";
+import Tilemap from "../Module/Tilemap";
 
 
 export default class World extends Scene {
+    DefaultMaterial = new p2.Material(Scene.generateIdNumber());
+    WallMaterial= new p2.Material(Scene.generateIdNumber());
+    _entities = null;
+    tilemap = null;
+    world = new p2.World({ gravity: [0, 0] });
+    materials = [this.DefaultMaterial, this.WallMaterial];
 
     /* LIFECYCLE */
 
@@ -24,19 +30,11 @@ export default class World extends Scene {
             gravity : 0
         });
 
-        this.DefaultMaterial    = new p2.Material();
-        this.WallMaterial       = new p2.Material();
-
-        this._entities          = null;
-        this.tilemap            = null;
-        this.world              = new p2.World({ gravity: [0, 0] });
-        this.materials          = [this.DefaultMaterial, this.WallMaterial];
-
         this.world.setGlobalStiffness(1e5);
 
-        this.world.on("beginContact", this._onBeginContact.bind(this));
-        this.world.on("endContact", this._onEndContact.bind(this));
-        this.world.on("preSolve", this._onPreSolve.bind(this));
+        this.world.on("beginContact", this._onBeginContact.bind(this), false);
+        this.world.on("endContact", this._onEndContact.bind(this), false);
+        this.world.on("preSolve", this._onPreSolve.bind(this), false);
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
 
@@ -73,13 +71,13 @@ export default class World extends Scene {
      * @param {number=} index: z index position of the entity
      * @returns {Object} entity added
      */
-    addEntity (entity, x, y, settings = {}, index) {
+    addEntity (entity: Entity, x: number, y: number, settings: any = {}, index?) {
         settings.x      = x;
         settings.y      = y;
         entity.scene    = this;
         this._entities  = null;
 
-        const entityCreated = this.add(entity, settings, index);
+        const entityCreated = this.add(entity, settings, index) as Entity;
 
         if (entityCreated.body) {
             this.world.addBody(entityCreated.body.data);
@@ -95,7 +93,7 @@ export default class World extends Scene {
      * @param {Number=} lastBounce: last bouncing factor
      * @returns {Number} Bouncing factor
      */
-    setEntityBouncing (entity, bounce, lastBounce) {
+    setEntityBouncing (entity: Entity, bounce: number, lastBounce: number): number {
         if (!entity || (entity && !entity.body)) {
             return bounce;
         }
@@ -111,11 +109,14 @@ export default class World extends Scene {
             entity.body.shape.material = this.DefaultMaterial;
 
         } else {
-            const material          = entity.body.shape.material = new p2.Material(),
-                contactMaterials    = this.materials.map(materialB => new p2.ContactMaterial(material, materialB, {
-                    restitution : bounce,
-                    stiffness   : Number.MAX_VALUE
-                }));
+            const materialOptions = {
+                restitution: bounce,
+                stiffness: Number.MAX_VALUE
+            } as p2.ContactMaterialOptions;
+            const material = entity.body.shape.material = new p2.Material(World.generateIdNumber());
+            const contactMaterials = this.materials.map(materialB => {
+                return new p2.ContactMaterial(material, materialB, materialOptions);
+            });
 
             contactMaterials.forEach(contactMaterial => this.world.addContactMaterial(contactMaterial));
         }
@@ -128,7 +129,7 @@ export default class World extends Scene {
      * @param {{}} data: data of the tilemap (generaly provided by a json file)
      * @returns {Object} Tilemap instance
      */
-    setTilemap (data) {
+    setTilemap (data): Tilemap {
         this.tilemap        = this.add(new Tilemap(), {}, 0);
         this.tilemap.scene  = this;
 
@@ -141,7 +142,7 @@ export default class World extends Scene {
      * Get all children instance of Entity
      * @returns {Array<*>} array of all entities
      */
-    getEntities () {
+    getEntities (): any[] {
         return this._entities || (this._entities = this.children.filter(child => child instanceof Entity));
     }
 
@@ -154,7 +155,7 @@ export default class World extends Scene {
      * @param {string=} id: string of the id of an entity to filter
      * @returns {Array<Entity>} list of all entities in range
      */
-    getEntitiesInRange (xmin, xmax, ymin, ymax, id) {
+    getEntitiesInRange (xmin: number, xmax: number, ymin: number, ymax: number, id: number): Entity[] {
         const entities = this.getEntities().
         filter(entity => entity.props.x > (xmin - entity.props.width) && entity.props.x < xmax).
         filter(entity => entity.props.y > (ymin - entity.props.height) && entity.props.y < ymax);

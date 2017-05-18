@@ -2,6 +2,11 @@ import Module from "./../Module";
 
 
 export default class Sprite extends Module {
+    loaded = false;
+    image = null;
+    animations = [];
+    animation = null;
+    container = new PIXI.Sprite();
 
     /* LIFECYCLE */
 
@@ -16,12 +21,6 @@ export default class Sprite extends Module {
             flip        : false
         });
 
-        this.loaded     = false;
-        this.image      = null;
-        this.animations = [];
-        this.animation  = null;
-        this.container  = new PIXI.Sprite();
-
         this.container.anchor.set(0.5, 0.5);
 
         this.signals.propChange.bind("imagePath", this.onImagePathChange.bind(this));
@@ -33,7 +32,7 @@ export default class Sprite extends Module {
      * @lifecycle
      * @override
      */
-    initialize (props = {}) {
+    initialize (props: any = {}) {
         const width = props.width || this.props.width,
             height  = props.height || this.props.height;
 
@@ -66,7 +65,7 @@ export default class Sprite extends Module {
      * @param {{x: number, y: number}|null=} offset: offset x and y related to the position of the Entity
      * @returns {Sprite} current instance to chain this function
      */
-    addAnimation (name, duration, frames, loopCount = -1, offset = null) {
+    addAnimation (name: string, duration: number, frames: number[], loopCount: number = -1, offset = null) {
         if (!name || !frames) {
             throw new Error("Sprite.addAnimation: You must set a name, duration and frames.");
         }
@@ -97,7 +96,7 @@ export default class Sprite extends Module {
      * @param {boolean=} restart: if true, restart the entire information about the animation such as number of loop
      * @returns {void|null} -
      */
-    setAnimation (name, restart) {
+    setAnimation (name: string, restart: boolean = false): void | null {
         if (!restart && this.animation && this.animation.name === name) {
             return null;
         }
@@ -124,7 +123,7 @@ export default class Sprite extends Module {
      * @param {string} name: name of the animation
      * @returns {*} animation object
      */
-    getAnimation (name) {
+    getAnimation (name): string {
         return this.animations.find(animation => animation.name === name);
     }
 
@@ -133,7 +132,7 @@ export default class Sprite extends Module {
      * @param {string} name: name of the animation to remove
      * @returns {void}
      */
-    removeAnimation (name) {
+    removeAnimation (name: string) {
         this.animations = this.animations.filter(animation => animation.name === name);
     }
 
@@ -176,7 +175,7 @@ export default class Sprite extends Module {
      * @param {Array<number>} frames: frames to convert
      * @returns {Array<PIXI.Rectangle>} frames converted to pixi rectangles
      */
-    _framesToRectangles (frames) {
+    _framesToRectangles (frames: number[]) {
         if (!this.image) {
             return [];
         }
