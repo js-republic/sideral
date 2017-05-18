@@ -1,18 +1,17 @@
-import Skill from "../../../../src/Tool/Skill";
+import { Skill } from "../../../../src/Tool/Skill";
 
-import Effect from "../../../../src/Entity/Effect";
+import { Effect } from "../../../../src/Entity/Effect";
 
 
-export default class PlayerDashSkill extends Skill {
+export class PlayerDashSkill extends Skill {
+    movable: boolean = false;
+    duration: number = 6;
 
     /**
      * @constructor
      */
     constructor () {
         super();
-
-        this.movable    = false;
-        this.duration   = 6;
 
         this.signals.skillStart.add(this.onSkillStart.bind(this));
         this.signals.skillUpdate.add(this.onSkillUpdate.bind(this));

@@ -1,6 +1,6 @@
-import Entity from "../../../src/Entity";
+import { Entity } from "../../../src/Entity";
 
-import Enum from "../../../src/Tool/Enum";
+import { Enum } from "../../../src/Tool/Enum";
 
 
 export class Goal extends Entity {

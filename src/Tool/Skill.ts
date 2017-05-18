@@ -1,10 +1,42 @@
-import Enum from "./Enum";
-import Timer from "./Timer";
-import Util from "./Util";
-import Signal from "./Signal";
+import { Enum } from "./Enum";
+import { Timer } from "./Timer";
+import { Util } from "./Util";
+import { Signal } from "./Signal";
+import { Entity } from '../Entity';
+import { Hitbox } from '../Entity/';
 
 
-export default class Skill {
+export class Skill {
+    name: string = null;
+    owner: Entity = null;
+    animation: string = null;
+    hitboxClass: Entity = null;
+    hitboxSettings: any = {};
+    duration: number = 0;
+    durationType: string = Enum.DURATION_TYPE.FRAME;
+    preparation: number = 0;
+    preparationType: string = Enum.DURATION_TYPE.FRAME;
+    reload: number = 0;
+    reloadType: string = Enum.DURATION_TYPE.FRAME;
+    unstoppable: boolean = true;
+    movable: boolean = true;
+    timer: Timer = null;
+    timerReload: Timer = null;
+    timerPreparation: Timer = null;
+    hitbox: Hitbox = null;
+    active: boolean = false;
+    ready: boolean = true;
+    signals: {[signalName: string]: Signal} = {
+        preparationStart    : new Signal(),
+        preparationUpdate   : new Signal(),
+        preparationComplete : new Signal(),
+        skillStart          : new Signal(),
+        skillUpdate         : new Signal(),
+        skillComplete       : new Signal(),
+        reloadStart         : new Signal(),
+        reloadUpdate        : new Signal(),
+        reloadComplete      : new Signal()
+    }
 
     /* LIFECYCLE */
 
@@ -12,6 +44,12 @@ export default class Skill {
      * @constructor
      */
     constructor () {
+
+        /**
+         * Name of the skill
+         * @type {string}
+         */
+        this.name          = null;
 
         /**
          * Owner of the skill
@@ -243,14 +281,16 @@ export default class Skill {
      * @param {string} durationType: the type of duration
      * @returns {number} The duration in number of frames
      */
-    getTimerDuration (duration, durationType) {
+    getTimerDuration (duration, durationType): number {
         let frames = duration;
 
         switch (durationType) {
-            case Enum.DURATION_TYPE.ANIMATION_LOOP: frames = ((this.owner.sprite.getAnimation(this.animation).duration) * duration) - 1;
+            case Enum.DURATION_TYPE.ANIMATION_LOOP:
+                frames = ((this.owner.sprite.getAnimation(this.animation).duration) * duration) - 1;
                 break;
 
-            case Enum.DURATION_TYPE.MS: frames = Util.msToFrame(duration);
+            case Enum.DURATION_TYPE.MS:
+                frames = Util.msToFrame(duration);
                 break;
         }
 
@@ -289,7 +329,7 @@ export default class Skill {
      * @param {*} hitboxSettings: The settings to transmit to the hitbox instance
      * @returns {*} The hitbox instance
      */
-    addHitbox (hitboxClass, hitboxSettings = {}) {
+    addHitbox (hitboxClass, hitboxSettings: any = {}) {
         const hitbox    = new hitboxClass();
         let x           = this.owner.props.x,
             y           = this.owner.props.y;

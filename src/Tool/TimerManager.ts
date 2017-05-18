@@ -1,7 +1,8 @@
-import Timer from "./Timer";
+import { Timer } from "./Timer";
 
 
 export default class TimerManager {
+    timers: {[timerName: string]: Timer};
 
     /* LIFECYCLE */
 
@@ -9,6 +10,11 @@ export default class TimerManager {
      * @constructor
      */
     constructor () {
+
+        /**
+         * Map of the Timers
+         * @type {{Timer}}
+         */
         this.timers = {};
     }
 
@@ -31,7 +37,7 @@ export default class TimerManager {
      * @param {*=} options: options to implement to the timer
      * @returns {Timer} the timer created
      */
-    add (name, duration, onComplete, options = {}) {
+    add (name: string, duration: number, onComplete: Function, options: any = {}): Timer {
         const timer = new Timer(duration, onComplete, options);
 
         return this.timers[name] = timer;
@@ -42,7 +48,7 @@ export default class TimerManager {
      * @param {string} name: name of the timer
      * @returns {Timer} The timer
      */
-    get (name) {
+    get (name: string): Timer {
         return this.timers[name];
     }
 
@@ -51,7 +57,7 @@ export default class TimerManager {
      * @param {string} name: name of the timer
      * @returns {void}
      */
-    remove (name) {
+    remove (name: string) {
         delete this.timers[name];
     }
 
@@ -61,7 +67,7 @@ export default class TimerManager {
      * @param {string} name - The name of the timer
      * @returns {boolean} The timer is finished ?
      */
-    isFinished (name) {
+    isFinished (name: string): boolean {
         const timer = this.timers[name];
 
         return timer ? timer.finished : true;

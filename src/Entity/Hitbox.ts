@@ -3,7 +3,11 @@ import { Entity } from "../Entity";
 import { Enum } from "../Tool/Enum";
 
 
-export default class Hitbox extends Entity {
+export class Hitbox extends Entity {
+
+    hit: 0;
+    type: Enum.TYPE.GHOST;
+    group: Enum.GROUP.ENTITIES;
 
     /* LIFECYCLE */
 
@@ -23,10 +27,6 @@ export default class Hitbox extends Entity {
             maxHit          : 1,
             follow          : null
         });
-
-        this.hit    = 0;
-        this.type   = Enum.TYPE.GHOST;
-        this.group  = Enum.GROUP.ENTITIES;
 
         this.signals.update.add(this.updateFollow.bind(this));
         this.signals.beginCollision.add(this.onCollision.bind(this));
@@ -105,7 +105,7 @@ export default class Hitbox extends Entity {
      * @param {Entity} other: entity
      * @returns {boolean} Consider the hit like a correct hit
      */
-    onHit (name, other) {
+    onHit (name: string, other): boolean {
         return true;
     }
 }

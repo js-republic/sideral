@@ -3,7 +3,7 @@ import { Entity } from "../Entity";
 import { Enum } from "../Tool/Enum";
 
 
-export default class Effect extends Entity {
+export class Effect extends Entity {
 
     /* LIFECYCLE */
 

@@ -4,7 +4,7 @@ import { Scene } from "../Scene";
 
 import { Enum } from "../Tool/Enum";
 
-import { Game } from "../Game";
+import { currentGame } from "../Game";
 import { Entity } from "../Entity";
 
 import { Tilemap } from "../Module/Tilemap";
@@ -14,7 +14,7 @@ export class World extends Scene {
     DefaultMaterial = new p2.Material(Scene.generateIdNumber());
     WallMaterial= new p2.Material(Scene.generateIdNumber());
     _entities = null;
-    tilemap = null;
+    tilemap: Tilemap = null;
     world = new p2.World({ gravity: [0, 0] });
     materials = [this.DefaultMaterial, this.WallMaterial];
 
@@ -129,8 +129,8 @@ export class World extends Scene {
      * @param {{}} data: data of the tilemap (generaly provided by a json file)
      * @returns {Object} Tilemap instance
      */
-    setTilemap (data): Tilemap {
-        this.tilemap        = this.add(new Tilemap(), {}, 0);
+    setTilemap (data: any): Tilemap {
+        this.tilemap        = <Tilemap> this.add(new Tilemap(), {}, 0);
         this.tilemap.scene  = this;
 
         this.tilemap.setData(data);

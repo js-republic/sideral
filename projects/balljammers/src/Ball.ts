@@ -1,10 +1,13 @@
-import Entity from "../../../src/Entity";
+import { Entity } from "../../../src/Entity";
 
-import Enum from "../../../src/Tool/Enum";
+import { Enum } from "../../../src/Tool/Enum";
 
 
-export default class Ball extends Entity {
-
+export class Ball extends Entity {
+    name: string = 'ball';
+    friction: boolean = true;
+    type: number = Enum.TYPE.WEAK;
+    box: string = Enum.BOX.CIRCLE;
     /* LIFECYCLE */
 
     /**
@@ -19,11 +22,6 @@ export default class Ball extends Entity {
             gravityFactor   : 1
         });
 
-        this.name       = "ball";
-        this.friction   = true;
-        this.type       = Enum.TYPE.WEAK;
-        this.box        = Enum.BOX.CIRCLE;
-
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
 
         this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
@@ -34,7 +32,7 @@ export default class Ball extends Entity {
      * @lifecycle
      * @override
      */
-    initialize (props) {
+    initialize (props: any) {
         super.initialize(props);
 
         this.setBounce(0.65);

@@ -1,10 +1,10 @@
-import Hitbox from "../../../../src/Entity/Hitbox";
+import { Hitbox } from "../../../../src/Entity/Hitbox";
 
-import Skill from "../../../../src/Tool/Skill";
-import Enum from "../../../../src/Tool/Enum";
+import { Skill } from "../../../../src/Tool/Skill";
+import { Enum } from "../../../../src/Tool/Enum";
 
 
-class PlayerAttackHitbox extends Hitbox {
+export class PlayerAttackHitbox extends Hitbox {
 
     /* LIFECYCLE */
 
@@ -45,27 +45,5 @@ class PlayerAttackHitbox extends Hitbox {
         ball.props.vy   -= 200;
 
         return true;
-    }
-}
-
-export default class PlayerAttackSkill extends Skill {
-
-    /**
-     * @constructor
-     * @override
-     */
-    constructor () {
-        super();
-
-        this.animation      = "attack";
-        this.duration       = 1;
-        this.durationType   = Enum.DURATION_TYPE.ANIMATION_LOOP;
-        this.hitboxClass    = PlayerAttackHitbox;
-    }
-
-    addHitbox (hitboxClass, hitboxSettings = {}) {
-        hitboxSettings.follow = this.owner;
-
-        return super.addHitbox(hitboxClass, hitboxSettings);
     }
 }

@@ -123,7 +123,7 @@ export class Sprite extends Module {
      * @param {string} name: name of the animation
      * @returns {*} animation object
      */
-    getAnimation (name): string {
+    getAnimation (name: string) {
         return this.animations.find(animation => animation.name === name);
     }
 

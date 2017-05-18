@@ -1,7 +1,12 @@
-import Skill from "./Skill";
+import { Entity } from '../Entity';
+import { Skill } from "./Skill";
 
 
 export default class SkillManager {
+    owner: Entity;
+    skills: {[skillName: string]: Skill} = {};
+    currentSkill: Skill = null;
+    lastSkill: Skill = null;
 
     /* LIFECYCLE */
 
@@ -9,7 +14,7 @@ export default class SkillManager {
      * @constructor
      * @param {Entity} owner: owner of the skill manager
      */
-    constructor (owner) {
+    constructor (owner: Entity) {
 
         /**
          * Owner of this instance
@@ -53,7 +58,7 @@ export default class SkillManager {
      * @param {Skill} skill: Skill corresponding of the name
      * @returns {Skill} The skill created
      */
-    add (name, skill) {
+    add (name: string, skill: Skill): Skill {
         skill.owner = this.owner;
         skill.signals.skillComplete.add(this._onSkillComplete.bind(this));
 
@@ -65,7 +70,7 @@ export default class SkillManager {
      * @param {string} name: name of the skill
      * @returns {Skill|null} The skill (or null if the skill doesn't exist)
      */
-    get (name) {
+    get (name: string): Skill {
         return this.skills[name];
     }
 
@@ -74,7 +79,7 @@ export default class SkillManager {
      * @param {string} name: name of the skill
      * @returns {boolean} if the skill is running
      */
-    isRunning (name) {
+    isRunning (name: string): boolean {
         return this.currentSkill && this.currentSkill[name] === this.skills[name] && this.currentSkill.active;
     }
 
@@ -84,7 +89,7 @@ export default class SkillManager {
      * @param {Object=} props: properties to add for the run
      * @returns {Boolean} Return true if the skill has ben launched
      */
-    run (name, props) {
+    run (name: string, props?: any): boolean {
         const skill = this.get(name);
 
         if (!skill || (skill && !skill.ready) || (this.currentSkill && this.currentSkill.unstoppable)) {
@@ -106,7 +111,7 @@ export default class SkillManager {
      * @param {string} name: name of the skill
      * @returns {void}
      */
-    remove (name) {
+    remove (name: string) {
         delete this.skills[name];
     }
 
@@ -119,7 +124,7 @@ export default class SkillManager {
      * @returns {void}
      * @private
      */
-    _onSkillComplete (skill) {
+    _onSkillComplete (skill: Skill) {
         if (this.currentSkill.name === skill.name) {
             this.currentSkill = null;
         }

@@ -1,5 +1,7 @@
 import { Body, CircularBody, RectangularBody } from "./Body";
-import Enum from "./Enum";
+import { Enum } from "./Enum";
+import { Scene } from '../Scene';
+import { Entity } from '../Entity';
 
 
 /**
@@ -9,10 +11,14 @@ import Enum from "./Enum";
  * @param {number} y: position y of the first shape
  * @param {number} width: width of the first shape
  * @param {number} height: height of the first shape
- * @param {number} entity: entity to check
+ * @param {Entity} entity: entity to check
  * @returns {boolean} if true, the target is constrained by constraint direction of the wall
  */
-const resolveDirectionConstraint = (directionConstraint, x, y, width, height, entity) => {
+const resolveDirectionConstraint = (
+    directionConstraint: string,
+    x: number, y: number,
+    width: number, height: number,
+    entity: Entity): boolean => {
     switch (directionConstraint) {
         case "upper": return entity.lastPos.y < entity.props.y && entity.props.y < y;
         case "lower": return entity.lastPos.y > entity.props.y && entity.props.y + entity.props.height > y;
@@ -32,7 +38,13 @@ const resolveDirectionConstraint = (directionConstraint, x, y, width, height, en
  * @param {string=} directionConstraint: constraint of direction
  * @returns {*} Body corresponding to the wall
  */
-const createWall = (scene, box, x, y, width, height, directionConstraint) => {
+export const createWall = (
+        scene: Scene,
+        box: any,
+        x: number, y: number,
+        width: number, height: number,
+        directionConstraint?: string
+    ) => {
     const settings = {
         mass: 0,
         gravityScale: 0,
@@ -57,5 +69,3 @@ const createWall = (scene, box, x, y, width, height, directionConstraint) => {
 
     return body;
 };
-
-export default createWall;

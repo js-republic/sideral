@@ -1,12 +1,23 @@
-import Entity from "../../../../src/Entity";
+import { Entity } from "../../../../src/Entity";
 
-import Enum from "../../../../src/Tool/Enum";
+import { Enum } from "../../../../src/Tool/Enum";
 
-import PlayerAttackSkill from "./PlayerAttackSkill";
-import PlayerDashSkill from "./PlayerDashSkill";
+import { PlayerAttackSkill } from "./PlayerAttackSkill";
+import { PlayerDashSkill } from "./PlayerDashSkill";
 
 
-export default class Player extends Entity {
+export class Player extends Entity {
+    group: number = Enum.GROUP.ALL;
+    type: number = Enum.TYPE.SOLID;
+    name: string = "player";
+    speedFactor: number = 0;
+    fallPressed: boolean = true;
+    doubleJump: boolean = false;
+    dashSide: boolean = false;
+    holdLeft: boolean = false;
+    holdRight: boolean = false;
+
+    static SIDE = { LEFT: -1, RIGHT: 1, NONE: 0 };
 
     /* LIFECYCLE */
 
@@ -225,8 +236,3 @@ export default class Player extends Entity {
     }
 }
 
-Player.SIDE = {
-    LEFT    : -1,
-    RIGHT   : 1,
-    NONE    : 0
-};
