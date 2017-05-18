@@ -1,4 +1,4 @@
-export default class Timer {
+export class Timer {
     duration: number;
     recurrence: number;
     reversible: boolean;

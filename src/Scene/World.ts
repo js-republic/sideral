@@ -1,16 +1,16 @@
 import * as p2 from "p2";
 
-import Scene from "../Scene";
+import { Scene } from "../Scene";
 
-import Enum from "../Tool/Enum";
+import { Enum } from "../Tool/Enum";
 
-import Game from "../Game";
-import Entity from "../Entity";
+import { Game } from "../Game";
+import { Entity } from "../Entity";
 
-import Tilemap from "../Module/Tilemap";
+import { Tilemap } from "../Module/Tilemap";
 
 
-export default class World extends Scene {
+export class World extends Scene {
     DefaultMaterial = new p2.Material(Scene.generateIdNumber());
     WallMaterial= new p2.Material(Scene.generateIdNumber());
     _entities = null;

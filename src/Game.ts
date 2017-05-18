@@ -1,14 +1,14 @@
-import SideralObject from "./SideralObject";
-import Util from "./Tool/Util";
-import Signal from "./Tool/Signal";
-import Scene from "./Scene";
+import { SideralObject } from "./SideralObject";
+import { Util } from "./Tool/Util";
+import { Signal } from "./Tool/Signal";
+import { Scene } from "./Scene";
 // import * as PIXI from 'pixi.js';
 
 /**
  * The engine of the game
  * @class Game
  */
-class Game extends SideralObject {
+export class Game extends SideralObject {
     container: any;
     inputs: any = {};
     _inputs: any = {};
@@ -353,7 +353,7 @@ class Game extends SideralObject {
 PIXI.utils.skipHello();
 
 
-const currentGame = new Game();
+export const currentGame = new Game();
 
 /**
  * List of all Key Input
@@ -451,4 +451,4 @@ currentGame.KEY = {
     "PERIOD": "190"
 };
 
-export default currentGame;
+// export default currentGame;

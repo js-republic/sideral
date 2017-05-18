@@ -1,14 +1,14 @@
 import * as p2 from "p2";
 
-import Module from "../Module";
+import { Module } from "../Module";
 
-import Shape from "./Shape";
+import { Shape } from "./Shape";
 
-import Enum from "./../Tool/Enum";
-import createWall from "./../Tool/Wall";
+import { Enum } from "../Tool/Enum";
+import createWall from "../Tool/Wall";
 
 
-export default class Tilemap extends Module {
+export class Tilemap extends Module {
 
     wallMaterial = new p2.Material(Tilemap.generateIdNumber());
 

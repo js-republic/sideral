@@ -1,7 +1,7 @@
-import Game from "../Game";
+import { Game, currentGame } from "../Game";
 
 
-export default class Util {
+export class Util {
 
     /* STATICS */
 
@@ -90,7 +90,7 @@ export default class Util {
      * @returns {number} number of milliseconds
      */
     static frameToMs (frame: number): number {
-        return (frame / Game.fps) * 1000;
+        return (frame / currentGame.fps) * 1000;
     }
 
     /**
@@ -99,7 +99,7 @@ export default class Util {
      * @returns {number} Number of frames
      */
     static msToFrame (ms: number): number {
-        return (ms / 1000) * Game.fps;
+        return (ms / 1000) * currentGame.fps;
     }
 
     /**

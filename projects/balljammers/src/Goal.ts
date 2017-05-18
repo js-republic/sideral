@@ -3,7 +3,7 @@ import Entity from "../../../src/Entity";
 import Enum from "../../../src/Tool/Enum";
 
 
-export default class Goal extends Entity {
+export class Goal extends Entity {
     name = "goal";
     type = Enum.TYPE.STATIC;
     group = Enum.GROUP.ALL;

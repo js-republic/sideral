@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import Signal from "./Tool/Signal";
+import { Signal } from "./Tool/Signal";
 import TimerManager from "./Tool/TimerManager";
 
 
@@ -7,7 +7,7 @@ import TimerManager from "./Tool/TimerManager";
  * The entry class of all object in Sideral
  * @class SideralObject
  */
-class SideralObject {
+export class SideralObject {
     id: string = SideralObject.generateId();
     props: any = {};
     last: any = {};
@@ -303,5 +303,3 @@ class SideralObject {
     }
 }
 
-
-export default SideralObject;

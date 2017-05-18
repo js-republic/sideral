@@ -1,6 +1,6 @@
-import Module from "./Module";
+import { Module } from "./Module";
 
-import Game from "./Game";
+import { currentGame } from "./Game";
 
 
 /**
@@ -8,7 +8,7 @@ import Game from "./Game";
  * @class Scene
  * @extends Module
  */
-export default class Scene extends Module {
+export class Scene extends Module {
 
     /* LIFECYCLE */
 
@@ -36,8 +36,8 @@ export default class Scene extends Module {
              */
             follow  : null,
 
-            width   : Game.props.width,
-            height  : Game.props.height
+            width   : currentGame.props.width,
+            height  : currentGame.props.height
         });
 
         this.signals.update.add(this.updateFollow.bind(this));

@@ -1,4 +1,4 @@
-const enums = {
+export const Enum = {
     TYPE: {
         NONE    : -2,
         GHOST   : -1,
@@ -28,6 +28,3 @@ const enums = {
         ANIMATION_LOOP  : "animationLoop"
     }
 };
-
-
-export default enums;

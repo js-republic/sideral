@@ -1,9 +1,9 @@
-import SideralObject from "./SideralObject";
+import { SideralObject } from "./SideralObject";
 
-import Signal from "./Tool/Signal";
+import { Signal } from "./Tool/Signal";
 
 
-export default class Module extends SideralObject {
+export class Module extends SideralObject {
 
     /* LIFECYCLE */
 

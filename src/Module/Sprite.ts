@@ -1,7 +1,7 @@
-import Module from "./../Module";
+import { Module } from "./../Module";
 
 
-export default class Sprite extends Module {
+export class Sprite extends Module {
     loaded = false;
     image = null;
     animations = [];

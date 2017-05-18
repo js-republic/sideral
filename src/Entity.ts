@@ -1,16 +1,16 @@
-import Module from "./Module";
+import { Module } from "./Module";
 
-import Signal from "./Tool/Signal";
-import SideralObject from './SideralObject';
+import { SideralObject } from './SideralObject';
 import { CircularBody, RectangularBody } from './Tool/Body';
-import Enum from "./Tool/Enum";
+import { Signal } from "./Tool/Signal";
+import { Enum } from "./Tool/Enum";
 import SkillManager from "./Tool/SkillManager";
-
-import Shape from "./Module/Shape";
-import Sprite from "./Module/Sprite";
+import { Shape, Sprite } from "./Module/";
 
 
-export default class Entity extends Module {
+
+
+export class Entity extends Module {
 
     name       = "entity";
     type       = Enum.TYPE.SOLID;

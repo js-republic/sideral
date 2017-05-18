@@ -1,7 +1,7 @@
 import * as p2 from "p2";
 
-import Util from "../Util";
-import Enum from "../Enum";
+import { Util } from "../Util";
+import { Enum } from "../Enum";
 
 
 export class Body {

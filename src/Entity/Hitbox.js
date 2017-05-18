@@ -1,6 +1,6 @@
-import Entity from "./../Entity";
+import { Entity } from "../Entity";
 
-import Enum from "./../Tool/Enum";
+import { Enum } from "../Tool/Enum";
 
 
 export default class Hitbox extends Entity {

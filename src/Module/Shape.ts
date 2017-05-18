@@ -1,10 +1,9 @@
-import Module from "./../Module";
+import { Module } from "./../Module";
 
-import Util from "./../Tool/Util";
-import Enum from "./../Tool/Enum";
+import {Util, Enum} from "../Tool/";
 
 
-export default class Shape extends Module {
+export class Shape extends Module {
     container = new PIXI.Graphics();
 
     /* LIFECYCLE */
