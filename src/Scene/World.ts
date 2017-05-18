@@ -56,7 +56,7 @@ export class World extends Scene {
      */
     update () {
         super.update();
-        this.world.step(1 / 60, Game.latency, 3);
+        this.world.step(1 / 60, currentGame.latency, 3);
     }
 
 
@@ -64,14 +64,14 @@ export class World extends Scene {
 
     /**
      * Add a new entity into the scene
-     * @param {Object} entity: entity instance
+     * @param {Entity} entity: entity instance
      * @param {number} x: position of the entity in x axis
      * @param {number} y: position of the entity in y axis
      * @param {{}=} settings: settings to add to the entity (will merge into props of entity)
      * @param {number=} index: z index position of the entity
      * @returns {Object} entity added
      */
-    addEntity (entity: Entity, x: number, y: number, settings: any = {}, index?) {
+    addEntity (entity: Entity, x: number, y: number, settings: any = {}, index?): Entity {
         settings.x      = x;
         settings.y      = y;
         entity.scene    = this;

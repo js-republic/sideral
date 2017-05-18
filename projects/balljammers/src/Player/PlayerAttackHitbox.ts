@@ -1,5 +1,5 @@
 import { Hitbox } from "../../../../src/Entity/Hitbox";
-
+import { Ball } from '../Ball';
 import { Skill } from "../../../../src/Tool/Skill";
 import { Enum } from "../../../../src/Tool/Enum";
 
@@ -13,7 +13,7 @@ export class PlayerAttackHitbox extends Hitbox {
      * @override
      * @lifecycle
      */
-    initialize (props) {
+    initialize (props: any) {
         const owner = props.owner;
 
         this.size(20, 30);
@@ -29,7 +29,7 @@ export class PlayerAttackHitbox extends Hitbox {
      * @event hit
      * @override
      */
-    onHit (name, other) {
+    onHit (name: string, other) {
         return name === "ball" ? this.onHitWithBall(other) : false;
     }
 
@@ -38,7 +38,7 @@ export class PlayerAttackHitbox extends Hitbox {
      * @param {Ball} ball: the ball
      * @returns {Boolean} correct hit
      */
-    onHitWithBall (ball) {
+    onHitWithBall (ball: Ball) {
         const owner = this.props.owner;
 
         ball.props.vx   = owner.props.power * (owner.props.x < ball.props.x ? 1 : -1) * (owner.standing ? 1 : 2);

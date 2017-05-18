@@ -1,11 +1,13 @@
 import { Skill } from "../../../../src/Tool/Skill";
 
 import { Effect } from "../../../../src/Entity/Effect";
+import { Player } from './Player';
 
 
 export class PlayerDashSkill extends Skill {
     movable: boolean = false;
     duration: number = 6;
+    owner: Player;
 
     /**
      * @constructor
@@ -30,8 +32,8 @@ export class PlayerDashSkill extends Skill {
             height          : 128,
             follow          : this.owner,
             centered        : true,
-            offsetX         : this.owner.width / 2,
-            offsetY         : this.owner.height / 2,
+            offsetX         : this.owner.props.width / 2,
+            offsetY         : this.owner.props.height / 2,
             flip            : this.owner.props.flip,
             frames          : [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
             duration        : 20,

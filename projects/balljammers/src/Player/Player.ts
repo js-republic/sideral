@@ -2,20 +2,23 @@ import { Entity } from "../../../../src/Entity";
 
 import { Enum } from "../../../../src/Tool/Enum";
 
+import { Ball } from '../Ball';
 import { PlayerAttackSkill } from "./PlayerAttackSkill";
 import { PlayerDashSkill } from "./PlayerDashSkill";
+import { Arena } from '../Arena';
 
 
 export class Player extends Entity {
-    group: number = Enum.GROUP.ALL;
-    type: number = Enum.TYPE.SOLID;
-    name: string = "player";
-    speedFactor: number = 0;
-    fallPressed: boolean = true;
-    doubleJump: boolean = false;
-    dashSide: boolean = false;
-    holdLeft: boolean = false;
-    holdRight: boolean = false;
+    group:           number      = Enum.GROUP.ALL;
+    type:            number      = Enum.TYPE.SOLID;
+    name:            string      = "player";
+    scene:           Arena       = null;
+    speedFactor:     number      = 0;
+    fallPressed:     boolean     = true;
+    doubleJump:      boolean     = false;
+    dashSide:        boolean     = false;
+    holdLeft:        boolean     = false;
+    holdRight:       boolean     = false;
 
     static SIDE = { LEFT: -1, RIGHT: 1, NONE: 0 };
 
@@ -84,7 +87,7 @@ export class Player extends Entity {
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    moveLeft (pressed) {
+    moveLeft (pressed: boolean) {
         this.holdLeft = pressed;
 
         if (pressed && !this.speedFactor) {
@@ -105,7 +108,7 @@ export class Player extends Entity {
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    moveRight (pressed) {
+    moveRight (pressed: boolean) {
         this.holdRight = pressed;
 
         if (pressed && !this.speedFactor) {
@@ -126,7 +129,7 @@ export class Player extends Entity {
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    jump (pressed) {
+    jump (pressed: boolean) {
         if (pressed) {
             let canJump = false;
 
@@ -153,7 +156,7 @@ export class Player extends Entity {
      * @param {boolean} pressed: is pressed
      * @returns {void}
      */
-    fall (pressed) {
+    fall (pressed: boolean) {
         if (pressed && !this.standing) {
             this.props.vy   += Math.abs(this.props.jump * 2);
             this.fallPressed = true;
@@ -191,8 +194,13 @@ export class Player extends Entity {
      * @param {Ball} ball: the ball
      * @returns {void}
      */
-    onCollisionWithBall (ball) {
-        if (!this.standing && this.props.y < ball.props.y && this.props.x + this.props.width > ball.props.x && this.props.x < ball.props.x + ball.props.width) {
+    onCollisionWithBall (ball: Ball) {
+        if (
+            !this.standing
+            && this.props.y < ball.props.y
+            && this.props.x + this.props.width > ball.props.x
+            && this.props.x < ball.props.x + ball.props.width
+        ) {
             const centerX   = this.props.x + (this.props.width / 2),
                 ballCenterX = ball.props.x + (this.props.width / 2),
                 factor      = this.fallPressed ? 1.5 : 0.3;

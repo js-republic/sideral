@@ -1,6 +1,6 @@
 import { currentGame } from "../../../src/Game";
 
-import Arena from "./Arena";
+import { Arena } from "./Arena";
 
 
 (<any>window).game     = currentGame.start(832, 576);

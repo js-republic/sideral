@@ -5,7 +5,7 @@ import { Module } from "../Module";
 import { Shape } from "./Shape";
 
 import { Enum } from "../Tool/Enum";
-import createWall from "../Tool/Wall";
+import { createWall } from "../Tool/Wall";
 
 
 export class Tilemap extends Module {

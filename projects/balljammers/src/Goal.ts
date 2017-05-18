@@ -21,6 +21,6 @@ export class Goal extends Entity {
             height          : 130
         });
 
-        this.addSprite("images/goal.png", (<any>this.props).width, (<any>this.props).height);
+        this.addSprite("images/goal.png", this.props.width, this.props.height);
     }
 }

@@ -4,12 +4,12 @@ import { currentGame } from "../../../src/Game";
 import { Ball } from "./Ball";
 import { Goal } from "./Goal";
 
-import PlayerCat from "./Player/Cat/Cat";
+import { PlayerCat } from "./Player/Cat/Cat";
 
 import tilemapGrass from "../tilemaps/grass.json";
 
 
-export default class Arena extends World {
+export class Arena extends World {
     playerLeft: PlayerCat;
     playerRight: PlayerCat;
 
@@ -20,6 +20,8 @@ export default class Arena extends World {
      */
     constructor () {
         super();
+
+        let cg = currentGame;
 
         // props
         this.setProps({
@@ -32,17 +34,17 @@ export default class Arena extends World {
         this.playerRight    = null;
 
         // signals
-        currentGame.signals.keyPress.bind(currentGame.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.S, pressed => this.playerLeft && this.playerLeft.fall(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.SPACE, pressed => pressed && this.playerLeft && this.playerLeft.attack());
+        cg.signals.keyPress.bind(cg.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
+        cg.signals.keyPress.bind(cg.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
+        cg.signals.keyPress.bind(cg.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));
+        cg.signals.keyPress.bind(cg.KEY.S, pressed => this.playerLeft && this.playerLeft.fall(pressed));
+        cg.signals.keyPress.bind(cg.KEY.SPACE, pressed => pressed && this.playerLeft && this.playerLeft.attack());
 
-        currentGame.signals.keyPress.bind(currentGame.KEY.ARROW_LEFT, pressed => this.playerRight && this.playerRight.moveLeft(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.ARROW_RIGHT, pressed => this.playerRight && this.playerRight.moveRight(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.ARROW_UP, pressed => this.playerRight && this.playerRight.jump(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
-        currentGame.signals.keyPress.bind(currentGame.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
+        cg.signals.keyPress.bind(cg.KEY.ARROW_LEFT, pressed => this.playerRight && this.playerRight.moveLeft(pressed));
+        cg.signals.keyPress.bind(cg.KEY.ARROW_RIGHT, pressed => this.playerRight && this.playerRight.moveRight(pressed));
+        cg.signals.keyPress.bind(cg.KEY.ARROW_UP, pressed => this.playerRight && this.playerRight.jump(pressed));
+        cg.signals.keyPress.bind(cg.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
+        cg.signals.keyPress.bind(cg.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
     }
 
     /**
@@ -50,7 +52,7 @@ export default class Arena extends World {
      * @lifecycle
      * @override
      */
-    initialize (props) {
+    initialize (props: any) {
         super.initialize(props);
 
         this.setTilemap(tilemapGrass);

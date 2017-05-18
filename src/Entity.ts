@@ -1,28 +1,27 @@
 import { Module } from "./Module";
+import { Shape, Sprite } from "./Module/";
 
+import { Scene } from './Scene';
 import { SideralObject } from './SideralObject';
 import { CircularBody, RectangularBody } from './Tool/Body';
 import { Signal } from "./Tool/Signal";
 import { Enum } from "./Tool/Enum";
-import SkillManager from "./Tool/SkillManager";
-import { Shape, Sprite } from "./Module/";
-
-
+import { SkillManager } from "./Tool/SkillManager";
 
 
 export class Entity extends Module {
 
-    name       = "entity";
-    type       = Enum.TYPE.SOLID;
-    box        = Enum.BOX.RECTANGLE;
-    group      = Enum.GROUP.ALL;
-    scene      = null;
-    friction   = false;
-    lastPos    = {x: 0, y: 0};
-    skills     = new SkillManager(this);
+    name: string         = "entity";
+    type: number         = Enum.TYPE.SOLID;
+    box: string          = Enum.BOX.RECTANGLE;
+    group: number        = Enum.GROUP.ALL;
+    scene: Scene         = null;
+    friction: boolean    = false;
+    lastPos              = {x: 0, y: 0};
+    skills: SkillManager = new SkillManager(this);
 
-    standing   = false;
-    moving     = false;
+    standing: boolean = false;
+    moving: boolean   = false;
 
     _bounce    = 0;
     collides   = [];
@@ -79,10 +78,12 @@ export class Entity extends Module {
         };
 
         switch (this.box) {
-            case Enum.BOX.CIRCLE: this.body = new CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+            case Enum.BOX.CIRCLE:
+                this.body = new CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
                 break;
 
-            default: this.body = new RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
+            default: 
+                this.body = new RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
                 break;
         }
 

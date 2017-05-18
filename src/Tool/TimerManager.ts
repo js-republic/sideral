@@ -1,7 +1,7 @@
 import { Timer } from "./Timer";
 
 
-export default class TimerManager {
+export class TimerManager {
     timers: {[timerName: string]: Timer};
 
     /* LIFECYCLE */

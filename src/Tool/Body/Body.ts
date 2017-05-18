@@ -51,7 +51,7 @@ export class Body {
      * @param {number} y: number of the position in y axis
      * @returns {void}
      */
-    position (x, y) {
+    position (x: number, y: number) {
         if (typeof x !== "undefined") {
             this.x = x;
         }
@@ -106,7 +106,7 @@ export class Body {
      * Get x position
      * @returns {number} the position x
      */
-    get x () {
+    get x (): number {
         return this.data.position[0] - this.offset.x;
     }
 
@@ -114,7 +114,7 @@ export class Body {
      * Get y position
      * @returns {number} the position y
      */
-    get y () {
+    get y (): number {
         return this.data.position[1] - this.offset.y;
     }
 
@@ -122,7 +122,7 @@ export class Body {
      * Get the width
      * @returns {number} the width of the shape
      */
-    get width () {
+    get width (): number {
         return this.shape.width;
     }
 
@@ -130,7 +130,7 @@ export class Body {
      * Get the height of the shape
      * @returns {number} the height of the shape
      */
-    get height () {
+    get height (): number {
         return this.shape.height;
     }
 
@@ -138,7 +138,7 @@ export class Body {
      * Get current angle of the body
      * @returns {number} angle in degree
      */
-    get angle () {
+    get angle (): number {
         return Util.toDegree(this.data.angle);
     }
 
@@ -147,7 +147,7 @@ export class Body {
      * @param {number} value: next value
      * @returns {void}
      */
-    set x (value) {
+    set x (value: number) {
         this.data.position[0] = value + this.offset.x;
     }
 
@@ -156,7 +156,7 @@ export class Body {
      * @param {number} value: next value
      * @returns {void}
      */
-    set y (value) {
+    set y (value: number) {
         this.data.position[1] = value + this.offset.y;
     }
 
@@ -165,7 +165,7 @@ export class Body {
      * @param {number} value: next angle in degree
      * @returns {void}
      */
-    set angle (value) {
+    set angle (value: number) {
         this.data.angle = Util.toRadians(value);
     }
 }

@@ -1,7 +1,7 @@
 import { Player } from "../Player";
 
 
-export default class PlayerCat extends Player {
+export class PlayerCat extends Player {
 
     /* LIFECYCLE */
 

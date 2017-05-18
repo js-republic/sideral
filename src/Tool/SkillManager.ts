@@ -2,7 +2,7 @@ import { Entity } from '../Entity';
 import { Skill } from "./Skill";
 
 
-export default class SkillManager {
+export class SkillManager {
     owner: Entity;
     skills: {[skillName: string]: Skill} = {};
     currentSkill: Skill = null;

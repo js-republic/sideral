@@ -450,5 +450,3 @@ currentGame.KEY = {
     "MINUS": "189",
     "PERIOD": "190"
 };
-
-// export default currentGame;
