@@ -1,13 +1,16 @@
-import { Entity } from "../Entity";
+import { Entity } from "./../Entity";
 
-import { Enum } from "../Tool/Enum";
+import { Enum } from "./../Tool/Enum";
 
 
 export class Hitbox extends Entity {
 
-    hit: 0;
-    type: Enum.TYPE.GHOST;
-    group: Enum.GROUP.ENTITIES;
+    /* PROPERTIES */
+
+    hit:number      = 0;
+    type:number     = Enum.TYPE.GHOST;
+    group:number    =  Enum.GROUP.ENTITIES;
+
 
     /* LIFECYCLE */
 

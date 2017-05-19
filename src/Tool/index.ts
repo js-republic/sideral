@@ -5,5 +5,6 @@ export * from './Signal';
 export * from './Skill';
 export * from './SkillManager';
 export * from './Timer';
+export * from './TimerManager';
 export * from './Util';
 export * from './Wall';

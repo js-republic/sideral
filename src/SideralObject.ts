@@ -1,6 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { Signal } from "./Tool/Signal";
-import TimerManager from "./Tool/TimerManager";
+import { TimerManager } from "./Tool/TimerManager";
 
 
 /**

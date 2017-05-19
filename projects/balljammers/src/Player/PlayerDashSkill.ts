@@ -5,8 +5,9 @@ import { Player } from './Player';
 
 
 export class PlayerDashSkill extends Skill {
-    movable: boolean = false;
-    duration: number = 6;
+    movable: boolean    = false;
+    duration: number    = 6;
+    side: string        = "";
     owner: Player;
 
     /**

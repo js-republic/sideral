@@ -29,7 +29,7 @@ export class Effect extends Entity {
 
         this.type = Enum.TYPE.NONE;
 
-        this.signals.update.bind(this.updateFollow.bind(this));
+        this.signals.update.add(this.updateFollow.bind(this));
     }
 
     /**

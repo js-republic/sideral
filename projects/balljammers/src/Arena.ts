@@ -1,4 +1,4 @@
-import { World } from "../../../src/Scene/World";
+import { Scene } from "../../../src/Scene";
 import { currentGame } from "../../../src/Game";
 
 import { Ball } from "./Ball";
@@ -6,10 +6,10 @@ import { Goal } from "./Goal";
 
 import { PlayerCat } from "./Player/Cat/Cat";
 
-import tilemapGrass from "../tilemaps/grass.json";
+import * as tilemapGrass from "../tilemaps/grass.json";
 
 
-export class Arena extends World {
+export class Arena extends Scene {
     playerLeft: PlayerCat;
     playerRight: PlayerCat;
 
@@ -55,6 +55,7 @@ export class Arena extends World {
     initialize (props: any) {
         super.initialize(props);
 
+        console.log(tilemapGrass);
         this.setTilemap(tilemapGrass);
         this.addEntity(new Ball(), 100, 100);
 

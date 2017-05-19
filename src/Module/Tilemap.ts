@@ -2,6 +2,8 @@ import * as p2 from "p2";
 
 import { Module } from "../Module";
 
+import { Scene } from "./../Scene";
+
 import { Shape } from "./Shape";
 
 import { Enum } from "../Tool/Enum";
@@ -10,14 +12,14 @@ import { createWall } from "../Tool/Wall";
 
 export class Tilemap extends Module {
 
-    wallMaterial = new p2.Material(Tilemap.generateIdNumber());
+    scene: Scene    = null;
 
-    bodies = [];
-    _debugs = [];
-    grid = {};
-    gridContainer = null;
-    backgroundContainers = [];
-    decoratorContainers = [];
+    bodies          = [];
+    _debugs         = [];
+    grid            = {};
+    gridContainer   = null;
+    backgroundContainers    = [];
+    decoratorContainers     = [];
 
     /* LIFECYCLE */
 
@@ -41,7 +43,7 @@ export class Tilemap extends Module {
      * @param {*} data: data generaly provided by a json file
      * @returns {void}
      */
-    setData (data) {
+    setData (data:any) {
         const loader    = new PIXI.loaders.Loader();
 
         this.removeData();
@@ -70,7 +72,8 @@ export class Tilemap extends Module {
         }
 
         loader.load((currentLoader, resources) => {
-            this.bodies = data.walls.map(wall => createWall(this.scene, ...wall));
+            this.bodies = data.walls.map((wall, index, array) => createWall(this.scene, wall[0], wall[1], wall[2], wall[3], wall[4], wall[5]));
+
             this._loadBackgrounds(data.backgrounds, resources);
             this._loadGrids(data.grid, data.path, data.debug);
             this._loadDecorators(data.decorators, resources);

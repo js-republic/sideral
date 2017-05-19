@@ -3,7 +3,7 @@ import { Shape, Sprite } from "./Module/";
 
 import { Scene } from './Scene';
 import { SideralObject } from './SideralObject';
-import { CircularBody, RectangularBody } from './Tool/Body';
+import { Body, CircularBody, RectangularBody } from './Tool/Body';
 import { Signal } from "./Tool/Signal";
 import { Enum } from "./Tool/Enum";
 import { SkillManager } from "./Tool/SkillManager";
@@ -11,21 +11,21 @@ import { SkillManager } from "./Tool/SkillManager";
 
 export class Entity extends Module {
 
-    name: string         = "entity";
-    type: number         = Enum.TYPE.SOLID;
-    box: string          = Enum.BOX.RECTANGLE;
-    group: number        = Enum.GROUP.ALL;
-    scene: Scene         = null;
-    friction: boolean    = false;
-    lastPos              = {x: 0, y: 0};
-    skills: SkillManager = new SkillManager(this);
+    name: string            = "entity";
+    type: number            = Enum.TYPE.SOLID;
+    box: string             = Enum.BOX.RECTANGLE;
+    group: number           = Enum.GROUP.ALL;
+    scene: Scene            = null;
+    friction: boolean       = false;
+    lastPos                 = {x: 0, y: 0};
+    skills: SkillManager    = new SkillManager(this);
 
-    standing: boolean = false;
-    moving: boolean   = false;
+    standing: boolean       = false;
+    moving: boolean         = false;
 
     _bounce    = 0;
     collides   = [];
-    body: any;
+    body:Body;
     sprite: Sprite;
     _debug: any;
 
@@ -109,7 +109,7 @@ export class Entity extends Module {
     kill () {
         super.kill();
 
-        if (this.body) {
+        if (this.body && this.scene.world) {
             this.scene.world.removeBody(this.body.data);
         }
     }

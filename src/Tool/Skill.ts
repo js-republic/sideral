@@ -36,7 +36,7 @@ export class Skill {
         reloadStart         : new Signal(),
         reloadUpdate        : new Signal(),
         reloadComplete      : new Signal()
-    }
+    };
 
     /* LIFECYCLE */
 
@@ -346,6 +346,6 @@ export class Skill {
                 break;
         }
 
-        return this.owner.scene.addEntity(hitbox, x, y, Object.assign({}, hitboxSettings));
+        return <Hitbox> this.owner.scene.addEntity(hitbox, x, y, Object.assign({}, hitboxSettings));
     }
 }
