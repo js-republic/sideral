@@ -14,7 +14,9 @@
     "test": "node_modules/.bin/karma start config/karma.conf.prod.js",
     "test-dev": "node_modules/.bin/karma start config/karma.conf.dev.js",
     "eslint": "./node_modules/.bin/eslint src",
-    "generate-doc": "./node_modules/.bin/jsdoc -c ./config/jsdoc.json"
+    "generate-doc": "./node_modules/.bin/jsdoc -c ./config/jsdoc.json",
+    "doc": "typedoc --out ./ts-doc ./ --module amd",
+    "doc:serve": "simplehttpserver ./ts-doc"
   },
   "repository": {
     "type": "git",
@@ -69,6 +71,7 @@
     "karma-remap-istanbul": "^0.2.1",
     "karma-source-map-support": "^1.2.0",
     "karma-webpack": "^1.8.0",
+    "typedoc": "^0.7.1",
     "typescript": "^2.3.2",
     "webpack": "^2.4.1",
     "webpack-dev-server": "^2.4.5"
@@ -102,6 +105,7 @@
     "redux": "^3.6.0",
     "serve-favicon": "^2.3.0",
     "signals": "^1.0.0",
+    "simplehttpserver": "^0.0.6",
     "transform-loader": "^0.2.3"
   },
   "config": {

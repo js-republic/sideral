@@ -11,3 +11,4 @@ coverage
 node_modules
 docs
 .DS_Store
+ts-doc/
