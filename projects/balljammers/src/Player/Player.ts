@@ -32,9 +32,10 @@ export class Player extends Entity {
 
         // props
         this.setProps({
-            speed       : 80,
-            power       : 90,
-            jump        : 200
+            speed       : 20,
+            powerX      : 150,
+            powerY      : 790,
+            jump        : 600
         });
 
         // read-only
@@ -52,8 +53,8 @@ export class Player extends Entity {
         this.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
 
         // skills
-        this.skills.add("attack", new PlayerAttackSkill());
-        this.skills.add("dash", new PlayerDashSkill());
+        this.skills.add("attack", new PlayerAttackSkill(this));
+        this.skills.add("dash", new PlayerDashSkill(this));
     }
 
     /**
@@ -61,10 +62,10 @@ export class Player extends Entity {
      * @lifecycle
      * @override
      */
-    update () {
+    update (tick) {
         this.props.vx = this.speedFactor * this.props.speed;
 
-        super.update();
+        super.update(tick);
     }
 
     /**

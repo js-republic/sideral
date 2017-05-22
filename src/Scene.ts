@@ -1,13 +1,14 @@
 import { Material, World, ContactMaterial } from "p2";
 
 import { Module } from "./Module";
+import { Entity } from "./Entity";
 
 import { Enum } from "./Tool/Enum";
+import { Util } from "./Tool/Util";
 
 import { Tilemap } from "./Module/Tilemap";
+import { Wall } from "./Module/Wall";
 
-import { currentGame } from "./Game";
-import { Entity } from "./Entity";
 
 
 /**
@@ -16,12 +17,22 @@ import { Entity } from "./Entity";
  * @extends Module
  */
 export class Scene extends Module {
+
+    /* ATTRIBUTES */
+
     _entities: Array<Entity>    = null;
     DefaultMaterial             = new Material(Scene.generateIdNumber());
     WallMaterial                = new Material(Scene.generateIdNumber());
     tilemap: Tilemap            = null;
     world                       = new World({ gravity: [0, 0] });
-    materials                   = [this.DefaultMaterial, this.WallMaterial];
+    materials                   = [];
+
+    /**
+     * The amplitude of the screen shake
+     * @readonly
+     * @type {number}
+     */
+    shakeAmplitude: number      = 0;
 
 
     /* LIFECYCLE */
@@ -33,28 +44,26 @@ export class Scene extends Module {
         super();
 
         this.setProps({
-
-            /**
-             * The scale of the scene
-             * @name Scene#scale
-             * @type {number}
-             * @default 1
-             */
-            scale   : 1,
-
-            /**
-             * Follow and center the camera position to the following entity
-             * @name Scene#follow
-             * @type {Entity}
-             * @default null
-             */
-            follow  : null,
-
-            width   : currentGame.props.width,
-            height  : currentGame.props.height
+            scale       : 1,
+            motionFactor: 1
         });
 
+        /**
+         * The amplitude of the screen shake
+         * @readonly
+         * @type {number}
+         */
+        this.shakeAmplitude = 0;
+
+        this.context.scene  = this;
+        this.materials      = [this.world.defaultMaterial, this.WallMaterial];
+
         this.world.setGlobalStiffness(1e5);
+        this.world.defaultContactMaterial.stiffness             = 1e8;
+        this.world.defaultContactMaterial.relaxation            = 3;
+        this.world.defaultContactMaterial.frictionStiffness     = 1e8;
+        this.world.defaultContactMaterial.frictionRelaxation    = 3;
+        this.world.defaultContactMaterial.surfaceVelocity       = 0;
 
         this.world.on("beginContact", this._onBeginContact.bind(this), false);
         this.world.on("endContact", this._onEndContact.bind(this), false);
@@ -72,7 +81,10 @@ export class Scene extends Module {
     initialize (props) {
         super.initialize(props);
 
-        this.onGravityChange();
+        this.setProps({
+            width   : currentGame.props.width,
+            height  : currentGame.props.height
+        });
     }
 
     /**
@@ -80,36 +92,41 @@ export class Scene extends Module {
      * @lifecycle
      * @override
      */
-    update () {
-        super.update();
-        this.world.step(1 / 60, currentGame.latency, 3);
+    update (tick) {
+        tick *= this.props.motionFactor;
+
+        super.update(tick);
+
+        const fixedStep = 1 / 60,
+            maxStep     = 3;
+
+        this.world.step(1 / 60, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
+
+        if (this.container && this.shakeAmplitude) {
+            this.container.pivot.set(this.shakeAmplitude * (Math.random() - 0.5), this.shakeAmplitude * (Math.random() - 0.5));
+        }
     }
 
 
     /* METHODS */
 
     /**
-     * Add a new entity into the scene
-     * @param {Object} entity: entity instance
-     * @param {number} x: position of the entity in x axis
-     * @param {number} y: position of the entity in y axis
-     * @param {{}=} settings: settings to add to the entity (will merge into props of entity)
-     * @param {number=} index: z index position of the entity
-     * @returns {Object} entity added
+     * Shake the current scene
+     * @access public
+     * @param {number} amplitude - Amplitude of the shake
+     * @param {number=} duration - Duration of the shake
+     * @returns {number} The current amplitude of the shake
      */
-    addEntity (entity:Entity, x, y, settings:any = {}, index?: number) {
-        settings.x      = x;
-        settings.y      = y;
-        entity.scene    = this;
-        this._entities  = null;
+    shake (amplitude, duration = 10) {
+        this.shakeAmplitude = amplitude;
 
-        const entityCreated = <Entity>this.add(entity, settings, index);
+        this.timers.add("shake", duration, () => {
+            this.shakeAmplitude = 0;
 
-        if (entityCreated.body) {
-            this.world.addBody(entityCreated.body.data);
-        }
-
-        return entityCreated;
+            if (this.container) {
+                this.container.pivot.set(0, 0);
+            }
+        });
     }
 
     /**
@@ -132,13 +149,19 @@ export class Scene extends Module {
         }
 
         if (!bounce) {
-            entity.body.shape.material = this.DefaultMaterial;
+            entity.body.shape.material = this.world.defaultMaterial;
 
         } else {
             const materialOptions = {
-                restitution: bounce,
-                stiffness: Number.MAX_VALUE
+                restitution     : bounce,
+                friction        : this.world.defaultContactMaterial.friction,
+                stiffness       : Number.MAX_VALUE,
+                relaxation      : this.world.defaultContactMaterial.relaxation,
+                frictionRelaxation  : this.world.defaultContactMaterial.frictionRelaxation,
+                frictionStiffness   : this.world.defaultContactMaterial.frictionStiffness,
+                surfaceVelocyt      : this.world.defaultContactMaterial.surfaceVelocity
             } as p2.ContactMaterialOptions;
+
             const material = entity.body.shape.material = new Material(Scene.generateIdNumber());
             const contactMaterials = this.materials.map(materialB => {
                 return new ContactMaterial(material, materialB, materialOptions);
@@ -157,7 +180,6 @@ export class Scene extends Module {
      */
     setTilemap (data: any): Tilemap {
         this.tilemap        = <Tilemap> this.add(new Tilemap(), {}, 0);
-        this.tilemap.scene  = this;
 
         this.tilemap.setData(data);
 
@@ -226,12 +248,12 @@ export class Scene extends Module {
         const walls = (this.tilemap && this.tilemap.bodies) || [];
 
         contactEquations.forEach(contactEquation => {
-            const wallA     = walls.find(wall => wall.id === contactEquation.bodyA.id),
-                wallB       = walls.find(wall => wall.id === contactEquation.bodyB.id),
-                entities    = this.getEntities().filter(entity => entity.body),
-                findEntity  = bodyId => entities.find(entity => entity.body.id === bodyId),
-                entityA     = wallA ? null : findEntity(contactEquation.bodyA.id),
-                entityB     = wallB ? null : findEntity(contactEquation.bodyB.id);
+            const ownerA    = contactEquation.bodyA.owner,
+                ownerB      = contactEquation.bodyB.owner,
+                wallA       = (ownerA instanceof Wall) && ownerA,
+                wallB       = (ownerB instanceof Wall) && ownerB,
+                entityA     = wallA ? false : ownerA,
+                entityB     = wallB ? false : ownerB;
 
             if ((entityA && entityA.type === Enum.TYPE.GHOST) || (entityB && entityB.type === Enum.TYPE.GHOST)) {
                 contactEquation.enabled = false;
@@ -300,38 +322,29 @@ export class Scene extends Module {
      * @returns {{ entityA: Entity, entityB: Entity, contactA: *, contactB: *}} resolve object
      */
     _resolveContact (bodyA, bodyB) {
-        const entities  = this.getEntities().filter(entity => entity.body && entity.body.data),
-            walls       = (this.tilemap && this.tilemap.bodies) || [],
-            findEntityByBody    = body => entities.find(entity => entity.body.data.id === body.id),
-            findWallByBody      = body => walls.find(wall => wall.id === body.id),
-            entityA     = findEntityByBody(bodyA),
-            entityB     = findEntityByBody(bodyB);
+        const ownerA    = bodyA.owner,
+            ownerB      = bodyB.owner;
 
         let contactA    = null,
-            contactB    = null,
-            wall        = null;
+            contactB    = null;
 
         const isAbove = (xA, yA, widthA, xB, yB, widthB) => yB >= yA && (xA > xB - widthA) && (xA < xB + widthB);
 
         switch (true) {
-            case Boolean(entityA) && Boolean(entityB):
-                contactA = { bodyId: bodyB.id, entity: entityB, isAbove: isAbove(entityA.props.x, entityA.props.y, entityA.props.height, entityB.props.x, entityB.props.y, entityB.props.width) };
-                contactB = { bodyId: bodyA.id, entity: entityA, isAbove: isAbove(entityB.props.x, entityB.props.y, entityB.props.height, entityA.props.x, entityA.props.y, entityA.props.width) };
+            case ownerB instanceof Wall:
+                contactA = { bodyId: bodyB.id, isAbove: isAbove(ownerA.props.x, ownerA.props.y, ownerA.props.height, ownerB.props.x, ownerB.props.y, ownerB.props.width) };
                 break;
 
-            case entityA && !entityB: wall = findWallByBody(bodyB);
-                if (wall) {
-                    contactA = { bodyId: bodyB.id, isAbove: isAbove(entityA.props.x, entityA.props.y, entityA.props.height, wall.x, wall.y, wall.width) };
-                }
+            case ownerA instanceof Wall:
+                contactB = { bodyId: bodyA.id, isAbove: isAbove(ownerB.props.x, ownerB.props.y, ownerB.props.height, ownerA.x, ownerA.y, ownerA.width) };
                 break;
 
-            case entityB && !entityA: wall = findWallByBody(bodyA);
-                if (wall) {
-                    contactB = { bodyId: bodyA.id, isAbove: isAbove(entityB.props.x, entityB.props.y, entityB.props.height, wall.x, wall.y, wall.width) };
-                }
+            default:
+                contactA = { bodyId: bodyB.id, entity: ownerB, isAbove: isAbove(ownerA.props.x, ownerA.props.y, ownerA.props.height, ownerB.props.x, ownerB.props.y, ownerB.props.width) };
+                contactB = { bodyId: bodyA.id, entity: ownerA, isAbove: isAbove(ownerB.props.x, ownerB.props.y, ownerB.props.height, ownerA.props.x, ownerA.props.y, ownerA.props.width) };
                 break;
         }
 
-        return { entityA: entityA, entityB: entityB, contactA: contactA, contactB: contactB };
+        return { entityA: (ownerA instanceof Entity) && ownerA, entityB: (ownerB instanceof Entity) && ownerB, contactA: contactA, contactB: contactB };
     }
 }

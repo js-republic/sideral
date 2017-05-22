@@ -24,7 +24,7 @@ export class Timer {
          * Duration of the timer
          * @type {number}
          */
-        this.duration = duration;
+        this.duration = duration * 0.001;
 
         /**
          * Number of time the timer must reset after complete
@@ -89,13 +89,13 @@ export class Timer {
      * update timer
      * @returns {void|null} -
      */
-    update () {
+    update (tick) {
         if (this.pause || this.finished) {
             return null;
         }
 
-        this.value      = this.value + this.tendance;
-        const finished  = !this.value || (Math.abs(this.value) === Math.abs(this.duration));
+        this.value      = this.value + (tick * this.tendance);
+        const finished  = !this.value || (Math.abs(this.value) >= Math.abs(this.duration));
 
         if (this.eventUpdate) {
             this.eventUpdate(this.duration - this.value, this.getValueRationed(true), this.duration);
@@ -152,5 +152,25 @@ export class Timer {
         this.tendance = this.duration < 0 ? 1 : -1;
         this.pause    = false;
         this.finished = false;
+    }
+
+    /**
+     * Convert frame to ms
+     * @param {number} frame - Number of frame
+     * @param {number} fps - Current fps (provided by the Game Object)
+     * @returns {number} number of ms
+     */
+    static frameToMs (frame, fps) {
+        return (frame / fps) * 1000;
+    }
+
+    /**
+     * Convert ms to frame
+     * @param {number} ms - Number of milliseconds
+     * @param {number} fps - Current fps (provided by the Game object)
+     * @returns {number} Number of frames
+     */
+    static msToFrame (ms, fps) {
+        return (ms / 1000) * fps;
     }
 }

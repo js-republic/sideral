@@ -8,16 +8,17 @@ import { TimerManager } from "./Tool/TimerManager";
  * @class SideralObject
  */
 export class SideralObject {
-    id: string = SideralObject.generateId();
-    props: any = {};
-    last: any = {};
+    id: string      = SideralObject.generateId();
+    props: any   = {};
+    context: any = {};
+    last: any    = {};
     signals: {[key: string]: Signal} = {
         update: null,
         propChange: null,
     };
     children: SideralObject[] = [];
     initialized = false;
-    timers: TimerManager = new TimerManager();
+    timers: TimerManager = new TimerManager(this);
     parent: SideralObject = null;
     container: PIXI.Container = new PIXI.Container();
     killed = false;
@@ -103,7 +104,7 @@ export class SideralObject {
          * @name SideralObject#timers
          * @default new TimerManager()
          */
-        this.timers     = new TimerManager();
+        this.timers     = new TimerManager(this);
 
         /**
          * Parent of the object
@@ -167,12 +168,13 @@ export class SideralObject {
     /**
      * Lifecycle - Called every loop
      * @access protected
+     * @param {number} tick - The tick factor (to prevent the dependance of the framerate)
      * @returns {void}
      */
-    update () {
-        this.children.forEach(child => child.update());
-        this.timers.update();
-        this.signals.update.dispatch();
+    update (tick) {
+        this.children.forEach(child => child.update(tick));
+        this.timers.update(tick);
+        this.signals.update.dispatch(tick);
     }
 
     /**
@@ -258,6 +260,7 @@ export class SideralObject {
 
         item.parent = this;
 
+        Object.keys(this.context).forEach(key => item.context[key] = this.context[key]);
         this.children.push(item);
         item.initialize(settings);
 

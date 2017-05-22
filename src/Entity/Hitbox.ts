@@ -22,16 +22,11 @@ export class Hitbox extends Entity {
 
         this.setProps({
             gravityFactor   : 0,
-            offsetX         : 0,
-            offsetY         : 0,
-            offsetFlip      : null,
             multipleHit     : false,
             oncePerHit      : true,
-            maxHit          : 1,
-            follow          : null
+            maxHit          : 1
         });
 
-        this.signals.update.add(this.updateFollow.bind(this));
         this.signals.beginCollision.add(this.onCollision.bind(this));
     }
 
@@ -75,20 +70,6 @@ export class Hitbox extends Entity {
     }
 
     /* EVENTS */
-
-    /**
-     * Update coordinate of the following entity
-     * @event update
-     * @returns {void}
-     */
-    updateFollow () {
-        const { offsetX, offsetY, offsetFlip, follow } = this.props;
-
-        if (follow) {
-            this.props.x = follow.props.x + (follow.props.flip && offsetFlip !== null ? offsetFlip : offsetX);
-            this.props.y = follow.props.y + offsetY;
-        }
-    }
 
     onCollision (otherName, other) {
         const result = this.onHit(otherName, other);

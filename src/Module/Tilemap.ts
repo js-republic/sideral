@@ -1,13 +1,11 @@
-import * as p2 from "p2";
-
 import { Module } from "../Module";
-
 import { Scene } from "./../Scene";
 
 import { Shape } from "./Shape";
 
 import { Enum } from "../Tool/Enum";
-import { createWall } from "../Tool/Wall";
+
+import { Wall } from "../Module/Wall";
 
 
 export class Tilemap extends Module {
@@ -72,7 +70,11 @@ export class Tilemap extends Module {
         }
 
         loader.load((currentLoader, resources) => {
-            this.bodies = data.walls.map((wall, index, array) => createWall(this.scene, wall[0], wall[1], wall[2], wall[3], wall[4], wall[5]));
+            this.bodies = data.walls.map(wall => {
+                const [box, x, y, width, height, directionConstraint] = wall;
+
+                return this.add(new Wall(), { box, x, y, width, height, directionConstraint });
+            });
 
             this._loadBackgrounds(data.backgrounds, resources);
             this._loadGrids(data.grid, data.path, data.debug);

@@ -45,8 +45,8 @@ export class SkillManager {
      * Update skills
      * @returns {void}
      */
-    update () {
-        Object.keys(this.skills).forEach(name => this.skills[name].update());
+    update (tick) {
+        Object.keys(this.skills).forEach(name => this.skills[name].update(tick));
     }
 
 

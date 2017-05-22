@@ -42,24 +42,13 @@ export class Sprite extends Module {
         super.initialize(props);
     }
 
-    /**
-     * @update
-     * @lifecycle
-     * @override
-     */
-    update () {
-        super.update();
-
-        this.updateAnimation();
-    }
-
 
     /* METHODS */
 
     /**
      * Add an animation for the current sprite
      * @param {string} name: name of the animation
-     * @param {number} duration: duration of the animation (in frames)
+     * @param {number} duration: duration of the animation (in ms)
      * @param {Array<number>} frames: Array of frames to be displayed during the animation
      * @param {number=} loopCount: number of loop. If loop == 0, there will be no limit of loop
      * @param {{x: number, y: number}|null=} offset: offset x and y related to the position of the Entity
@@ -114,6 +103,7 @@ export class Sprite extends Module {
 
             if (this.loaded) {
                 this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
+                this.timers.add("sprite", this.animation.duration, this.onNextSprite.bind(this));
             }
         }
     }
@@ -137,39 +127,6 @@ export class Sprite extends Module {
     }
 
     /**
-     * Update the current animation
-     * @returns {void|null} -
-     */
-    updateAnimation () {
-        if (!this.loaded || !this.animation || (this.animation && !this.animation.duration)) {
-            return null;
-        }
-
-        if (this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop) {
-            return null;
-        }
-
-        this.animation.time++;
-
-        if (this.animation.time >= this.animation.fraction) {
-            if (this.animation.frameIndex >= (this.animation.frames.length - 1)) {
-                this.animation.loop++;
-                this.animation.frameIndex = this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop ? this.animation.frames.length - 1 : 0;
-
-            } else {
-                this.animation.frameIndex++;
-
-            }
-
-            this.animation.time = 0;
-
-            if (this.animation.maxLoop < 0 || this.animation.loop <= this.animation.maxLoop) {
-                this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
-            }
-        }
-    }
-
-    /**
      * Convert frame indexes to pixi rectangles
      * @private
      * @param {Array<number>} frames: frames to convert
@@ -189,6 +146,32 @@ export class Sprite extends Module {
 
 
     /* EVENTS */
+
+    /**
+     * When timer of a frame is finished
+     * @returns {void|null} -
+     */
+    onNextSprite () {
+        if (this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop) {
+            return null;
+        }
+
+        if (this.animation.frameIndex >= (this.animation.frames.length - 1)) {
+            this.animation.loop++;
+            this.animation.frameIndex = this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop ? this.animation.frames.length - 1 : 0;
+
+        } else {
+            this.animation.frameIndex++;
+
+        }
+
+        this.animation.time = 0;
+
+        if (this.animation.maxLoop < 0 || this.animation.loop <= this.animation.maxLoop) {
+            this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
+            this.timers.get("sprite").restart();
+        }
+    }
 
     /**
      * When imagePath attributes change

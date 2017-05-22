@@ -1,7 +1,10 @@
-import { currentGame } from "../../../src/Game";
+import { Game } from "src/Game";
 
 import { Arena } from "./Arena";
 
 
-(<any>window).game     = currentGame.start(832, 576);
-(<any>window).scene    = currentGame.addScene((new Arena()));
+(<any>window).game     = new Game();
+
+window.game.start(832, 576);
+
+(<any>window).scene    = window.game.add((new Arena()));

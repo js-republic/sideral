@@ -3,27 +3,23 @@ import { Timer } from "./Timer";
 
 export class TimerManager {
     timers: {[timerName: string]: Timer};
+    owner: any;
 
     /* LIFECYCLE */
 
     /**
      * @constructor
      */
-    constructor () {
-
-        /**
-         * Map of the Timers
-         * @type {{Timer}}
-         */
-        this.timers = {};
+    constructor (owner) {
+        this.owner = owner;
     }
 
     /**
      * @update
      * @returns {void}
      */
-    update () {
-        Object.keys(this.timers).forEach(key => this.timers[key].update());
+    update (tick) {
+        Object.keys(this.timers).forEach(key => this.timers[key].update(tick));
     }
 
 

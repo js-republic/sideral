@@ -1,13 +1,23 @@
-import { Entity } from "../../../src/Entity";
+import { Entity } from "src/Entity";
 
-import { Enum } from "../../../src/Tool/Enum";
+import { Particles } from "src/Entity/Particles";
+
+import { Enum } from "src/Tool/Enum";
+
+import * as trailConfig from "./Particles/trail.json";
 
 
 export class Ball extends Entity {
-    name: string = 'ball';
-    friction: boolean = true;
-    type: number = Enum.TYPE.WEAK;
-    box: string = Enum.BOX.CIRCLE;
+
+    /* ATTRIBUTES */
+
+    name: string        = "ball";
+    friction: boolean   = true;
+    type: number        = Enum.TYPE.WEAK;
+    box: string         = Enum.BOX.CIRCLE;
+    trail: Particles    = null;
+
+
     /* LIFECYCLE */
 
     /**
@@ -23,6 +33,7 @@ export class Ball extends Entity {
         });
 
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
+        this.signals.update.add(this.updateVelocity.bind(this));
 
         this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
     }
@@ -37,17 +48,13 @@ export class Ball extends Entity {
 
         this.setBounce(0.65);
         this.respawn();
-    }
 
-    /**
-     * @update
-     * @lifecycle
-     * @override
-     */
-    update () {
-        super.update();
-
-        this.props.vx = this.props.vy = 0;
+        this.trail = this.scene.add(new Particles(), {
+            follow  : this.beFollowed(true),
+            images  : "images/particle/bolt.png",
+            config  : trailConfig,
+            autoRun : false
+        });
     }
 
 
@@ -58,12 +65,34 @@ export class Ball extends Entity {
      * @returns {void}
      */
     respawn () {
+        this.resume(true);
         this.idle();
-        this.position((this.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
+        this.position((this.context.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
     }
 
 
     /* EVENTS */
+
+    /**
+     * Update the velocity of the ball
+     * @returns {void}
+     */
+    updateVelocity () {
+        const bodySpeed     = Math.abs(this.body.vx),
+            trailRunning    = this.trail.isRunning();
+
+        this.props.vx = this.props.vy = 0;
+
+        /*
+        if (!trailRunning && bodySpeed > 100) {
+            this.trail.run();
+
+        } else if (trailRunning && bodySpeed <= 100) {
+            this.trail.stop();
+
+        }
+        */
+    }
 
     /**
      * When entering in collision with a goal entity
@@ -72,7 +101,9 @@ export class Ball extends Entity {
      */
     onCollisionWithGoal (goal) {
         if (this.props.y > goal.props.y) {
-            this.respawn();
+            this.context.scene.goal(goal);
+            this.pause(true);
+            this.trail.stop();
         }
     }
 }

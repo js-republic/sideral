@@ -3,14 +3,14 @@ import { Timer } from "./Timer";
 import { Util } from "./Util";
 import { Signal } from "./Signal";
 import { Entity } from '../Entity';
-import { Hitbox } from '../Entity/';
+import { Hitbox } from '../Entity/Hitbox';
 
 
 export class Skill {
     name: string = null;
     owner: Entity = null;
     animation: string = null;
-    hitboxClass: Entity = null;
+    hitboxClass: typeof Entity = null;
     hitboxSettings: any = {};
     duration: number = 0;
     durationType: string = Enum.DURATION_TYPE.FRAME;
@@ -43,7 +43,9 @@ export class Skill {
     /**
      * @constructor
      */
-    constructor () {
+    constructor (owner) {
+
+        this.owner = owner;
 
         /**
          * Name of the skill
@@ -53,7 +55,7 @@ export class Skill {
 
         /**
          * Owner of the skill
-         * @type Entity
+         * @type {Entity}
          */
         this.owner          = null;
 
@@ -85,7 +87,7 @@ export class Skill {
          * Type of duration (see Enum.DURATION_TYPE)
          * @type {string}
          */
-        this.durationType   = Enum.DURATION_TYPE.FRAME;
+        this.durationType   = Enum.DURATION_TYPE.MS;
 
         /**
          * Duration of the preparation
@@ -97,7 +99,7 @@ export class Skill {
          * Preparation type (see Enum.DURATION_TYPE)
          * @type {string}
          */
-        this.preparationType = Enum.DURATION_TYPE.FRAME;
+        this.preparationType = Enum.DURATION_TYPE.MS;
 
         /**
          * Duration of the reloading
@@ -109,7 +111,7 @@ export class Skill {
          * Reload type (see Enum.DURATION_TYPE)
          * @type {string}
          */
-        this.reloadType     = Enum.DURATION_TYPE.FRAME;
+        this.reloadType     = Enum.DURATION_TYPE.MS;
 
         /**
          * If false, the skill can be stopped before it was finished
@@ -192,7 +194,7 @@ export class Skill {
      * Update of the skill
      * @returns {void}
      */
-    update () {
+    update (tick) {
         const inPreparation = this.timerPreparation && !this.timerPreparation.finished,
             inLaunching     = this.timer && !this.timer.finished;
 
@@ -205,13 +207,13 @@ export class Skill {
         }
 
         if (inPreparation) {
-            this.timerPreparation.update();
+            this.timerPreparation.update(tick);
 
         } else if (inLaunching) {
-            this.timer.update();
+            this.timer.update(tick);
 
         } else if (this.timerReload && !this.timerReload.finished) {
-            this.timerReload.update();
+            this.timerReload.update(tick);
         }
     }
 
@@ -237,7 +239,7 @@ export class Skill {
 
             if (this.hitboxClass) {
                 this.hitboxSettings.owner   = this.hitboxSettings.owner || this.owner;
-                this.hitbox                 = this.addHitbox(this.hitboxClass, this.hitboxSettings);
+                this.hitbox                 = this.addHitbox(new this.hitboxClass(), this.hitboxSettings);
             }
 
             this.signals.skillStart.dispatch(this);
@@ -282,19 +284,20 @@ export class Skill {
      * @returns {number} The duration in number of frames
      */
     getTimerDuration (duration, durationType): number {
-        let frames = duration;
+        let ms = duration;
 
         switch (durationType) {
             case Enum.DURATION_TYPE.ANIMATION_LOOP:
-                frames = ((this.owner.sprite.getAnimation(this.animation).duration) * duration) - 1;
+                const animation = this.owner.sprite.getAnimation(this.animation);
+
+                ms = animation.duration * duration * animation.frames.length;
                 break;
 
-            case Enum.DURATION_TYPE.MS:
-                frames = Util.msToFrame(duration);
+            case Enum.DURATION_TYPE.FRAME: ms = Timer.frameToMs(duration, this.owner.context.game.fps);
                 break;
         }
 
-        return frames;
+        return ms;
     }
 
 
@@ -325,12 +328,11 @@ export class Skill {
 
     /**
      * Instanciate a hitbox item for the time of the skill
-     * @param {*} hitboxClass: The class to instanciate
+     * @param {*} hitboxObject: The object to add
      * @param {*} hitboxSettings: The settings to transmit to the hitbox instance
      * @returns {*} The hitbox instance
      */
-    addHitbox (hitboxClass, hitboxSettings: any = {}) {
-        const hitbox    = new hitboxClass();
+    addHitbox (hitboxObject, hitboxSettings: any = {}) {
         let x           = this.owner.props.x,
             y           = this.owner.props.y;
 
@@ -346,6 +348,6 @@ export class Skill {
                 break;
         }
 
-        return <Hitbox> this.owner.scene.addEntity(hitbox, x, y, Object.assign({}, hitboxSettings));
+        return <Hitbox> this.owner.context.scene.addModule(hitboxObject, x, y, Object.assign({}, hitboxSettings));
     }
 }

@@ -2,21 +2,22 @@ import * as p2 from "p2";
 
 import { Util } from "../Util";
 import { Enum } from "../Enum";
+import { Module } from "./../../Module";
 
 
 export class Body {
     offset: {x: number; y: number};
-    scene: any;
     shape: p2.Box;
     data: p2.Body;
     id: number;
+    owner: Module;
 
     /**
      * @constructor
-     * @param {Scene} scene: scene world
+     * @param {Module} owner - Owner of the body
      * @param {*=} props: properties to pass to p2
      */
-    constructor (scene, props: any = {}) {
+    constructor (owner, props: any = {}) {
         const { x, y, width, height, group, material } = props;
 
         delete props.x;
@@ -32,16 +33,40 @@ export class Body {
             y: height / 2
         };
 
-        this.scene          = scene;
+        this.owner          = owner;
         this.shape          = props.shape || new p2.Box({ width: width, height: height });
         this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
-        this.shape.material = material || this.scene.DefaultMaterial;
+        this.data.damping   = 0;
+        this.data.owner     = this.owner;
+        this.shape.material = material || this.owner.context.scene.DefaultMaterial;
         this.id             = this.data.id;
 
         this.data.addShape(this.shape);
 
         if (typeof group !== "undefined") {
             this.setGroup(group);
+        }
+
+        this.enable();
+    }
+
+    /**
+     * Enable the body and add it into the scene
+     * @returns {void}
+     */
+    enable () {
+        if (this.owner.context.scene && this.owner.context.scene.world) {
+            this.owner.context.scene.world.addBody(this.data);
+        }
+    }
+
+    /**
+     * Disable the body and remove it from the scene
+     * @returns {void}
+     */
+    disable () {
+        if (this.owner.context.scene && this.owner.context.scene.world) {
+            this.owner.context.scene.world.removeBody(this.data);
         }
     }
 
@@ -107,7 +132,7 @@ export class Body {
      * @returns {number} the position x
      */
     get x (): number {
-        return this.data.position[0] - this.offset.x;
+        return this.data.interpolatedPosition[0] - this.offset.x;
     }
 
     /**
@@ -115,7 +140,23 @@ export class Body {
      * @returns {number} the position y
      */
     get y (): number {
-        return this.data.position[1] - this.offset.y;
+        return this.data.interpolatedPosition[1] - this.offset.y;
+    }
+
+    /**
+     * Get the velocity x of the body
+     * @returns {number}
+     */
+    get vx (): number {
+        return this.data.velocity[0];
+    }
+
+    /**
+     * Get the velocity y of the vody
+     * @returns {number}
+     */
+    get vy (): number {
+        return this.data.velocity[1];
     }
 
     /**
@@ -139,7 +180,7 @@ export class Body {
      * @returns {number} angle in degree
      */
     get angle (): number {
-        return Util.toDegree(this.data.angle);
+        return Util.toDegree(this.data.interpolatedAngle);
     }
 
     /**
@@ -167,5 +208,23 @@ export class Body {
      */
     set angle (value: number) {
         this.data.angle = Util.toRadians(value);
+    }
+
+    /**
+     * Set a new velocity in x axis
+     * @param {number} value - The new velocity in x axis
+     * @returns {void}
+     */
+    set vx (value: number) {
+        this.data.velocity[0] = value;
+    }
+
+    /**
+     * Set a new velocity in y axis
+     * @param {number} value - The new velocity in y axis
+     * @returns {void}
+     */
+    set vy (value: number) {
+        this.data.velocity[1] = value;
     }
 }

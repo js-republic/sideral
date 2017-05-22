@@ -41,8 +41,8 @@ export class PlayerAttackHitbox extends Hitbox {
     onHitWithBall (ball: Ball) {
         const owner = this.props.owner;
 
-        ball.props.vx   = owner.props.power * (owner.props.x < ball.props.x ? 1 : -1) * (owner.standing ? 1 : 2);
-        ball.props.vy   -= 200;
+        ball.props.vx   = owner.props.powerX * (owner.props.x < ball.props.x ? 1 : -1) * (owner.standing ? 1 : 2);
+        ball.props.vy   = -Math.abs(owner.props.powerY);
 
         return true;
     }

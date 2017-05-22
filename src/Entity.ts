@@ -9,13 +9,17 @@ import { Enum } from "./Tool/Enum";
 import { SkillManager } from "./Tool/SkillManager";
 
 
+/**
+ * Module with physics and interaction
+ * @class entity
+ * @extends Module
+ */
 export class Entity extends Module {
 
     name: string            = "entity";
     type: number            = Enum.TYPE.SOLID;
     box: string             = Enum.BOX.RECTANGLE;
     group: number           = Enum.GROUP.ALL;
-    scene: Scene            = null;
     friction: boolean       = false;
     lastPos                 = {x: 0, y: 0};
     skills: SkillManager    = new SkillManager(this);
@@ -79,11 +83,11 @@ export class Entity extends Module {
 
         switch (this.box) {
             case Enum.BOX.CIRCLE:
-                this.body = new CircularBody(this.scene, this.props.x, this.props.y, this.props.width / 2, settings);
+                this.body = new CircularBody(this, this.props.x, this.props.y, this.props.width / 2, settings);
                 break;
 
             default: 
-                this.body = new RectangularBody(this.scene, this.props.x, this.props.y, this.props.width, this.props.height, settings);
+                this.body = new RectangularBody(this, this.props.x, this.props.y, this.props.width, this.props.height, settings);
                 break;
         }
 
@@ -95,10 +99,10 @@ export class Entity extends Module {
      * @lifecycle
      * @override
      */
-    update () {
-        super.update();
+    update (tick) {
+        super.update(tick);
 
-        this.skills.update();
+        this.skills.update(tick);
     }
 
     /**
@@ -110,7 +114,7 @@ export class Entity extends Module {
         super.kill();
 
         if (this.body && this.scene.world) {
-            this.scene.world.removeBody(this.body.data);
+            this.context.scene.world.removeBody(this.body.data);
         }
     }
 
@@ -121,6 +125,10 @@ export class Entity extends Module {
      */
     nextCycle () {
         super.nextCycle();
+
+        if (this._paused) {
+            return null;
+        }
 
         if (this.body) {
             if (this.last.x !== this.body.x) {
@@ -146,23 +154,103 @@ export class Entity extends Module {
             this.body.data.force[1]     = this.props.accelY;
 
             if (this.props.vx || (!this.props.vx && !this.friction)) {
-                this.body.data.velocity[0] = this.props.vx;
+                this.body.vx = this.props.vx;
             }
 
-            if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.scene.props.gravity))) {
-                this.body.data.velocity[1] = this.props.vy;
+            if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.context.scene.props.gravity))) {
+                this.body.vy = this.props.vy;
             }
 
             this.container.rotation = this.body.data.angle;
+
+            this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
         }
 
-        this.collides.forEach(collide => collide.entity && this.signals.collision.dispatch(collide.entity.name, collide.entity));
-
-        this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
+        this.collides.forEach(collide => collide.entity && !collide.entity._paused && this.signals.collision.dispatch(collide.entity.name, collide.entity));
     }
 
 
     /* METHODS */
+
+    /**
+     * @override
+     */
+    position (x, y) {
+        super.position(x, y);
+
+        if (this.body) {
+            this.body.x = this.props.x;
+            this.body.y = this.props.y;
+        }
+    }
+
+    /**
+     * Will pause the entity (will not be affected about gravity; collisions and velocity)
+     * @access public
+     * @param {boolean=} hide - If true, the entity will be invisible
+     * @returns {void}
+     */
+    pause (hide) {
+        this._paused = {
+            x   : this.props.x,
+            y   : this.props.y,
+            vx  : this.props.vx,
+            vy  : this.props.vy,
+            gf  : this.props.gravityFactor
+        };
+
+        if (this.body) {
+            this._paused.bodyVx         = this.body.vx;
+            this._paused.bodyVt         = this.body.vy;
+            this.body.vx                = 0;
+            this.body.vy                = 0;
+            this.body.data.gravityScale = 0;
+            this.body.disable();
+        }
+
+        this.setProps({
+            vx              : 0,
+            vy              : 0,
+            gravityFactor   : 0
+        });
+
+        if (hide) {
+            this.props.visible = false;
+        }
+    }
+
+    /**
+     * Will resume the entity (to be affected about gravity, collisions and velocity)
+     * @access public
+     * @param {boolean=} visible - If true, the entit will now be visible
+     * @returns {null} -
+     */
+    resume (visible) {
+        if (!this._paused) {
+            return null;
+        }
+
+        this.setProps({
+            vx              : this._paused.vx,
+            vy              : this._paused.vy,
+            gravityFactor   : this._paused.gf
+        });
+
+        if (this.body) {
+            this.body.x             = this.props.x;
+            this.body.y             = this.props.y;
+            this.body.vx            = this._paused.bodyVx;
+            this.body.vy            = this._paused.bodyVy;
+            this.body.data.gravityScale = this._paused.gf;
+            this.body.enable();
+        }
+
+        this._paused = null;
+
+        if (visible) {
+            this.props.visible = true;
+        }
+    }
 
     /**
      * Add a new spritesheet to the current entity
@@ -246,7 +334,7 @@ export class Entity extends Module {
      * @returns {number} the next bounceFactor
      */
     setBounce (bounceFactor: number): number {
-        this._bounce = this.scene.setEntityBouncing(this, bounceFactor, this._bounce);
+        this._bounce = this.context.scene.setEntityBouncing(this, bounceFactor, this._bounce);
 
         return this._bounce;
     }

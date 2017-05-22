@@ -1,9 +1,9 @@
 import { Hitbox } from "../../../../src/Entity/Hitbox";
-import { Entity } from '../../../../src/Entity';
 import { Skill } from "../../../../src/Tool/Skill";
 import { Enum } from "../../../../src/Tool/Enum";
 
 import { PlayerAttackHitbox } from './PlayerAttackHitbox';
+
 
 export class PlayerAttackSkill extends Skill {
     animation: string = "attack";
@@ -15,8 +15,10 @@ export class PlayerAttackSkill extends Skill {
      * @constructor
      * @override
      */
-    constructor () {
-        super();
+    constructor (owner) {
+        super(owner);
+
+        this.size(25, 30);
 
         this.animation      = "attack";
         this.duration       = 1;
@@ -24,9 +26,9 @@ export class PlayerAttackSkill extends Skill {
         this.hitboxClass    = PlayerAttackHitbox;
     }
 
-    addHitbox (hitboxClass: typeof Hitbox, hitboxSettings: any = {}) {
-        hitboxSettings.follow = this.owner;
+    addHitbox (hitboxObject: any, hitboxSettings: any = {}) {
+        hitboxSettings.follow = this.owner.beFollowed(false, this.owner.props.width, (this.owner.props.height / 2) - hitboxObject.props.height, -hitboxObject.props.width);
 
-        return super.addHitbox(hitboxClass, hitboxSettings);
+        return super.addHitbox(hitboxObject, hitboxSettings);
     }
 }

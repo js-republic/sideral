@@ -4,9 +4,9 @@ import { Enum } from "../../../src/Tool/Enum";
 
 
 export class Goal extends Entity {
-    name = "goal";
-    type = Enum.TYPE.STATIC;
-    group = Enum.GROUP.ALL;
+    name    = "goal";
+    type    = Enum.TYPE.STATIC;
+
 
     /* LIFECYCLE */
 

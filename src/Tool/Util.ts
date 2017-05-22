@@ -1,6 +1,3 @@
-import { Game, currentGame } from "../Game";
-
-
 export class Util {
 
     /* STATICS */
@@ -82,24 +79,6 @@ export class Util {
      */
     static limit (value: number, min: number, max: number): number {
         return Math.max(min, Math.min(max, value));
-    }
-
-    /**
-     * Convert a frame to milliseconds
-     * @param {number} frame: number of frames
-     * @returns {number} number of milliseconds
-     */
-    static frameToMs (frame: number): number {
-        return (frame / currentGame.fps) * 1000;
-    }
-
-    /**
-     * Convert milliseconds to frames
-     * @param {number} ms: number of milliseconds
-     * @returns {number} Number of frames
-     */
-    static msToFrame (ms: number): number {
-        return (ms / 1000) * currentGame.fps;
     }
 
     /**
