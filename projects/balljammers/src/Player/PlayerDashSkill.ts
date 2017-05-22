@@ -1,6 +1,6 @@
-import { Skill } from "../../../../src/Tool/Skill";
+import { Skill } from "src/Tool/Skill";
 
-import { Effect } from "../../../../src/Entity/Effect";
+import { Effect } from "src/Entity/Effect";
 import { Player } from './Player';
 
 

@@ -49,7 +49,7 @@ export class Ball extends Entity {
         this.setBounce(0.65);
         this.respawn();
 
-        this.trail = this.scene.add(new Particles(), {
+        this.trail = this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),
             images  : "images/particle/bolt.png",
             config  : trailConfig,

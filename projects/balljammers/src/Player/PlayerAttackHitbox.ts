@@ -1,7 +1,7 @@
-import { Hitbox } from "../../../../src/Entity/Hitbox";
+import { Hitbox } from "src/Entity/Hitbox";
 import { Ball } from '../Ball';
-import { Skill } from "../../../../src/Tool/Skill";
-import { Enum } from "../../../../src/Tool/Enum";
+import { Skill } from "src/Tool/Skill";
+import { Enum } from "src/Tool/Enum";
 
 
 export class PlayerAttackHitbox extends Hitbox {

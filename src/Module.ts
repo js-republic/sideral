@@ -48,7 +48,7 @@ export class Module extends SideralObject {
      * @param {number=} index - Z index position of the module
      * @returns {Module} Module added
      */
-    addModule (module, x, y, settings = {}, index?: number) {
+    addModule (module, x, y, settings: any = {}, index?: number) {
         settings.x = x;
         settings.y = y;
 

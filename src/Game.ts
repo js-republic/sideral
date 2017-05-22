@@ -9,7 +9,7 @@ import { Scene } from "./Scene";
  * @class Game
  * @extends SideralObject
  */
-export default class Game extends SideralObject {
+export class Game extends SideralObject {
     inputs: any             = {};
     _inputs: any            = {};
     fps: number             = 60;
@@ -20,6 +20,7 @@ export default class Game extends SideralObject {
     stopped: boolean        = true;
     KEY: any;
     preventInputPropagation: boolean = true;
+    renderer: PIXI.SystemRenderer;
 
     /* LIFECYCLE */
 
@@ -48,7 +49,7 @@ export default class Game extends SideralObject {
         /**
          * @override
          */
-        this.container  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
+        this.renderer  = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
 
         /**
          * List of all keyboard input pressed or released
@@ -161,7 +162,7 @@ export default class Game extends SideralObject {
         this._updateInputs();
 
         this.children.forEach(scene => scene.update(this.tick));
-        this.children.forEach(scene => this.container.render(scene.container));
+        this.children.forEach(scene => this.renderer.render(scene.container));
 
         this.nextCycle();
 
@@ -174,7 +175,7 @@ export default class Game extends SideralObject {
     /**
      * @override
      */
-    add (item, props: any = {}, index: number): Scene {
+    add (item: Scene, props: any = {}, index?: number): Scene {
         if (!(item instanceof Scene)) {
             throw new Error("Game.add : object must be an instance of Sideral Scene Class.");
         }
@@ -226,11 +227,11 @@ export default class Game extends SideralObject {
      * @returns {void|null} -
      */
     resize () {
-        if (!this.container) {
+        if (!this.renderer) {
             return null;
         }
 
-        this.container.resize(this.props.width, this.props.height);
+        this.renderer.resize(this.props.width, this.props.height);
     }
 
 
@@ -289,12 +290,12 @@ export default class Game extends SideralObject {
     _attachGame () {
         if (this.last.dom) {
             try {
-                this.last.dom.removeChild(this.container.view);
+                this.last.dom.removeChild(this.renderer.view);
             } catch (e) { }
         }
 
         if (this.props.dom) {
-            this.props.dom.appendChild(this.container.view);
+            this.props.dom.appendChild(this.renderer.view);
         }
     }
 
@@ -304,11 +305,11 @@ export default class Game extends SideralObject {
      * @returns {void|null} -
      */
     _resizeGame () {
-        if (!this.container) {
+        if (!this.renderer) {
             return null;
         }
 
-        this.container.resize(this.props.width, this.props.height);
+        this.renderer.resize(this.props.width, this.props.height);
     }
 
     /**
@@ -320,7 +321,7 @@ export default class Game extends SideralObject {
         const color = Util.colorToDecimal(this.props.background) as number;
 
         if (!isNaN(color)) {
-            this.container.backgroundColor = color;
+            this.renderer.backgroundColor = color;
         }
     }
 

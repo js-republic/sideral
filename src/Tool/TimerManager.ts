@@ -19,7 +19,8 @@ export class TimerManager {
      * @returns {void}
      */
     update (tick) {
-        Object.keys(this.timers).forEach(key => this.timers[key].update(tick));
+        if (this.timers === undefined) return;
+        Object.keys(this.timers).forEach((key) => this.timers[key].update(tick));
     }
 
 

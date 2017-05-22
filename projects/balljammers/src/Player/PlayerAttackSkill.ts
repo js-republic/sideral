@@ -1,6 +1,6 @@
-import { Hitbox } from "../../../../src/Entity/Hitbox";
-import { Skill } from "../../../../src/Tool/Skill";
-import { Enum } from "../../../../src/Tool/Enum";
+import { Hitbox } from "src/Entity/Hitbox";
+import { Skill } from "src/Tool/Skill";
+import { Enum } from "src/Tool/Enum";
 
 import { PlayerAttackHitbox } from './PlayerAttackHitbox';
 
@@ -18,7 +18,8 @@ export class PlayerAttackSkill extends Skill {
     constructor (owner) {
         super(owner);
 
-        this.size(25, 30);
+        // @TODO should we keep this ???
+        // (<any>this).size(25, 30);
 
         this.animation      = "attack";
         this.duration       = 1;

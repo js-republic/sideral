@@ -3,7 +3,7 @@ import { Enum } from "./../Tool/Enum";
 import { Module } from "./../Module";
 
 
-export default class Wall extends Module {
+export class Wall extends Module {
 
     /* ATTRIBUTES */
 

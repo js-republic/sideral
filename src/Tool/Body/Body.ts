@@ -17,7 +17,7 @@ export class Body {
      * @param {Module} owner - Owner of the body
      * @param {*=} props: properties to pass to p2
      */
-    constructor (owner, props: any = {}) {
+    constructor (owner: Module, props: any = {}) {
         const { x, y, width, height, group, material } = props;
 
         delete props.x;
@@ -37,7 +37,7 @@ export class Body {
         this.shape          = props.shape || new p2.Box({ width: width, height: height });
         this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
         this.data.damping   = 0;
-        this.data.owner     = this.owner;
+        (<any>this.data).owner     = this.owner;
         this.shape.material = material || this.owner.context.scene.DefaultMaterial;
         this.id             = this.data.id;
 

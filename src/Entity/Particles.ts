@@ -1,17 +1,16 @@
-import { Entity } from "./../Entity";
-import { Scene } from "./../Scene";
+import { Entity } from "../Entity";
+import { Scene } from "../Scene";
 
-import { Enum } from "./../Tool/Enum";
+import { Enum } from "../Tool/Enum";
 
 import "pixi-particles";
-
 
 /**
  * Generator of particles
  * @class Particles
  * @extends Entity
  */
-export default class Particles extends Entity {
+export class Particles extends Entity {
 
     /* ATTRIBUTES */
 
@@ -51,7 +50,7 @@ export default class Particles extends Entity {
          * @type {PIXI.particles.Emitter}
          * @default null
          */
-        this.emitter = new PIXI.particles.Emitter(this.container);
+        this.emitter = new (<any>PIXI.particles).Emitter(this.container);
 
         this.signals.propChange.bind("config", this.onConfigurationChange.bind(this));
         this.signals.update.add(this.updateFollow.bind(this));

@@ -2,9 +2,11 @@ import { Game } from "src/Game";
 
 import { Arena } from "./Arena";
 
+const game = new Game();
 
-(<any>window).game     = new Game();
+game.start(832, 576);
 
-window.game.start(832, 576);
+const scene = game.add((new Arena()));
 
-(<any>window).scene    = window.game.add((new Arena()));
+(<any> window).game = game;
+(<any> window).scene = scene;

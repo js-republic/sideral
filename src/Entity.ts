@@ -32,6 +32,15 @@ export class Entity extends Module {
     body:Body;
     sprite: Sprite;
     _debug: any;
+    _beforePauseState: {
+        x?: number;
+        y?: number;
+        vx?: number;
+        vy?: number;
+        gf?: number;
+        bodyVx?: number;
+        bodyVy?: number;
+    };
 
 
     /* LIFECYCLE */
@@ -113,7 +122,7 @@ export class Entity extends Module {
     kill () {
         super.kill();
 
-        if (this.body && this.scene.world) {
+        if (this.body && this.context.scene.world) {
             this.context.scene.world.removeBody(this.body.data);
         }
     }
@@ -126,7 +135,7 @@ export class Entity extends Module {
     nextCycle () {
         super.nextCycle();
 
-        if (this._paused) {
+        if (this._beforePauseState) {
             return null;
         }
 
@@ -166,7 +175,7 @@ export class Entity extends Module {
             this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
         }
 
-        this.collides.forEach(collide => collide.entity && !collide.entity._paused && this.signals.collision.dispatch(collide.entity.name, collide.entity));
+        this.collides.forEach(collide => collide.entity && !collide.entity._beforePauseState && this.signals.collision.dispatch(collide.entity.name, collide.entity));
     }
 
 
@@ -191,7 +200,7 @@ export class Entity extends Module {
      * @returns {void}
      */
     pause (hide) {
-        this._paused = {
+        this._beforePauseState = {
             x   : this.props.x,
             y   : this.props.y,
             vx  : this.props.vx,
@@ -200,8 +209,8 @@ export class Entity extends Module {
         };
 
         if (this.body) {
-            this._paused.bodyVx         = this.body.vx;
-            this._paused.bodyVt         = this.body.vy;
+            this._beforePauseState.bodyVx         = this.body.vx;
+            this._beforePauseState.bodyVy         = this.body.vy;
             this.body.vx                = 0;
             this.body.vy                = 0;
             this.body.data.gravityScale = 0;
@@ -226,26 +235,26 @@ export class Entity extends Module {
      * @returns {null} -
      */
     resume (visible) {
-        if (!this._paused) {
+        if (!this._beforePauseState) {
             return null;
         }
 
         this.setProps({
-            vx              : this._paused.vx,
-            vy              : this._paused.vy,
-            gravityFactor   : this._paused.gf
+            vx              : this._beforePauseState.vx,
+            vy              : this._beforePauseState.vy,
+            gravityFactor   : this._beforePauseState.gf
         });
 
         if (this.body) {
             this.body.x             = this.props.x;
             this.body.y             = this.props.y;
-            this.body.vx            = this._paused.bodyVx;
-            this.body.vy            = this._paused.bodyVy;
-            this.body.data.gravityScale = this._paused.gf;
+            this.body.vx            = this._beforePauseState.bodyVx;
+            this.body.vy            = this._beforePauseState.bodyVy;
+            this.body.data.gravityScale = this._beforePauseState.gf;
             this.body.enable();
         }
 
-        this._paused = null;
+        this._beforePauseState = null;
 
         if (visible) {
             this.props.visible = true;

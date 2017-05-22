@@ -10,7 +10,6 @@ import { Tilemap } from "./Module/Tilemap";
 import { Wall } from "./Module/Wall";
 
 
-
 /**
  * Class representing the simplest scene to add Entity
  * @class Scene
@@ -61,7 +60,7 @@ export class Scene extends Module {
         this.world.setGlobalStiffness(1e5);
         this.world.defaultContactMaterial.stiffness             = 1e8;
         this.world.defaultContactMaterial.relaxation            = 3;
-        this.world.defaultContactMaterial.frictionStiffness     = 1e8;
+        (<any>this.world.defaultContactMaterial).frictionStiffness     = 1e8;
         this.world.defaultContactMaterial.frictionRelaxation    = 3;
         this.world.defaultContactMaterial.surfaceVelocity       = 0;
 
@@ -82,8 +81,8 @@ export class Scene extends Module {
         super.initialize(props);
 
         this.setProps({
-            width   : currentGame.props.width,
-            height  : currentGame.props.height
+            width   : this.context.game.props.width,
+            height  : this.context.game.props.height
         });
     }
 
@@ -158,8 +157,8 @@ export class Scene extends Module {
                 stiffness       : Number.MAX_VALUE,
                 relaxation      : this.world.defaultContactMaterial.relaxation,
                 frictionRelaxation  : this.world.defaultContactMaterial.frictionRelaxation,
-                frictionStiffness   : this.world.defaultContactMaterial.frictionStiffness,
-                surfaceVelocyt      : this.world.defaultContactMaterial.surfaceVelocity
+                frictionStiffness   : (<any>this.world.defaultContactMaterial).frictionStiffness,
+                surfaceVelocity      : this.world.defaultContactMaterial.surfaceVelocity
             } as p2.ContactMaterialOptions;
 
             const material = entity.body.shape.material = new Material(Scene.generateIdNumber());
