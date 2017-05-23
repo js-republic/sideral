@@ -9,7 +9,7 @@ module.exports = {
     },
 
     entry: {
-        "balljammers/sideral":"./projects/balljammers/src"
+        "balljammers/dist/sideral": "./projects/balljammers/src/main.ts"
     },
 
     resolve: {
