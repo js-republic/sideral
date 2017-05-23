@@ -1,6 +1,6 @@
 import { Skill } from "src/Tool/Skill";
+import { Sprite } from "src/Module/Sprite";
 
-import { Effect } from "src/Entity/Effect";
 import { Player } from './Player';
 
 
@@ -9,8 +9,8 @@ export class PlayerDashSkill extends Skill {
     /* ATTRIBUTES */
 
     movable: boolean    = false;
-    duration: number    = 9;
-    side: string        = "";
+    duration: number    = 40;
+    side: number        = Player.SIDE.NONE;
     owner: Player;
 
 
@@ -33,15 +33,16 @@ export class PlayerDashSkill extends Skill {
      * @returns {void}
      */
     onSkillStart () {
-        this.owner.addModule(new Effect(), this.owner.props.x + (this.owner.props.width / 2) - 64, this.owner.props.y + (this.owner.props.height / 2) - 64, {
-            path            : "images/effects/smoke.png",
-            width           : 128,
-            height          : 128,
-            flip            : this.owner.props.flip,
-            frames          : [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
-            duration        : 30,
-            maxLoop         : 1
-        });
+        this.owner.context.scene.add(new Sprite(), {
+            imagePath   : "images/effects/smoke.png",
+            width       : 128,
+            height      : 128,
+            x           : this.owner.props.x + (this.owner.props.width / 2) - 64,
+            y           : this.owner.props.y + (this.owner.props.height / 2) - 64,
+            autoKill    : true,
+            flip        : this.owner.props.flip
+
+        }).addAnimation("idle", 25, [20, 21, 22, 23, 24, 25, 26, 27, 28, 29], 1);
     }
 
     /**
@@ -49,7 +50,7 @@ export class PlayerDashSkill extends Skill {
      * @returns {void}
      */
     onSkillUpdate () {
-        this.owner.props.vx = this.owner.props.speed * (this.side === "left" ? -5 : 5);
+        this.owner.props.vx = this.owner.props.speed * (this.side === Player.SIDE.LEFT ? -5 : 5);
         this.owner.body.vy  = this.owner.props.vy = 0;
     }
 
@@ -60,6 +61,6 @@ export class PlayerDashSkill extends Skill {
     onSkillComplete () {
         super.onSkillComplete();
 
-        this.owner.dashSide = false;
+        this.owner.dashSide = Player.SIDE.NONE;
     }
 }

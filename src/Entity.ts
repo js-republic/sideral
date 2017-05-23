@@ -67,6 +67,7 @@ export class Entity extends Module {
 
         this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
+        this.signals.propChange.bind("debug", this.onDebugChange.bind(this));
         this.signals.propChange.bind("gravityFactor", this.onGravityFactorChange.bind(this));
     }
 
@@ -304,6 +305,7 @@ export class Entity extends Module {
      * @returns {void}
      */
     toggleDebug () {
+        /*
         if (this._debug) {
             this._debug.kill();
             this._debug = null;
@@ -317,6 +319,7 @@ export class Entity extends Module {
                 fill    : "transparent"
             });
         }
+        */
     }
 
     /**
@@ -350,6 +353,27 @@ export class Entity extends Module {
 
 
     /* EVENTS */
+
+    /**
+     * When "debug" property has change
+     * @returns {void}
+     */
+    onDebugChange () {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+        }
+
+        if (this.props.debug) {
+            this._debug = this.add(new Shape(), {
+                box     : this.box,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            });
+        }
+    }
 
     /**
      * onPositionChange

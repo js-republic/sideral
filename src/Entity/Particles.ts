@@ -5,6 +5,7 @@ import { Enum } from "../Tool/Enum";
 
 import "pixi-particles";
 
+
 /**
  * Generator of particles
  * @class Particles
@@ -50,7 +51,7 @@ export class Particles extends Entity {
          * @type {PIXI.particles.Emitter}
          * @default null
          */
-        this.emitter = new (<any>PIXI.particles).Emitter(this.container);
+        this.emitter = new (<any>PIXI.particles).Emitter(this.container, null, { emit: false });
 
         this.signals.propChange.bind("config", this.onConfigurationChange.bind(this));
         this.signals.update.add(this.updateFollow.bind(this));
@@ -109,11 +110,7 @@ export class Particles extends Entity {
     /**
      * @override
      */
-    updateContainerPosition () {
-        if (this.parent instanceof Scene) {
-            this.container.position.set(this.props.x, this.props.y);
-        }
-    }
+    updateContainerPosition () {}
 
     /**
      * When property "configuration" has changed
@@ -127,6 +124,9 @@ export class Particles extends Entity {
 
         if (this.props.autoRun) {
             this.run();
+
+        } else {
+            this.emitter.emit = false;
         }
     }
 }

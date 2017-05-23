@@ -23,6 +23,12 @@ export class Shape extends Module {
         this.signals.propChange.bind(["box", "fill", "stroke"], this._updateShape.bind(this));
     }
 
+    initialize (props) {
+        super.initialize(props);
+
+        this._updateShape();
+    }
+
 
     /* EVENTS */
 
@@ -62,22 +68,19 @@ export class Shape extends Module {
      * @returns {void}
      */
     _drawShape () {
-        const withStroke = this.props.stroke !== "transparent",
-            width = withStroke ? this.props.width - 1 : this.props.width,
-            height = withStroke ? this.props.height - 1 : this.props.height;
+        const { x, y, width, height, box } = this.props;
 
-        switch (this.props.box) {
-        case Enum.BOX.CIRCLE:
+        switch (box) {
+            case Enum.BOX.CIRCLE:
+                if (width !== height) {
+                    this.container.drawEllipse(width / 2, height / 2, width / 2, height / 2);
+                } else {
+                    this.container.drawCircle(width / 2, width / 2, width / 2);
+                }
+                break;
 
-            if (width !== height) {
-                this.container.drawEllipse(width / 2, height / 2, width / 2, height / 2);
-            } else {
-                this.container.drawCircle(width / 2, width / 2, width / 2);
-            }
-            break;
-
-        default: this.container.drawRect(0, 0, width, height);
-            break;
+            default: this.container.drawRect(x, y, width, height);
+                break;
         }
     }
 }

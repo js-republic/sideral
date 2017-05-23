@@ -1,6 +1,7 @@
-import { Scene } from "src/Scene";
-import { Enum } from "src/Tool/Enum";
+import { Scene } from "src";
+import { Enum } from "src/Tool/";
 import { Particles } from "src/Entity/Particles";
+
 
 import { Ball } from "./Ball";
 import { Goal } from "./Goal";
@@ -25,11 +26,6 @@ export class Arena extends Scene {
 
     /* LIFECYCLE */
 
-    /**
-     * @initialize
-     * @lifecycle
-     * @override
-     */
     initialize (props: any) {
         super.initialize(props);
         this.setTilemap(tilemapGrass);
@@ -77,14 +73,11 @@ export class Arena extends Scene {
     goal (goalSide) {
         this.shake(50);
 
-        const width = 20;
-
-        // TODO: TimeSlower - https://github.com/myvertigo/rts/blob/dev/public/snaga/lib/plugins/timeslower.js
-
+        console.log("goal");
         this.flameParticles.position(this.ball.props.x + (goalSide.props.flip ? this.ball.props.width + 20 : -20), this.ball.props.y + (this.ball.props.height / 2));
         this.flameParticles.run();
 
-        this.timers.add("goal", 3000, () => {
+        this.timers.add("goal", 1000, () => {
             this.ball.respawn();
             this.flameParticles.stop();
         });

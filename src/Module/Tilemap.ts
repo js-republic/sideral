@@ -9,9 +9,6 @@ import { Wall } from "../Module/Wall";
 
 
 export class Tilemap extends Module {
-
-    scene: Scene    = null;
-
     bodies          = [];
     _debugs         = [];
     grid            = {};
@@ -73,7 +70,13 @@ export class Tilemap extends Module {
             this.bodies = data.walls.map(wall => {
                 const [box, x, y, width, height, directionConstraint] = wall;
 
-                return this.add(new Wall(), { box, x, y, width, height, directionConstraint });
+                const nextWall = <Wall> this.add(new Wall(), { box, x, y, width, height, directionConstraint });
+
+                if (data.debug) {
+                    nextWall.toggleDebug();
+                }
+
+                return nextWall;
             });
 
             this._loadBackgrounds(data.backgrounds, resources);
@@ -150,10 +153,6 @@ export class Tilemap extends Module {
 
             this.gridContainer = PIXI.Sprite.from(canvas);
             this.container.addChild(this.gridContainer);
-
-            if (debug) {
-                this.toggleDebug();
-            }
         };
 
         image.src = path;

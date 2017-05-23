@@ -1,2 +1,2 @@
-export * from './Effect';
-export * from './Hitbox';
+export * from "./Hitbox";
+export * from "./Particles";

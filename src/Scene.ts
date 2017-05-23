@@ -20,7 +20,6 @@ export class Scene extends Module {
     /* ATTRIBUTES */
 
     _entities: Array<Entity>    = null;
-    DefaultMaterial             = new Material(Scene.generateIdNumber());
     WallMaterial                = new Material(Scene.generateIdNumber());
     tilemap: Tilemap            = null;
     world                       = new World({ gravity: [0, 0] });
@@ -47,22 +46,14 @@ export class Scene extends Module {
             motionFactor: 1
         });
 
-        /**
-         * The amplitude of the screen shake
-         * @readonly
-         * @type {number}
-         */
-        this.shakeAmplitude = 0;
-
         this.context.scene  = this;
         this.materials      = [this.world.defaultMaterial, this.WallMaterial];
 
-        this.world.setGlobalStiffness(1e5);
-        this.world.defaultContactMaterial.stiffness             = 1e8;
-        this.world.defaultContactMaterial.relaxation            = 3;
-        (<any>this.world.defaultContactMaterial).frictionStiffness     = 1e8;
-        this.world.defaultContactMaterial.frictionRelaxation    = 3;
-        this.world.defaultContactMaterial.surfaceVelocity       = 0;
+        this.world.defaultContactMaterial.stiffness                 = 1e8;
+        this.world.defaultContactMaterial.relaxation                = 3;
+        (<any>this.world.defaultContactMaterial).frictionStiffness  = 1e8;
+        this.world.defaultContactMaterial.frictionRelaxation        = 3;
+        this.world.defaultContactMaterial.surfaceVelocity           = 0;
 
         this.world.on("beginContact", this._onBeginContact.bind(this), false);
         this.world.on("endContact", this._onEndContact.bind(this), false);
@@ -152,17 +143,17 @@ export class Scene extends Module {
 
         } else {
             const materialOptions = {
-                restitution     : bounce,
-                friction        : this.world.defaultContactMaterial.friction,
-                stiffness       : Number.MAX_VALUE,
-                relaxation      : this.world.defaultContactMaterial.relaxation,
+                restitution         : bounce,
+                friction            : this.world.defaultContactMaterial.friction,
+                stiffness           : this.world.defaultContactMaterial.stiffness,
+                relaxation          : this.world.defaultContactMaterial.relaxation,
                 frictionRelaxation  : this.world.defaultContactMaterial.frictionRelaxation,
                 frictionStiffness   : (<any>this.world.defaultContactMaterial).frictionStiffness,
-                surfaceVelocity      : this.world.defaultContactMaterial.surfaceVelocity
+                surfaceVelocity     : this.world.defaultContactMaterial.surfaceVelocity
             } as p2.ContactMaterialOptions;
 
-            const material = entity.body.shape.material = new Material(Scene.generateIdNumber());
-            const contactMaterials = this.materials.map(materialB => {
+            const material          = entity.body.shape.material = new Material(Scene.generateIdNumber()),
+                contactMaterials    = this.materials.map(materialB => {
                 return new ContactMaterial(material, materialB, materialOptions);
             });
 
@@ -244,8 +235,6 @@ export class Scene extends Module {
     /* PRIVATE */
 
     _onPreSolve ({ contactEquations }) {
-        const walls = (this.tilemap && this.tilemap.bodies) || [];
-
         contactEquations.forEach(contactEquation => {
             const ownerA    = contactEquation.bodyA.owner,
                 ownerB      = contactEquation.bodyB.owner,
@@ -335,7 +324,7 @@ export class Scene extends Module {
                 break;
 
             case ownerA instanceof Wall:
-                contactB = { bodyId: bodyA.id, isAbove: isAbove(ownerB.props.x, ownerB.props.y, ownerB.props.height, ownerA.x, ownerA.y, ownerA.width) };
+                contactB = { bodyId: bodyA.id, isAbove: isAbove(ownerB.props.x, ownerB.props.y, ownerB.props.height, ownerA.props.x, ownerA.props.y, ownerA.props.width) };
                 break;
 
             default:

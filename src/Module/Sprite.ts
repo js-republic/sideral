@@ -18,7 +18,7 @@ export class Sprite extends Module {
 
         this.setProps({
             imagePath   : null,
-            flip        : false
+            autoKill    : false
         });
 
         this.container.anchor.set(0.5, 0.5);
@@ -152,24 +152,21 @@ export class Sprite extends Module {
      * @returns {void|null} -
      */
     onNextSprite () {
-        if (this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop) {
-            return null;
-        }
-
         if (this.animation.frameIndex >= (this.animation.frames.length - 1)) {
             this.animation.loop++;
             this.animation.frameIndex = this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop ? this.animation.frames.length - 1 : 0;
 
         } else {
             this.animation.frameIndex++;
-
         }
 
-        this.animation.time = 0;
-
-        if (this.animation.maxLoop < 0 || this.animation.loop <= this.animation.maxLoop) {
+        if (this.animation.maxLoop < 0 || this.animation.loop < this.animation.maxLoop) {
             this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
             this.timers.get("sprite").restart();
+
+        } else if (this.props.autoKill) {
+            this.kill();
+
         }
     }
 
@@ -189,11 +186,11 @@ export class Sprite extends Module {
 
             this.animations.forEach(animation => animation.textureFrames = this._framesToRectangles(animation.frames));
 
+            this.loaded = true;
+
             if (this.animations.length && !this.animation) {
                 this.setAnimation(this.animations[0].name, true);
             }
-
-            this.loaded = true;
         });
     }
 

@@ -1,6 +1,7 @@
-import { Game } from "src/Game";
+import { Game } from "src";
 
 import { Arena } from "./Arena";
+
 
 const game = new Game();
 

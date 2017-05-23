@@ -1,6 +1,7 @@
 import { Body, CircularBody, RectangularBody } from "./../Tool/Body";
 import { Enum } from "./../Tool/Enum";
 import { Module } from "./../Module";
+import { Shape } from "./../Module/Shape";
 
 
 export class Wall extends Module {
@@ -8,6 +9,7 @@ export class Wall extends Module {
     /* ATTRIBUTES */
 
     body: Body;
+    _debug: any;
 
 
     /* LIFECYCLE */
@@ -40,6 +42,25 @@ export class Wall extends Module {
 
             default: this.body = new RectangularBody(this, this.props.x, this.props.y, this.props.width, this.props.height, settings);
                 break;
+        }
+    }
+
+
+    /* METHODS */
+
+    toggleDebug () {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+
+        } else {
+            this._debug = this.add(new Shape(), {
+                box     : this.props.box,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            });
         }
     }
 

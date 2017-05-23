@@ -5,8 +5,6 @@ import { Signal } from "./Tool/Signal";
 
 /**
  * SideralObject visible on screen
- * @class Module
- * @extends SideralObject
  */
 export class Module extends SideralObject {
 
@@ -23,6 +21,7 @@ export class Module extends SideralObject {
             y       : 0,
             width   : 0,
             height  : 0,
+            debug   : false,
             visible : true,
             follow  : null
         });
@@ -30,7 +29,6 @@ export class Module extends SideralObject {
         this.signals.click = new Signal(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
 
         this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
-        this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
         this.signals.propChange.bind("visible", this.onVisibleChange.bind(this));
 
         this.signals.update.add(this.updateFollow.bind(this));
@@ -102,13 +100,8 @@ export class Module extends SideralObject {
         width   = typeof width !== "undefined" ? width : this.props.width;
         height  = typeof height !== "undefined" ? height : this.props.height;
 
-        if (!this.initialized) {
-            this.setProps({ width: width, height: height });
-
-        } else {
-            this.props.width = width;
-            this.props.height = height;
-        }
+        this.props.width  = width;
+        this.props.height = height;
     }
 
     /**

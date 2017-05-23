@@ -28,7 +28,7 @@ export class Ball extends Entity {
 
         this.setProps({
             width           : 26,
-            height          : 28,
+            height          : 26,
             gravityFactor   : 1
         });
 
@@ -49,12 +49,15 @@ export class Ball extends Entity {
         this.setBounce(0.65);
         this.respawn();
 
-        this.trail = this.context.scene.add(new Particles(), {
+        this.trail = <Particles> this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),
-            images  : "images/particle/bolt.png",
+            images  : "images/particles/bolt.png",
             config  : trailConfig,
             autoRun : false
         });
+
+        (<any>window).trail = this.trail;
+        this.toggleDebug();
     }
 
 
@@ -78,20 +81,18 @@ export class Ball extends Entity {
      * @returns {void}
      */
     updateVelocity () {
-        const bodySpeed     = Math.abs(this.body.vx),
+        const bodySpeed     = 0, // Math.abs(this.body.vx),
             trailRunning    = this.trail.isRunning();
 
         this.props.vx = this.props.vy = 0;
 
-        /*
-        if (!trailRunning && bodySpeed > 100) {
+        if (!trailRunning && bodySpeed > 300) {
             this.trail.run();
 
-        } else if (trailRunning && bodySpeed <= 100) {
+        } else if (trailRunning && bodySpeed <= 300) {
             this.trail.stop();
 
         }
-        */
     }
 
     /**
@@ -100,10 +101,10 @@ export class Ball extends Entity {
      * @returns {void}
      */
     onCollisionWithGoal (goal) {
-        if (this.props.y > goal.props.y) {
-            this.context.scene.goal(goal);
-            this.pause(true);
+        if (this.props.y > goal.props.y)
             this.trail.stop();
+            this.pause(true);{
+            this.context.scene.goal(goal);
         }
     }
 }

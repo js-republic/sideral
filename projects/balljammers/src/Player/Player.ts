@@ -9,16 +9,16 @@ import { Arena } from '../Arena';
 
 
 export class Player extends Entity {
-    group:           number      = Enum.GROUP.ALL;
-    type:            number      = Enum.TYPE.SOLID;
-    name:            string      = "player";
-    scene:           Arena       = null;
-    speedFactor:     number      = 0;
-    fallPressed:     boolean     = true;
-    doubleJump:      boolean     = false;
-    dashSide:        boolean     = false;
-    holdLeft:        boolean     = false;
-    holdRight:       boolean     = false;
+    group:           number         = Enum.GROUP.ALL;
+    type:            number         = Enum.TYPE.SOLID;
+    name:            string         = "player";
+    scene:           Arena          = null;
+    speedFactor:     number         = 0;
+    dashSide:        number         = 0;
+    fallPressed:     boolean        = true;
+    doubleJump:      boolean        = false;
+    holdLeft:        boolean        = false;
+    holdRight:       boolean        = false;
 
     static SIDE = { LEFT: -1, RIGHT: 1, NONE: 0 };
 
@@ -32,22 +32,11 @@ export class Player extends Entity {
 
         // props
         this.setProps({
-            speed       : 20,
+            speed       : 280,
             powerX      : 150,
             powerY      : 790,
             jump        : 600
         });
-
-        // read-only
-        this.group          = Enum.GROUP.ALL;
-        this.type           = Enum.TYPE.SOLID;
-        this.name           = "player";
-        this.speedFactor    = 0;
-        this.fallPressed    = true;
-        this.doubleJump     = false;
-        this.dashSide       = false;
-        this.holdLeft       = false;
-        this.holdRight      = false;
 
         // signals
         this.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
@@ -55,6 +44,12 @@ export class Player extends Entity {
         // skills
         this.skills.add("attack", new PlayerAttackSkill(this));
         this.skills.add("dash", new PlayerDashSkill(this));
+    }
+
+    initialize (props) {
+        super.initialize(props);
+
+        this.toggleDebug();
     }
 
     /**
@@ -93,7 +88,7 @@ export class Player extends Entity {
 
         if (pressed && !this.speedFactor) {
             this.speedFactor = -1;
-            this.dash("left");
+            this.dash(Player.SIDE.LEFT);
 
         } else if ((pressed && this.speedFactor === 1) || (!pressed && this.speedFactor === -1)) {
             this.speedFactor = 0;
@@ -114,7 +109,7 @@ export class Player extends Entity {
 
         if (pressed && !this.speedFactor) {
             this.speedFactor = 1;
-            this.dash("right");
+            this.dash(Player.SIDE.RIGHT);
 
         } else if ((pressed && this.speedFactor === -1) || (!pressed && this.speedFactor === 1)) {
             this.speedFactor = 0;
@@ -183,7 +178,7 @@ export class Player extends Entity {
 
         } else {
             this.dashSide = side;
-            this.timers.add("dash", 20, () => this.dashSide = false);
+            this.timers.add("dash", 100, () => this.dashSide = Player.SIDE.NONE);
         }
     }
 

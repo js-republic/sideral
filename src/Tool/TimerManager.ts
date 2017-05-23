@@ -2,7 +2,7 @@ import { Timer } from "./Timer";
 
 
 export class TimerManager {
-    timers: {[timerName: string]: Timer};
+    timers: {[timerName: string]: Timer} = {};
     owner: any;
 
     /* LIFECYCLE */
