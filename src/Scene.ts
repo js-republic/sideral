@@ -148,7 +148,7 @@ export class Scene extends Module {
                 stiffness           : this.world.defaultContactMaterial.stiffness,
                 relaxation          : this.world.defaultContactMaterial.relaxation,
                 frictionRelaxation  : this.world.defaultContactMaterial.frictionRelaxation,
-                onStiffness         : this.world.defaultContactMateria.frictionStiffness,
+                frictionStiffness   : this.world.defaultContactMaterial.frictionStiffness,
                 surfaceVelocity     : this.world.defaultContactMaterial.surfaceVelocity
             } as p2.ContactMaterialOptions;
 
