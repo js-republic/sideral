@@ -137,16 +137,18 @@ export class Util {
      */
     static colorToDecimal (color: (number | string | [number, number, number]) = 0): number {
         switch (typeof color) {
-            case 'string':
+            case "string":
                 color = color as string;
-                // if (color.toLowerCase().indexOf("rgb") > 1) {
+
+                if (color.toLowerCase().indexOf("rgb") > 1) {
                     return Util.hexToDecimal(Util.rgbToHex(color));
-                // } else {
-                //     return color;
-                // }
-            case 'number':
+                } else {
+                  return Util.hexToDecimal(<string> color);
+                }
+
+            case "number":
                 return color as number;
-            case 'object':
+            case "object":
                 if (color instanceof Array) {
                     return Util.hexToDecimal(Util.rgbToHex(color));
                 }

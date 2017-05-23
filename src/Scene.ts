@@ -47,13 +47,9 @@ export class Scene extends Module {
         });
 
         this.context.scene  = this;
-        this.materials      = [this.world.defaultMaterial, this.WallMaterial];
+        this.materials      = [this.world.defaultMaterial];
 
-        this.world.defaultContactMaterial.stiffness                 = 1e8;
-        this.world.defaultContactMaterial.relaxation                = 3;
-        this.world.defaultContactMaterial.frictionStiffness         = 1e8;
-        this.world.defaultContactMaterial.frictionRelaxation        = 3;
-        this.world.defaultContactMaterial.surfaceVelocity           = 0;
+        this.world.setGlobalStiffness(1e8);
 
         this.world.on("beginContact", this._onBeginContact.bind(this), false);
         this.world.on("endContact", this._onEndContact.bind(this), false);
@@ -90,7 +86,7 @@ export class Scene extends Module {
         const fixedStep = 1 / 60,
             maxStep     = 3;
 
-        this.world.step(1 / 60, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
+        this.world.step(fixedStep, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
 
         if (this.container && this.shakeAmplitude) {
             this.container.pivot.set(this.shakeAmplitude * (Math.random() - 0.5), this.shakeAmplitude * (Math.random() - 0.5));
@@ -143,13 +139,7 @@ export class Scene extends Module {
 
         } else {
             const materialOptions = {
-                restitution         : bounce,
-                friction            : this.world.defaultContactMaterial.friction,
-                stiffness           : this.world.defaultContactMaterial.stiffness,
-                relaxation          : this.world.defaultContactMaterial.relaxation,
-                frictionRelaxation  : this.world.defaultContactMaterial.frictionRelaxation,
-                frictionStiffness   : this.world.defaultContactMaterial.frictionStiffness,
-                surfaceVelocity     : this.world.defaultContactMaterial.surfaceVelocity
+                restitution         : bounce
             } as p2.ContactMaterialOptions;
 
             const material          = entity.body.shape.material = new Material(Scene.generateIdNumber()),
@@ -195,8 +185,8 @@ export class Scene extends Module {
      */
     getEntitiesInRange (xmin: number, xmax: number, ymin: number, ymax: number, id: number): Entity[] {
         const entities = this.getEntities().
-        filter(entity => entity.props.x > (xmin - entity.props.width) && entity.props.x < xmax).
-        filter(entity => entity.props.y > (ymin - entity.props.height) && entity.props.y < ymax);
+            filter(entity => entity.props.x > (xmin - entity.props.width) && entity.props.x < xmax).
+            filter(entity => entity.props.y > (ymin - entity.props.height) && entity.props.y < ymax);
 
         return id ? entities.filter(entity => id !== entity.id) : entities;
     }

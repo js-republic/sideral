@@ -67,21 +67,10 @@ export class Tilemap extends Module {
         }
 
         loader.load((currentLoader, resources) => {
-            this.bodies = data.walls.map(wall => {
-                const [box, x, y, width, height, directionConstraint] = wall;
-
-                const nextWall = <Wall> this.add(new Wall(), { box, x, y, width, height, directionConstraint });
-
-                if (data.debug) {
-                    nextWall.toggleDebug();
-                }
-
-                return nextWall;
-            });
-
             this._loadBackgrounds(data.backgrounds, resources);
-            this._loadGrids(data.grid, data.path, data.debug);
+            this._loadGrids(data.grid, data.path);
             this._loadDecorators(data.decorators, resources);
+            this._loadWalls(data.walls, data.debug);
         });
     }
 
@@ -100,25 +89,6 @@ export class Tilemap extends Module {
         this.decoratorContainers    = [];
     }
 
-    /**
-     * when debug attributes change
-     * @return {void}
-     */
-    toggleDebug () {
-        this._debugs.forEach(_debug => _debug.kill());
-
-        this._debugs = this.bodies.map(body => this.add(new Shape(), {
-            x       : body.x,
-            y       : body.y,
-            box     : Enum.BOX.RECTANGLE,
-            width   : body.width,
-            height  : body.height,
-            stroke  : "#FF0000",
-            fill    : "transparent"
-        }));
-    }
-
-
     /* PRIVATE */
 
     /**
@@ -126,10 +96,9 @@ export class Tilemap extends Module {
      * @private
      * @param {*} grid: grid provided by the data
      * @param {string} path: path to the image
-     * @param {Boolean=} debug: Active the debug mode
      * @returns {void}
      */
-    _loadGrids (grid, path, debug) {
+    _loadGrids (grid, path) {
         const canvas    = document.createElement("canvas"),
             ctx         = canvas.getContext("2d"),
             image       = new Image();
@@ -152,7 +121,7 @@ export class Tilemap extends Module {
             })));
 
             this.gridContainer = PIXI.Sprite.from(canvas);
-            this.container.addChild(this.gridContainer);
+            this.container.addChildAt(this.gridContainer, 1);
         };
 
         image.src = path;
@@ -210,5 +179,15 @@ export class Tilemap extends Module {
             return decoratorContainer;
 
         }).forEach(decoratorContainer => this.container.addChild(decoratorContainer));
+    }
+
+    _loadWalls (wallDatas: Array<any> = [], debug: boolean = false) {
+        this.bodies = wallDatas.map(wall => {
+            const [box, x, y, width, height, directionConstraint] = wall;
+
+            return this.add(new Wall(), { box, x, y, width, height, directionConstraint,
+                debug: debug
+            });
+        });
     }
 }

@@ -33,7 +33,7 @@ export class Wall extends Module {
         super.initialize(props);
 
         const settings = {
-            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: this.context.scene.WallMaterial
+            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND
         };
 
         switch (this.props.box) {
@@ -42,6 +42,10 @@ export class Wall extends Module {
 
             default: this.body = new RectangularBody(this, this.props.x, this.props.y, this.props.width, this.props.height, settings);
                 break;
+        }
+
+        if (this.props.debug) {
+          this.toggleDebug();
         }
     }
 
@@ -80,12 +84,9 @@ export class Wall extends Module {
      */
     resolveDirectionConstraint (directionConstraint, x, y, width, height, entity) {
         switch (directionConstraint) {
-            case "upper":
-                return entity.lastPos.y < entity.props.y && entity.props.y < y && (entity.props.y + (entity.props.height / 2)) <= y;
-            case "lower":
-                return entity.lastPos.y > entity.props.y && entity.props.y + entity.props.height > y && (entity.props.y + (entity.props.height / 2)) >= (y + height);
-            default:
-                return true;
+            case "upper": return entity.props.y < y;
+            case "lower": return entity.lastPos.y > entity.props.y && entity.props.y + entity.props.height > y && (entity.props.y + (entity.props.height / 2)) >= (y + height);
+            default: return true;
         }
     }
 }

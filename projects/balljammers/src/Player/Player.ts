@@ -46,12 +46,6 @@ export class Player extends Entity {
         this.skills.add("dash", new PlayerDashSkill(this));
     }
 
-    initialize (props) {
-        super.initialize(props);
-
-        this.toggleDebug();
-    }
-
     /**
      * @update
      * @lifecycle

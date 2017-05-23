@@ -46,8 +46,7 @@ export class Ball extends Entity {
     initialize (props: any) {
         super.initialize(props);
 
-        this.setBounce(0.65);
-        this.respawn();
+        // this.setBounce(0.65);
 
         this.trail = <Particles> this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),
@@ -56,8 +55,7 @@ export class Ball extends Entity {
             autoRun : false
         });
 
-        (<any>window).trail = this.trail;
-        this.toggleDebug();
+      this.respawn();
     }
 
 
@@ -81,7 +79,7 @@ export class Ball extends Entity {
      * @returns {void}
      */
     updateVelocity () {
-        const bodySpeed     = 0, // Math.abs(this.body.vx),
+        const bodySpeed     = Math.abs(this.body.vx),
             trailRunning    = this.trail.isRunning();
 
         this.props.vx = this.props.vy = 0;

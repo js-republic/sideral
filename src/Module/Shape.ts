@@ -49,7 +49,7 @@ export class Shape extends Module {
      */
     _updateShape () {
         const stroke    = Util.colorToDecimal(this.props.stroke),
-            fill        = Util.colorToDecimal(this.props.fill);
+            fill        = this.props.fill === "transparent" ? 0x000000 : Util.colorToDecimal(this.props.fill);
 
         this.container.clear();
 
@@ -57,6 +57,7 @@ export class Shape extends Module {
             this.container.lineStyle(1, stroke, 1);
         }
 
+        console.log(fill, stroke);
         this.container.beginFill(fill, this.props.fill === "transparent" ? 0 : 1);
         this._drawShape();
         this.container.endFill();

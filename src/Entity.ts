@@ -1,8 +1,6 @@
 import { Module } from "./Module";
 import { Shape, Sprite } from "./Module/";
 
-import { Scene } from './Scene';
-import { SideralObject } from './SideralObject';
 import { Body, CircularBody, RectangularBody } from './Tool/Body';
 import { Signal } from "./Tool/Signal";
 import { Enum } from "./Tool/Enum";

@@ -1,5 +1,5 @@
 {
-  "debug": true,
+  "debug": false,
   "path": "images/grass.png",
   "backgrounds": [
     {
@@ -28,7 +28,7 @@
   ],
   "walls": [
     ["rectangle", -10, 448, 900, 60],
-    ["rectangle", 322, 384, 190, 20, "upper"],
+    ["rectangle", 322, 384, 190, 60, "upper"],
     ["rectangle", 0, 0, 20, 320],
     ["rectangle", 814, 0, 20, 320],
     ["rectangle", 0, 0, 900, 20]
