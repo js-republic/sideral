@@ -20,7 +20,7 @@ export class Scene extends Module {
     /* ATTRIBUTES */
 
     _entities: Array<Entity>    = null;
-    WallMaterial                = new Material(Scene.generateIdNumber());
+    wallMaterial: Material      = new Material(Scene.generateId());
     tilemap: Tilemap            = null;
     world                       = new World({ gravity: [0, 0] });
     materials                   = [];
@@ -43,11 +43,12 @@ export class Scene extends Module {
 
         this.setProps({
             scale       : 1,
-            motionFactor: 1
+            motionFactor: 1,
+            gravity     : 0
         });
 
         this.context.scene  = this;
-        this.materials      = [this.world.defaultMaterial];
+        this.materials      = [this.world.defaultMaterial, this.wallMaterial];
 
         this.world.setGlobalStiffness(1e8);
 
@@ -83,7 +84,7 @@ export class Scene extends Module {
 
         super.update(tick);
 
-        const fixedStep = 1 / 60,
+        const fixedStep = (1 / 60) * this.props.motionFactor,
             maxStep     = 3;
 
         this.world.step(fixedStep, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
@@ -142,10 +143,11 @@ export class Scene extends Module {
                 restitution         : bounce
             } as p2.ContactMaterialOptions;
 
-            const material          = entity.body.shape.material = new Material(Scene.generateIdNumber()),
-                contactMaterials    = this.materials.map(materialB => {
-                return new ContactMaterial(material, materialB, materialOptions);
-            });
+            const material          = entity.body.shape.material = new Material(Scene.generateId());
+
+            this.materials.push(material);
+
+            const contactMaterials    = this.materials.map(materialB => new ContactMaterial(material, materialB, materialOptions));
 
             contactMaterials.forEach(contactMaterial => this.world.addContactMaterial(contactMaterial));
         }
@@ -159,7 +161,7 @@ export class Scene extends Module {
      * @returns {Object} Tilemap instance
      */
     setTilemap (data: any): Tilemap {
-        this.tilemap        = <Tilemap> this.add(new Tilemap(), {}, 0);
+        this.tilemap = <Tilemap> this.add(new Tilemap(), {}, 0);
 
         this.tilemap.setData(data);
 

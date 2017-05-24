@@ -1,4 +1,5 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from "pixi.js";
+
 import { Signal } from "./Tool/Signal";
 import { TimerManager } from "./Tool/TimerManager";
 
@@ -8,137 +9,90 @@ import { TimerManager } from "./Tool/TimerManager";
  * @class SideralObject
  */
 export class SideralObject {
-    id: string      = SideralObject.generateId();
-    props: any   = {};
+
+    /* ATTRIBUTES */
+
+    /**
+     * Unique id of the object
+     * @type {number}
+     */
+    id: number = SideralObject.generateId();
+
+    /**
+     * List of all properties of the object
+     * @type {any}
+     */
+    props: any = {};
+
+    /**
+     * List of all last value of properties of the object
+     * @type {any}
+     */
+    last: any = {};
+
+    /**
+     * Context is a object which you can store anything, the content of the context will be passed to its children
+     * @type {any}
+     */
     context: any = {};
-    last: any    = {};
+
+    /**
+     * List of all signals of the element
+     * @type {{[string]: Signal}}
+     */
     signals: {[key: string]: Signal} = {
-        update: null,
-        propChange: null,
+        update: new Signal(),
+        propChange: new Signal(),
     };
+
+    /**
+     * List of all children of this object
+     * @type {Array<SideralObject>}
+     */
     children: SideralObject[] = [];
-    initialized = false;
-    timers: TimerManager = new TimerManager(this);
+
+    /**
+     * Parent of this object
+     * @type {SideralObject}
+     */
     parent: SideralObject = null;
+
+    /**
+     * Manage all timers of this object
+     * @type {TimerManager}
+     */
+    timers: TimerManager = new TimerManager(this);
+
+    /**
+     * Know if this object has been initialized
+     * @readonly
+     * @type {boolean}
+     */
+    initialized: boolean = false;
+
+    /**
+     * Know if this object has been killed
+     * @readonly
+     * @type {boolean}
+     */
+    killed: boolean = false;
+
+    /**
+     * PIXI Container
+     * @type {PIXI.Container}
+     */
     container: PIXI.Container = new PIXI.Container();
-    killed = false;
+
 
     /* LIFECYCLE */
 
     /**
-     * @constructor
-     */
-    constructor () {
-
-        /**
-         * Unique id for the current object
-         * @name SideralObject#id
-         * @type {string}
-         * @default SideralObject.generateId()
-         */
-        this.id = SideralObject.generateId();
-
-        /**
-         * Properties of the class
-         * @name SideralObject#props
-         * @type {Object}
-         * @default {}
-         */
-        this.props      = {};
-
-        /**
-         * Last value of properties of the class
-         * @name SideralObject#last
-         * @readonly
-         * @type {Object}
-         * @default {}
-         */
-        this.last       = {};
-
-        /**
-         * Slots for signals
-         * @name SideralObject#signals
-         * @type {Object}
-         */
-        this.signals    = {
-
-            /**
-             * Fired every time the SideralObject updates
-             * @event update
-             */
-            update      : new Signal(),
-
-            /**
-             * Fired every time the value of a property change
-             * @event propChange
-             * @param {string} name - The name of the property
-             * @param {*} value - The new value of the property
-             * @example
-             *  this.signals.propChange.add("x", () => console.log("x has changed !"));
-             *  this.props.x = 2; // The event below will be executed
-             */
-            propChange  : new Signal()
-        };
-
-        /**
-         * Children of AbstractClass
-         * @name SideralObject#children
-         * @readonly
-         * @type {Array<SideralObject>}
-         * @default []
-         */
-        this.children   = [];
-
-        /**
-         * Know when the object has been initialized by a parent
-         * @name SideralObject#initialized
-         * @readonly
-         * @type {boolean}
-         * @default false
-         */
-        this.initialized = false;
-
-        /**
-         * List of current timers
-         * @type {TimerManager}
-         * @name SideralObject#timers
-         * @default new TimerManager()
-         */
-        this.timers     = new TimerManager(this);
-
-        /**
-         * Parent of the object
-         * @type {SideralObject}
-         * @name SideralObject#parent
-         * @default null
-         */
-        this.parent     = null;
-
-        /**
-         * PIXI Container
-         * @type {PIXI.Container}
-         * @name SideralObject#container
-         * @default new PIXI.Container()
-         */
-        this.container  = new PIXI.Container();
-
-        /**
-         * Know if the object is killed
-         * @type {boolean}
-         * @default false
-         * @readonly
-         * @name SideralObject#killed
-         */
-        this.killed     = false;
-    }
-
-    /**
      * Lifecycle - When initialized by a parent (called only once when the instance is attached to the lifecycle of the game)
      * @access public
-     * @param {Object} props - properties to merge
+     * @param {any} props - properties to merge
      * @returns {void}
      */
-    initialize (props: any = {}) {
+    initialize (props: any = {}): void {
         Object.keys(props).forEach(key => this.props[key] = props[key]);
 
         this.initialized = true;
@@ -149,7 +103,7 @@ export class SideralObject {
      * @access public
      * @returns {void}
      */
-    kill () {
+    kill (): void {
         Object.keys(this.signals).forEach(key => this.signals[key].removeAll());
 
         this.children.forEach(child => child.kill());
@@ -171,7 +125,7 @@ export class SideralObject {
      * @param {number} tick - The tick factor (to prevent the dependance of the framerate)
      * @returns {void}
      */
-    update (tick) {
+    update (tick: number): void {
         this.children.forEach(child => child.update(tick));
         this.timers.update(tick);
         this.signals.update.dispatch(tick);
@@ -182,7 +136,7 @@ export class SideralObject {
      * @access protected
      * @returns {void}
      */
-    nextCycle () {
+    nextCycle (): void {
         this.children.forEach(child => child.nextCycle());
 
         Object.keys(this.props).forEach(key => {
@@ -223,7 +177,7 @@ export class SideralObject {
      * @access protected
      * @returns {void|null} -
      */
-    swapContainer (nextContainer) {
+    swapContainer (nextContainer): void {
         if (!this.parent || (this.parent && !this.parent.container)) {
             return null;
         }
@@ -294,14 +248,9 @@ export class SideralObject {
 
     /**
      * Generate an unique id
-     * @access public
-     * @returns {string} The unique id
+     * @returns {number}
      */
-    static generateId(): string {
-        return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-    }
-
-    static generateIdNumber(): number {
+    static generateId(): number {
         return Math.floor((1 + Math.random()) * 0x100000);
     }
 }

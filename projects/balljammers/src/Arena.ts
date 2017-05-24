@@ -48,11 +48,12 @@ export class Arena extends Scene {
         cg.signals.keyPress.bind(Enum.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
         cg.signals.keyPress.bind(Enum.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
 
-        this.ball           = <Ball>this.addModule(new Ball(), 100, 100, { debug: true });
-        this.goalLeft       = <Ball>this.addModule(new Goal(), 0, 448 - 130, { debug: true });
-        this.goalRight      = <Goal>this.addModule(new Goal(), this.props.width - 45, 448 - 130, { debug: true, flip: true });
-        this.playerLeft     = <PlayerCat> this.addModule(new PlayerCat(), this.props.spawnX, 150, { debug: true, playerLeft: true });
-        this.playerRight    = <PlayerCat> this.addModule(new PlayerCat(true), this.props.width - this.props.spawnX - 150, 320, { debug: true, playerRight: true });
+        this.ball           = <Ball>this.addModule(new Ball(), 100, 100);
+
+        this.goalLeft       = <Ball>this.addModule(new Goal(), 0, 448 - 130);
+        this.goalRight      = <Goal>this.addModule(new Goal(), this.props.width - 45, 448 - 130, { flip: true });
+        this.playerLeft     = <PlayerCat> this.addModule(new PlayerCat(), this.props.spawnX, 150, { playerLeft: true });
+        this.playerRight    = <PlayerCat> this.addModule(new PlayerCat(true), this.props.width - this.props.spawnX - 150, 320, { playerRight: true });
 
         this.flameParticles = <Particles>this.add(new Particles(), {
             images  : ["images/particles/bolt.png", "images/particles/fire.png"],
@@ -73,11 +74,13 @@ export class Arena extends Scene {
     goal (goalSide) {
         this.shake(50);
 
-        console.log("goal");
         this.flameParticles.position(this.ball.props.x + (goalSide.props.flip ? this.ball.props.width + 20 : -20), this.ball.props.y + (this.ball.props.height / 2));
         this.flameParticles.run();
+        this.props.motionFactor = 0.25;
 
         this.timers.add("goal", 1000, () => {
+            this.props.motionFactor = 1;
+
             this.ball.respawn();
             this.flameParticles.stop();
         });

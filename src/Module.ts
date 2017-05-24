@@ -8,6 +8,7 @@ import { Signal } from "./Tool/Signal";
  */
 export class Module extends SideralObject {
 
+
     /* LIFECYCLE */
 
     /**

@@ -34,11 +34,14 @@ export class Body {
         };
 
         this.owner          = owner;
-        this.shape          = props.shape || new p2.Box({ width: width, height: height });
-        this.data           = new p2.Body(Object.assign({ position: [x + this.offset.x, y + this.offset.y] }, props));
-        this.data.damping   = 0;
+        this.shape          = props.shape || new p2.Box({ width: Util.pixelToMeter(width), height: Util.pixelToMeter(height) });
+
+        this.data           = new p2.Body(Object.assign({ position: [Util.pixelToMeter(x + this.offset.x), Util.pixelToMeter(y + this.offset.y)] }, props));
+        this.data.damping           = 0;
+        this.data.angularDamping    = 0;
         (<any>this.data).owner     = this.owner;
-        this.shape.material = material || this.owner.context.scene.DefaultMaterial;
+
+        this.shape.material = material || this.owner.context.scene.world.defaultMaterial;
         this.id             = this.data.id;
 
         this.data.addShape(this.shape);
@@ -132,7 +135,7 @@ export class Body {
      * @returns {number} the position x
      */
     get x (): number {
-        return this.data.interpolatedPosition[0] - this.offset.x;
+        return Util.meterToPixel(this.data.position[0]) - this.offset.x;
     }
 
     /**
@@ -140,7 +143,7 @@ export class Body {
      * @returns {number} the position y
      */
     get y (): number {
-        return this.data.interpolatedPosition[1] - this.offset.y;
+        return Util.meterToPixel(this.data.position[1]) - this.offset.y;
     }
 
     /**
@@ -148,7 +151,7 @@ export class Body {
      * @returns {number}
      */
     get vx (): number {
-        return this.data.velocity[0];
+        return Util.meterToPixel(this.data.velocity[0]);
     }
 
     /**
@@ -156,7 +159,7 @@ export class Body {
      * @returns {number}
      */
     get vy (): number {
-        return this.data.velocity[1];
+        return Util.meterToPixel(this.data.velocity[1]);
     }
 
     /**
@@ -164,7 +167,7 @@ export class Body {
      * @returns {number} the width of the shape
      */
     get width (): number {
-        return this.shape.width;
+        return Util.meterToPixel((<any>this.shape).radius ? (<any>this.shape).radius * 2 : this.shape.width);
     }
 
     /**
@@ -172,7 +175,7 @@ export class Body {
      * @returns {number} the height of the shape
      */
     get height (): number {
-        return this.shape.height;
+        return Util.meterToPixel((<any>this.shape).radius ? (<any>this.shape).radius * 2 : this.shape.height);
     }
 
     /**
@@ -180,7 +183,7 @@ export class Body {
      * @returns {number} angle in degree
      */
     get angle (): number {
-        return Util.toDegree(this.data.interpolatedAngle);
+        return Util.toDegree(this.data.angle);
     }
 
     /**
@@ -189,7 +192,7 @@ export class Body {
      * @returns {void}
      */
     set x (value: number) {
-        this.data.position[0] = value + this.offset.x;
+        this.data.position[0] = Util.pixelToMeter(value + this.offset.x);
     }
 
     /**
@@ -198,7 +201,7 @@ export class Body {
      * @returns {void}
      */
     set y (value: number) {
-        this.data.position[1] = value + this.offset.y;
+        this.data.position[1] = Util.pixelToMeter(value + this.offset.y);
     }
 
     /**
@@ -216,7 +219,7 @@ export class Body {
      * @returns {void}
      */
     set vx (value: number) {
-        this.data.velocity[0] = value;
+        this.data.velocity[0] = Util.pixelToMeter(value);
     }
 
     /**
@@ -225,6 +228,7 @@ export class Body {
      * @returns {void}
      */
     set vy (value: number) {
-        this.data.velocity[1] = value;
+        this.data.velocity[1] = Util.pixelToMeter(value);
     }
+
 }

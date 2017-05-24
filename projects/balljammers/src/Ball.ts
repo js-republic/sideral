@@ -29,7 +29,8 @@ export class Ball extends Entity {
         this.setProps({
             width           : 26,
             height          : 26,
-            gravityFactor   : 1
+            gravityFactor   : 1,
+            ball            : true
         });
 
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
@@ -46,7 +47,7 @@ export class Ball extends Entity {
     initialize (props: any) {
         super.initialize(props);
 
-        // this.setBounce(0.65);
+        this.setBounce(0.65);
 
         this.trail = <Particles> this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),

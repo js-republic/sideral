@@ -13,6 +13,7 @@ import { SkillManager } from "./Tool/SkillManager";
  * @extends Module
  */
 export class Entity extends Module {
+    x: number               = 0;
 
     name: string            = "entity";
     type: number            = Enum.TYPE.SOLID;

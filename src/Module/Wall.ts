@@ -33,7 +33,7 @@ export class Wall extends Module {
         super.initialize(props);
 
         const settings = {
-            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND
+            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: this.context.scene.wallMaterial
         };
 
         switch (this.props.box) {
