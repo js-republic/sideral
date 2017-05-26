@@ -180,9 +180,9 @@ export class Sprite extends Module {
         loader.add(this.props.imagePath).load(() => {
             const texture = loader.resources[this.props.imagePath].texture;
 
-            texture.frame           = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
-            this.container.texture  = texture;
-            this.image              = loader.resources[this.props.imagePath].data;
+            texture.frame = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
+            this.container.texture = texture;
+            this.image = loader.resources[this.props.imagePath].data;
 
             this.animations.forEach(animation => animation.textureFrames = this._framesToRectangles(animation.frames));
 
@@ -192,14 +192,5 @@ export class Sprite extends Module {
                 this.setAnimation(this.animations[0].name, true);
             }
         });
-    }
-
-    /**
-     * when flip attributes change
-     * @returns {void}
-     */
-    onFlipChange () {
-        this.container.scale.x      = Math.abs(this.container.scale.x) * (this.props.flip ? -1 : 1);
-        this.container.anchor.x     = this.props.flip ? -0.5 : 0.5;
     }
 }

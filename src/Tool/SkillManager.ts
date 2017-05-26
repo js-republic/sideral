@@ -1,74 +1,51 @@
+import { SideralObject } from "./../SideralObject";
+
+
 import { Entity } from '../Entity';
 import { Skill } from "./Skill";
 
 
-export class SkillManager {
-    owner: Entity;
+/**
+ * Manager of skill of an Entity
+ */
+export class SkillManager extends SideralObject {
+
+    /**
+     * List of all skills
+     */
     skills: {[skillName: string]: Skill} = {};
+
+    /**
+     * Current skill launched
+     */
     currentSkill: Skill = null;
+
+    /**
+     * Last skill launched
+     */
     lastSkill: Skill = null;
-
-    /* LIFECYCLE */
-
-    /**
-     * @constructor
-     * @param {Entity} owner: owner of the skill manager
-     */
-    constructor (owner: Entity) {
-
-        /**
-         * Owner of this instance
-         * @type {Entity}
-         */
-        this.owner          = owner;
-
-        /**
-         * List of all skills available
-         * @type {{Skill}}
-         */
-        this.skills         = {};
-
-        /**
-         * Current skill
-         * @type {Skill}
-         */
-        this.currentSkill   = null;
-
-        /**
-         * Last skill successfully launched
-         * @type {Skill}
-         */
-        this.lastSkill      = null;
-    }
-
-    /**
-     * Update skills
-     * @returns {void}
-     */
-    update (tick) {
-        Object.keys(this.skills).forEach(name => this.skills[name].update(tick));
-    }
 
 
     /* METHODS */
 
     /**
      * Add a new skill
-     * @param {string} name: name of the skill
-     * @param {Skill} skill: Skill corresponding of the name
-     * @returns {Skill} The skill created
+     * @param name - Name of the skill
+     * @param skill - Object instance of Skill corresponding of the name
+     * @returns The skill created
      */
-    add (name: string, skill: Skill): Skill {
-        skill.owner = this.owner;
+    addSkill (name: string, skill: Skill): Skill {
+        skill.name  = name;
+        skill.owner = <Entity> this.parent;
         skill.signals.skillComplete.add(this._onSkillComplete.bind(this));
 
-        return this.skills[name] = skill;
+        return this.skills[name] = <Skill> this.add(<SideralObject> skill);
     }
 
     /**
      * Get a skill
-     * @param {string} name: name of the skill
-     * @returns {Skill|null} The skill (or null if the skill doesn't exist)
+     * @param name - Name of the skill
+     * @returns The skill (or null if the skill doesn't exist)
      */
     get (name: string): Skill {
         return this.skills[name];
@@ -76,8 +53,8 @@ export class SkillManager {
 
     /**
      * Check if the skill with the name passed in parameter is running
-     * @param {string} name: name of the skill
-     * @returns {boolean} if the skill is running
+     * @param name - Name of the skill
+     * @returns Know if the skill is running
      */
     isRunning (name: string): boolean {
         return this.currentSkill && this.currentSkill[name] === this.skills[name] && this.currentSkill.active;

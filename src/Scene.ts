@@ -3,6 +3,8 @@ import { Material, World, ContactMaterial } from "p2";
 import { Module } from "./Module";
 import { Entity } from "./Entity";
 
+import { ISceneProps, IContact } from "./Interface";
+
 import { Enum } from "./Tool/Enum";
 import { Util } from "./Tool/Util";
 
@@ -11,19 +13,39 @@ import { Wall } from "./Module/Wall";
 
 
 /**
- * Class representing the simplest scene to add Entity
- * @class Scene
- * @extends Module
+ * A scene is a container of modules
  */
 export class Scene extends Module {
 
     /* ATTRIBUTES */
 
-    _entities: Array<Entity>    = null;
-    wallMaterial: Material      = new Material(Scene.generateId());
-    tilemap: Tilemap            = null;
-    world                       = new World({ gravity: [0, 0] });
-    materials                   = [];
+    /**
+     * Properties of the scene
+     */
+    props: ISceneProps;
+
+    /**
+     * List of all children which is an instance of Entity
+     * @private
+     */
+    _entities: Array<Entity> = null;
+
+    /**
+     * The tilemap of the scene
+     */
+    tilemap: Tilemap = null;
+
+    /**
+     * The p2 World physics
+     * @type {p2.World}
+     */
+    world: World = null;
+
+    /**
+     * List of all materials of the world
+     * @type {Array}
+     */
+    materials: Array<Material> = [];
 
     /**
      * The amplitude of the screen shake
@@ -48,15 +70,7 @@ export class Scene extends Module {
         });
 
         this.context.scene  = this;
-        this.materials      = [this.world.defaultMaterial, this.wallMaterial];
 
-        this.world.setGlobalStiffness(1e8);
-
-        this.world.on("beginContact", this._onBeginContact.bind(this), false);
-        this.world.on("endContact", this._onEndContact.bind(this), false);
-        this.world.on("preSolve", this._onPreSolve.bind(this), false);
-
-        this.signals.update.add(this.updateFollow.bind(this));
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
     }
 
@@ -84,10 +98,12 @@ export class Scene extends Module {
 
         super.update(tick);
 
-        const fixedStep = (1 / 60) * this.props.motionFactor,
-            maxStep     = 3;
+        if (this.world) {
+            const fixedStep = (1 / 60) * this.props.motionFactor,
+                maxStep     = 3;
 
-        this.world.step(fixedStep, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
+            this.world.step(fixedStep, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
+        }
 
         if (this.container && this.shakeAmplitude) {
             this.container.pivot.set(this.shakeAmplitude * (Math.random() - 0.5), this.shakeAmplitude * (Math.random() - 0.5));
@@ -98,16 +114,56 @@ export class Scene extends Module {
     /* METHODS */
 
     /**
+     * Enable world physics
+     * @param gravity - The power of gravity
+     */
+    enablePhysics (gravity?: number) {
+        this.disablePhysics();
+
+        gravity         = typeof gravity === "undefined" ? this.props.gravity : gravity;
+        this.world      = new World({ gravity: [0, gravity] });
+        this.materials  = [this.world.defaultMaterial];
+
+        this.getAllEntities().filter(entity => entity.body).forEach(entity => {
+            const materialId = entity.body.shape.material.id;
+
+            if (!this.materials.find(material => material.id === materialId)) {
+                this.materials.push(entity.body.shape.material);
+            }
+
+            this.world.addBody(entity.body.data);
+        });
+
+        this.setProps({ gravityFactor: gravity });
+
+        this.world.setGlobalStiffness(1e8);
+        this.world.on("beginContact", this._onBeginContact.bind(this), false);
+        this.world.on("endContact", this._onEndContact.bind(this), false);
+        this.world.on("preSolve", this._onPreSolve.bind(this), false);
+    }
+
+    /**
+     * Disable and remove the world physics
+     */
+    disablePhysics () {
+        if (this.world) {
+            this.world.bodies.forEach(body => this.world.removeBody(body));
+
+            this.materials  = [];
+            this.world      = null;
+        }
+    }
+
+    /**
      * Shake the current scene
      * @access public
-     * @param {number} amplitude - Amplitude of the shake
-     * @param {number=} duration - Duration of the shake
-     * @returns {number} The current amplitude of the shake
+     * @param amplitude - Amplitude of the shake
+     * @param duration - Duration of the shake
      */
-    shake (amplitude, duration = 10) {
+    shake (amplitude: number, duration: number = 10): void {
         this.shakeAmplitude = amplitude;
 
-        this.timers.add("shake", duration, () => {
+        this.timers.addTimer("shake", duration, () => {
             this.shakeAmplitude = 0;
 
             if (this.container) {
@@ -118,10 +174,10 @@ export class Scene extends Module {
 
     /**
      * Set a new bouncing factor for the entity
-     * @param {Entity} entity: entity with a new bounce factor
-     * @param {Number} bounce: next bouncing factor
-     * @param {Number=} lastBounce: last bouncing factor
-     * @returns {Number} Bouncing factor
+     * @param entity: entity with a new bounce factor
+     * @param bounce: next bouncing factor
+     * @param lastBounce: last bouncing factor
+     * @returns Bouncing factor
      */
     setEntityBouncing (entity: Entity, bounce: number, lastBounce: number): number {
         if (!entity || (entity && !entity.body)) {
@@ -143,11 +199,11 @@ export class Scene extends Module {
                 restitution         : bounce
             } as p2.ContactMaterialOptions;
 
-            const material          = entity.body.shape.material = new Material(Scene.generateId());
+            const material = entity.body.shape.material = new Material(Scene.generateId());
 
             this.materials.push(material);
 
-            const contactMaterials    = this.materials.map(materialB => new ContactMaterial(material, materialB, materialOptions));
+            const contactMaterials = this.materials.map(materialB => new ContactMaterial(material, materialB, materialOptions));
 
             contactMaterials.forEach(contactMaterial => this.world.addContactMaterial(contactMaterial));
         }
@@ -157,8 +213,8 @@ export class Scene extends Module {
 
     /**
      * Set a tilemap for the current scene
-     * @param {{}} data: data of the tilemap (generaly provided by a json file)
-     * @returns {Object} Tilemap instance
+     * @param data: data of the tilemap (generaly provided by a json file)
+     * @returns Tilemap instance
      */
     setTilemap (data: any): Tilemap {
         this.tilemap = <Tilemap> this.add(new Tilemap(), {}, 0);
@@ -170,10 +226,30 @@ export class Scene extends Module {
 
     /**
      * Get all children instance of Entity
-     * @returns {Array<*>} array of all entities
+     * @returns Array of all entities
      */
-    getEntities (): any[] {
+    getEntities (): Array<Entity> {
         return this._entities || (this._entities = <Array<Entity>>this.children.filter(child => child instanceof Entity));
+    }
+
+    /**
+     * Get all children instance of Entity and their children
+     * @returns Array of all entities (even their children)
+     */
+    getAllEntities (): Array<Entity> {
+        const findChildrenEntities = entity => {
+            let childrenEntities = [entity];
+
+            entity.children.forEach(child => {
+                if (child instanceof Entity) {
+                    childrenEntities = childrenEntities.concat(findChildrenEntities(child));
+                }
+            });
+
+            return childrenEntities;
+        };
+
+        return this.getEntities().reduce((acc, entity) => acc.concat(findChildrenEntities(entity)), []);
     }
 
     /**
@@ -198,16 +274,15 @@ export class Scene extends Module {
 
     /**
      * Update the position of the camera related to the following entity
-     * @event update
-     * @returns {void}
      */
-    updateFollow () {
+    updateFollow (): void {
         if (this.props.follow) {
-            const follow = this.props.follow;
+            const follow    = this.props.follow,
+                target      = follow.target;
 
-            if (!follow.killed) {
-                this.props.x = -(follow.props.x + (follow.props.width / 2) - (this.props.width / 2));
-                this.props.y = -(follow.props.y + (follow.props.height / 2) - (this.props.height / 2));
+            if (!target.killed) {
+                this.props.x = target.props.x + (follow.centered ? (target.props.width / 2) - (this.props.width / 2) : 0) - follow.offsetX;
+                this.props.y = target.props.y + (follow.centered ? (target.props.height / 2) - (this.props.height / 2) : 0) - follow.offsetY;
 
             } else {
                 this.props.follow = null;
@@ -216,17 +291,21 @@ export class Scene extends Module {
         }
     }
     /**
-     * When gravity property change
-     * @returns {void}
+     * When "gravity" property change
      */
-    onGravityChange () {
+    onGravityChange (): void {
         this.world.gravity = [0, this.props.gravity];
     }
 
 
     /* PRIVATE */
 
-    _onPreSolve ({ contactEquations }) {
+    /**
+     * p2 World presolving
+     * @param contactEquations - The contactEquations of p2 (see p2.js)
+     * @private
+     */
+    _onPreSolve ({ contactEquations }): void {
         contactEquations.forEach(contactEquation => {
             const ownerA    = contactEquation.bodyA.owner,
                 ownerB      = contactEquation.bodyB.owner,
@@ -251,11 +330,11 @@ export class Scene extends Module {
 
     /**
      * p2 JS event when two shapes starts to overlap
-     * @param {p2.Body} bodyA: body entered in collision
-     * @param {p2.Body} bodyB: body entered in collision
-     * @returns {void}
+     * @param bodyA: Body A entered in collision
+     * @param bodyB: Body B entered in collision
+     * @private
      */
-    _onBeginContact ({ bodyA, bodyB }) {
+    _onBeginContact ({ bodyA, bodyB }): void {
         const contact = this._resolveContact(bodyA, bodyB);
 
         if (contact.entityA && contact.contactA) {
@@ -274,11 +353,11 @@ export class Scene extends Module {
 
     /**
      * p2 JS event when two shapes ends to overlap
-     * @param {p2.Body} bodyA: body entered in collision
-     * @param {p2.Body} bodyB: body entered in collision
-     * @returns {void}
+     * @param bodyA: Body A entered in collision
+     * @param bodyB: Body B entered in collision
+     * @private
      */
-    _onEndContact ({ bodyA, bodyB }) {
+    _onEndContact ({ bodyA, bodyB }): void {
         const contact = this._resolveContact(bodyA, bodyB);
 
         if (contact.entityA) {
@@ -297,11 +376,12 @@ export class Scene extends Module {
 
     /**
      * p2 JS event when two shapes is overlaping
-     * @param {p2.Body} bodyA: body entered in collision
-     * @param {p2.Body} bodyB: body entered in collision
-     * @returns {{ entityA: Entity, entityB: Entity, contactA: *, contactB: *}} resolve object
+     * @private
+     * @param bodyA: Body A entered in collision
+     * @param bodyB: Body B entered in collision
+     * @returns Contact resolver
      */
-    _resolveContact (bodyA, bodyB) {
+    _resolveContact (bodyA, bodyB): IContact {
         const ownerA    = bodyA.owner,
             ownerB      = bodyB.owner;
 

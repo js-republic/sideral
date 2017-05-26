@@ -19,8 +19,8 @@ export class PlayerDashSkill extends Skill {
     /**
      * @constructor
      */
-    constructor (owner) {
-        super(owner);
+    constructor () {
+        super();
 
         this.signals.skillStart.add(this.onSkillStart.bind(this));
         this.signals.skillUpdate.add(this.onSkillUpdate.bind(this));

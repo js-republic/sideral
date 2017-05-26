@@ -1,29 +1,33 @@
+import { Material } from "p2";
+
 import { Body, CircularBody, RectangularBody } from "./../Tool/Body";
 import { Enum } from "./../Tool/Enum";
 import { Module } from "./../Module";
-import { Shape } from "./../Module/Shape";
+import { Entity } from "./../Entity";
+import { IWallProps } from "./../Interface";
 
 
+/**
+ * Module for wall tilemap
+ * TODO: Finish refactoring
+ */
 export class Wall extends Module {
 
     /* ATTRIBUTES */
 
+    /**
+     * Properties of a Wall
+     */
+    props: IWallProps;
+
+    /**
+     * Body of the wall
+     * @readonly
+     */
     body: Body;
-    _debug: any;
 
 
     /* LIFECYCLE */
-
-    /**
-     * @constructor
-     */
-    constructor () {
-        super();
-
-        this.setProps({
-            box: null
-        });
-    }
 
     /**
      * @initialize
@@ -33,7 +37,7 @@ export class Wall extends Module {
         super.initialize(props);
 
         const settings = {
-            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: this.context.scene.wallMaterial
+            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: Wall.wallMaterial
         };
 
         switch (this.props.box) {
@@ -43,50 +47,43 @@ export class Wall extends Module {
             default: this.body = new RectangularBody(this, this.props.x, this.props.y, this.props.width, this.props.height, settings);
                 break;
         }
-
-        if (this.props.debug) {
-          this.toggleDebug();
-        }
     }
 
 
     /* METHODS */
 
-    toggleDebug () {
-        if (this._debug) {
-            this._debug.kill();
-            this._debug = null;
-
-        } else {
-            this._debug = this.add(new Shape(), {
-                box     : this.props.box,
-                width   : this.props.width,
-                height  : this.props.height,
-                stroke  : "#FF0000",
-                fill    : "transparent"
-            });
-        }
-    }
-
-    isConstrainedByDirection (entity) {
+    /**
+     * Know if the entity is constrained by the DirectionConstraint
+     * @param entity - The entity to check
+     * @returns If the entity is constrained by the DirectionConstraint
+     */
+    isConstrainedByDirection (entity: Entity) {
         return !this.resolveDirectionConstraint(this.props.directionConstraint, this.body.x, this.body.y, this.body.width, this.body.height, entity);
     }
 
     /**
      * resolve the direction by constraint
-     * @param {string} directionConstraint: constraint of direction
-     * @param {number} x: position x of the first shape
-     * @param {number} y: position y of the first shape
-     * @param {number} width: width of the first shape
-     * @param {number} height: height of the first shape
-     * @param {number} entity: entity to check
-     * @returns {boolean} if true, the target is constrained by constraint direction of the wall
+     * @param directionConstraint - constraint of direction
+     * @param x - position x of the first shape
+     * @param y - position y of the first shape
+     * @param width - width of the first shape
+     * @param height - height of the first shape
+     * @param entity - entity to check
+     * @returns If true, the target is constrained by constraint direction of the wall
      */
-    resolveDirectionConstraint (directionConstraint, x, y, width, height, entity) {
+    resolveDirectionConstraint (directionConstraint: string, x: number, y: number, width: number, height: number, entity: Entity) {
         switch (directionConstraint) {
             case "upper": return entity.props.y < y;
             case "lower": return entity.lastPos.y > entity.props.y && entity.props.y + entity.props.height > y && (entity.props.y + (entity.props.height / 2)) >= (y + height);
             default: return true;
         }
     }
+
+
+    /* STATICS */
+
+    /**
+     * Default material for Wall
+     */
+    static wallMaterial = new Material(Wall.generateId());
 }

@@ -1,12 +1,38 @@
 import { SideralObject } from "./SideralObject";
 
-import { Signal } from "./Tool/Signal";
+import { Signal, Util } from "./Tool";
+
+import { IModuleProps, IModuleSignals, ISpawnMultiple } from "./Interface";
+import {TimerManager} from "./Tool/TimerManager";
 
 
 /**
  * SideralObject visible on screen
  */
 export class Module extends SideralObject {
+
+    /* ATTRIBUTES */
+
+    /**
+     * Properties of the module
+     */
+    props: IModuleProps;
+
+    /**
+     * Signals of the module
+     */
+    signals: IModuleSignals;
+
+    /**
+     * Manager of timers for this module
+     */
+    timers: TimerManager;
+
+    /**
+     * PIXI Container (a module must have a pixi container)
+     * @readonly
+     */
+    container: PIXI.Container = new PIXI.Container();
 
 
     /* LIFECYCLE */
@@ -17,52 +43,132 @@ export class Module extends SideralObject {
     constructor () {
         super();
 
-        this.setProps({
-            x       : 0,
-            y       : 0,
-            width   : 0,
-            height  : 0,
-            debug   : false,
-            visible : true,
-            follow  : null
-        });
+        this.timers = <TimerManager> this.add(new TimerManager());
 
-        this.signals.click = new Signal(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.click = <Signal> new Signal(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
 
-        this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
         this.signals.propChange.bind("visible", this.onVisibleChange.bind(this));
+        this.signals.propChange.bind(["x", "y", "width", "height", "angle"], this.updateContainerPosition.bind(this));
+        this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
 
         this.signals.update.add(this.updateFollow.bind(this));
+    }
+
+    /**
+     * @override
+     */
+    kill () {
+        super.kill();
+
+        this.container.destroy(true);
     }
 
 
     /* METHODS */
 
     /**
-     * Add a new module into its lifecycle
-     * @param {Module} module - Module instance
-     * @param {number} x - Position of the module in x axis
-     * @param {number} y - Position of the module in y axis
-     * @param {Object=} settings - Settings to add to the module (will merge into props)
-     * @param {number=} index - Z index position of the module
-     * @returns {Module} Module added
+     * Add an item to the current object. The item added will enter into the lifecycle of the object and will become a children
+     * of this object. The method "initialize" of the item will be called.
+     * @access public
+     * @param item - A SideralObject
+     * @param props - Props to merge to the item
+     * @param z - The z index of the item
+     * @returns The item initialized
      */
-    addModule (module, x, y, settings: any = {}, index?: number) {
-        settings.x = x;
-        settings.y = y;
+    add (item: SideralObject, props: any = {}, z?: number): SideralObject {
+        if (typeof z !== "undefined") {
+            props.z = z;
+        }
 
-        return this.add(module, settings, index);
+        super.add(item);
+
+        if (item instanceof Module) {
+            if (typeof props.z !== "undefined") {
+                this.container.addChildAt(item.container, z);
+            } else {
+                this.container.addChild(item.container);
+            }
+        }
+
+        return item;
+    }
+
+    /**
+     * This method is an helper to add a module. It is much faster than add when you must give a "x" and "y" properties
+     * @access public
+     * @param item - Module to add
+     * @param x - The position in x axis
+     * @param y - The position in y axis
+     * @param props - Other properties to merge to the module
+     * @param z - The z index of the item
+     * @returns The module initialize
+     */
+    spawn (item: Module, x: number, y: number, props: any = {}, z?: number): Module {
+        if (!(item instanceof Module)) {
+            throw new Error("Module.spawn : The item must ben an instance of Module");
+        }
+
+        props.x = x;
+        props.y = y;
+
+        return <Module> this.add(item, props, z);
+    }
+
+    /**
+     * Spawn multiple modules
+     * @param params - Parameters of the multiple spawn
+     */
+    spawnMultiple (params: ISpawnMultiple[]): void {
+        params.forEach(param => {
+            if (!param.props) {
+                param.props = {};
+            }
+
+            param.props.x = param.x;
+            param.props.y = param.y;
+            param.props.z = param.z;
+        });
+
+        super.addMultiple(params);
+    }
+
+    /**
+     * Swap the current PIXI container to another PIXI container. This is usefull if you want to change
+     * the PIXI Object without destroy children and parent relationship.
+     * @access protected
+     * @param nextContainer: PIXI Container
+     * @returns -
+     */
+    swapContainer (nextContainer): void {
+        if (!this.parent || (this.parent && !this.parent.container)) {
+            return null;
+        }
+
+        const containerIndex    = this.parent.container.children.findIndex(child => child === this.container),
+            children            = this.container.children.slice(0);
+
+        this.parent.container.removeChild(this.container);
+        this.container.destroy();
+
+        if (containerIndex > -1) {
+            this.parent.container.addChildAt(nextContainer, containerIndex);
+        } else {
+            this.parent.container.addChild(nextContainer);
+        }
+
+        this.container = nextContainer;
+        children.forEach(child => this.container.addChild(child));
     }
 
     /**
      * Use this method to follow this entity by an other entity
-     * @param {boolean} centered - if True, the follower will be centered to the followed
-     * @param {number} offsetX - Offset in x axis
-     * @param {number} offsetY - Offset in y axis
-     * @param {number|null} offsetFlipX - Set a special offset in x axis if the followed is flipped
-     * @returns {Object} Configuration object to follow this entity
+     * @param centered - if True, the follower will be centered to the followed
+     * @param offsetX - Offset in x axis
+     * @param offsetY - Offset in y axis
+     * @param offsetFlipX - Set a special offset in x axis if the followed is flipped
+     * @returns Configuration object to follow this entity
      */
-    beFollowed (centered: boolean = false, offsetX: number = 0, offsetY: number = 0, offsetFlipX: number = null) {
+    beFollowed (centered: boolean = false, offsetX: number = 0, offsetY: number = 0, offsetFlipX: number = null): IFollow {
         return {
             target      : this,
             centered    : centered,
@@ -72,67 +178,24 @@ export class Module extends SideralObject {
         };
     }
 
-    /**
-     * Change the position of the current module
-     * @param {number} x: new position in x axis
-     * @param {number} y: new position in y axis
-     * @returns {void}
-     */
-    position (x, y) {
-        x = typeof x !== "undefined" ? x : this.props.x;
-        y = typeof y !== "undefined" ? y : this.props.y;
-
-        if (!this.initialized) {
-            this.setProps({ x: x, y: y });
-
-        } else {
-            this.props.x = x;
-            this.props.y = y;
-        }
-    }
-
-    /**
-     * Change the size of the current module
-     * @param {number} width: new width of the current module
-     * @param {number} height: new height of the current module
-     * @returns {void}
-     */
-    size (width, height) {
-        width   = typeof width !== "undefined" ? width : this.props.width;
-        height  = typeof height !== "undefined" ? height : this.props.height;
-
-        this.props.width  = width;
-        this.props.height = height;
-    }
-
-    /**
-     * Update the position of the pixi container
-     * @returns {void}
-     */
-    updateContainerPosition () {
-        if (this.container) {
-            this.container.pivot.set(this.props.width / 2, this.props.height / 2);
-            this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
-        }
-    }
-
 
     /* EVENTS */
 
     /**
-     * When "visible" property has change
-     * @access protected
-     * @returns {void}
+     * Update the position of the pixi container
      */
-    onVisibleChange () {
-        this.container.visible = this.props.visible;
+    updateContainerPosition (): void {
+        if (this.container) {
+            this.container.pivot.set(this.props.width / 2, this.props.height / 2);
+            this.container.position.set(this.props.x + this.container.pivot.x + (this.props.flip ? this.props.width : 0), this.props.y + this.container.pivot.y);
+            this.container.rotation = Util.toRadians(this.props.angle);
+        }
     }
 
     /**
      * Update the position of this entity if it follows a target
-     * @returns {void}
      */
-    updateFollow () {
+    updateFollow (): void {
         if (this.props.follow) {
             const { offsetX, offsetY, offsetFlipX, centered, target } = this.props.follow;
 
@@ -142,41 +205,45 @@ export class Module extends SideralObject {
     }
 
     /**
-     * When x or y attributes change
-     * @returns {void}
+     * When "visible" property has change
      */
-    onPositionChange () {
-        this.updateContainerPosition();
+    onVisibleChange (): void {
+        this.container.visible = this.props.visible;
     }
 
     /**
-     * When width or height attribtues change
-     * @returns {void}
+     * When "flip" attribute change
      */
-    onSizeChange () {
+    onFlipChange (): void {
+        this.container.scale.x = Math.abs(this.container.scale.x) * (this.props.flip ? -1 : 1);
+
+        if (this.container instanceof PIXI.Sprite) {
+            this.container.anchor.x = this.props.flip ? -0.5 : 0.5;
+        }
+
         this.updateContainerPosition();
     }
 
     /**
      * Fired when a listener is added to the signal click
-     * @returns {void}
      */
-    onBindClick () {
+    onBindClick (): void {
         if (this.container && this.signals.click.listenerLength === 1) {
             this.container.interactive  = true;
             this.container.buttonMode   = true;
+
             this.container.on("click", this.signals.click.dispatch.bind(this));
         }
     }
 
     /**
      * Fired when a listener is removed from the signal click
-     * @returns {void}
      */
-    onRemoveClick () {
+    onRemoveClick (): void {
         if (this.container && !this.signals.click.listenerLength) {
             this.container.interactive  = false;
             this.container.buttonMode   = false;
+
             this.container.off("click", this.signals.click.dispatch.bind(this));
         }
     }

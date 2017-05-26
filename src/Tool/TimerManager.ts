@@ -1,41 +1,39 @@
+import { SideralObject } from "./../SideralObject";
+
 import { Timer } from "./Timer";
 
 
-export class TimerManager {
+/**
+ * A manager for all timers
+ */
+export class TimerManager extends SideralObject {
+
+    /* ATTRIBUTES */
+
+    /**
+     * List of all current timers
+     */
     timers: {[timerName: string]: Timer} = {};
-    owner: any;
-
-    /* LIFECYCLE */
-
-    /**
-     * @constructor
-     */
-    constructor (owner) {
-        this.owner = owner;
-    }
-
-    /**
-     * @update
-     * @returns {void}
-     */
-    update (tick) {
-        if (this.timers === undefined) return;
-        Object.keys(this.timers).forEach((key) => this.timers[key].update(tick));
-    }
 
 
     /* METHODS */
 
     /**
      * Add a new timer
-     * @param {string} name: name of the timer
-     * @param {number} duration: duration of the timer
-     * @param {function} onComplete: callback function when finished
-     * @param {*=} options: options to implement to the timer
-     * @returns {Timer} the timer created
+     * @param name: Name of the timer
+     * @param duration: Duration of the timer in ms
+     * @param onComplete: Callback function when finished
+     * @param options: Options to implement to the timer
+     * @returns Rhe timer created
      */
-    add (name: string, duration: number, onComplete: Function, options: any = {}): Timer {
-        const timer = new Timer(duration, onComplete, options);
+    addTimer (name: string, duration: number, onComplete?: Function, options: any = {}): Timer {
+        const timer = <Timer> this.add(new Timer(), {
+            duration: duration,
+            complete: onComplete,
+            ...options
+        });
+
+        timer.name = name;
 
         return this.timers[name] = timer;
     }
@@ -54,8 +52,23 @@ export class TimerManager {
      * @param {string} name: name of the timer
      * @returns {void}
      */
-    remove (name: string) {
+    remove (name: string): void {
+        const timer = this.timers[name];
+
+        if (timer) {
+            timer.kill();
+        }
+
         delete this.timers[name];
+    }
+
+    /**
+     * Remove all timers
+     */
+    removeAll (): void {
+        Object.keys(this.timers).forEach(key => this.timers[key] && this.timers[key].kill());
+
+        this.timers = {};
     }
 
     /**

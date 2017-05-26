@@ -1,3 +1,5 @@
+import { Body } from "p2";
+
 import { Module } from "../Module";
 import { Scene } from "./../Scene";
 
@@ -9,53 +11,70 @@ import { Wall } from "../Module/Wall";
 
 
 export class Tilemap extends Module {
-    bodies          = [];
-    _debugs         = [];
-    grid            = {};
-    gridContainer   = null;
-    backgroundContainers    = [];
-    decoratorContainers     = [];
 
-    /* LIFECYCLE */
+    /* ATTRIBUTES */
 
     /**
-     * @constructor
+     * The width of a tile
      */
-    constructor () {
-        super();
+    tilewidth: number;
 
-        this.setProps({
-            tilewidth   : 0,
-            tileheight  : 0
-        });
-    }
+    /**
+     * The height of a tile
+     */
+    tileheight: number;
+
+    /**
+     * List of all wall
+     * @readonly
+     */
+    walls: Array<Wall> = [];
+
+    /**
+     * Grid of the tilemap
+     */
+    grid: any = {};
+
+    /**
+     * The pixi container of the grid
+     */
+    gridContainer: PIXI.Sprite;
+
+    /**
+     * Pixi containers of the backgrounds
+     */
+    backgroundContainers: Array<PIXI.Sprite> = [];
+
+    /**
+     * Pixi containers of the decorators
+     */
+    decoratorContainers: Array<PIXI.Sprite> = [];
 
 
     /* METHODS */
 
     /**
      * Set a data to construct the tilemap
-     * @param {*} data: data generaly provided by a json file
-     * @returns {void}
+     * @param data - Data generaly provided by a json file
      */
-    setData (data:any) {
+    setData (data: any): void {
         const loader    = new PIXI.loaders.Loader();
 
         this.removeData();
 
-        this.props.width        = 0;
-        this.props.height       = 0;
-        this.props.tilewidth    = data.tilewidth;
-        this.props.tileheight   = data.tileheight;
-        this.grid               = data.grid;
+        this.props.width    = 0;
+        this.props.height   = 0;
+        this.tilewidth      = data.tilewidth;
+        this.tileheight     = data.tileheight;
+        this.grid           = data.grid;
 
         // Determine the size of the tilemap
         data.grid.forEach(layer => layer.forEach(line => {
             this.props.width = line.length > this.props.width ? line.length : this.props.width;
         }));
 
-        this.props.width *= this.props.tilewidth;
-        this.props.height = data.grid[0].length * this.props.tileheight;
+        this.props.width *= this.tilewidth;
+        this.props.height = data.grid[0].length * this.tileheight;
 
         // Load all assets
         if (data.backgrounds) {
@@ -76,9 +95,8 @@ export class Tilemap extends Module {
 
     /**
      * Remove all data from the tilemap
-     * @returns {void}
      */
-    removeData () {
+    removeData (): void {
         [].concat(this.gridContainer || [], this.backgroundContainers, this.decoratorContainers).forEach(container => {
             this.container.removeChild(container);
             container.destroy(true);
@@ -89,21 +107,22 @@ export class Tilemap extends Module {
         this.decoratorContainers    = [];
     }
 
+
     /* PRIVATE */
 
     /**
      * Load all grids provided by the data
      * @private
-     * @param {*} grid: grid provided by the data
-     * @param {string} path: path to the image
-     * @returns {void}
+     * @param grid - Grid provided by the data
+     * @param path - Path to the image
      */
-    _loadGrids (grid, path) {
+    _loadGrids (grid: any, path: string): void {
         const canvas    = document.createElement("canvas"),
             ctx         = canvas.getContext("2d"),
             image       = new Image();
 
-        const { width, height, tilewidth, tileheight } = this.props;
+        const { width, height } = this.props,
+            { tilewidth, tileheight} = this;
 
         canvas.width    = width;
         canvas.height   = height;
@@ -129,12 +148,11 @@ export class Tilemap extends Module {
 
     /**
      * Load all backgrounds provided by the tilemap
-     * @param {Array<*>} backgrounds: array of backgrounds data
-     * @param {*} resources: PIXI Loader resources
-     * @returns {void|null} -
+     * @param backgrounds - Array of backgrounds data
+     * @param resources - PIXI Loader resources
      * @private
      */
-    _loadBackgrounds (backgrounds, resources) {
+    _loadBackgrounds (backgrounds: Array<any>, resources: Array<PIXI.Texture>): void {
         if (!backgrounds) {
             return null;
         }
@@ -160,12 +178,12 @@ export class Tilemap extends Module {
 
     /**
      * Load all decorators provided by the tilemap
-     * @param {*} decorators: array of decorators data
-     * @param {*} resources: PIXI Textures resources
-     * @returns {void|null} -
+     * @param decorators - array of decorators data
+     * @param resources - PIXI Textures resources
+     * @returns -
      * @private
      */
-    _loadDecorators (decorators, resources) {
+    _loadDecorators (decorators: Array<any>, resources: Array<PIXI.Texture>): void {
         if (!decorators || (decorators && !decorators.items)) {
             return null;
         }
@@ -181,11 +199,17 @@ export class Tilemap extends Module {
         }).forEach(decoratorContainer => this.container.addChild(decoratorContainer));
     }
 
-    _loadWalls (wallDatas: Array<any> = [], debug: boolean = false) {
-        this.bodies = wallDatas.map(wall => {
+    /**
+     * Load all walls provided by the tilemap json
+     * @param wallDatas - Datas provided by the tilemap json
+     * @param debug - Set the debug mode for the walls
+     * @private
+     */
+    _loadWalls (wallDatas: Array<any> = [], debug: boolean = false): void {
+        this.walls = <Array<Wall>> wallDatas.map(wall => {
             const [box, x, y, width, height, directionConstraint] = wall;
 
-            return this.add(new Wall(), { box, x, y, width, height, directionConstraint,
+            return this.spawn(new Wall(), x, y, { box, width, height, directionConstraint,
                 debug: debug
             });
         });

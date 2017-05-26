@@ -28,6 +28,12 @@ export const Enum = {
         ANIMATION_LOOP  : "animationLoop"
     },
 
+    KEY_STATE: {
+        PRESSED         : "pressed",
+        HOLD            : "hold",
+        RELEASED        : "released"
+    },
+
     KEY: {
         "BACKSPACE": "8",
         "TAB": "9",

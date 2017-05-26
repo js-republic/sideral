@@ -1,5 +1,6 @@
 import { Module } from "./Module";
 import { Shape, Sprite } from "./Module/";
+import { IEntityProps, IEntitySignals } from "./Interface";
 
 import { Body, CircularBody, RectangularBody } from './Tool/Body';
 import { Signal } from "./Tool/Signal";
@@ -8,20 +9,32 @@ import { SkillManager } from "./Tool/SkillManager";
 
 
 /**
- * Module with physics and interaction
- * @class entity
- * @extends Module
+ * Module with physics
  */
 export class Entity extends Module {
-    x: number               = 0;
 
-    name: string            = "entity";
+    /* ATTRIBUTES */
+
+    /**
+     * Properties of the entity
+     */
+    props: IEntityProps;
+
+    /**
+     * Signals of the entity
+     */
+    signals: IEntitySignals;
+
+    /**
+     * Manager of skills of the entity
+     */
+    skills: SkillManager;
+
     type: number            = Enum.TYPE.SOLID;
     box: string             = Enum.BOX.RECTANGLE;
     group: number           = Enum.GROUP.ALL;
     friction: boolean       = false;
     lastPos                 = {x: 0, y: 0};
-    skills: SkillManager    = new SkillManager(this);
 
     standing: boolean       = false;
     moving: boolean         = false;
@@ -56,16 +69,15 @@ export class Entity extends Module {
             vy              : 0,
             accelX          : 0,
             accelY          : 0,
-            angle           : 0,
-            flip            : false
+            angle           : 0
         });
+
+        this.skills = <SkillManager> this.add(new SkillManager());
 
         this.signals.beginCollision = new Signal();
         this.signals.collision      = new Signal();
         this.signals.endCollision   = new Signal();
 
-        this.signals.propChange.bind("angle", this.onAngleChange.bind(this));
-        this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
         this.signals.propChange.bind("debug", this.onDebugChange.bind(this));
         this.signals.propChange.bind("gravityFactor", this.onGravityFactorChange.bind(this));
     }
@@ -401,16 +413,6 @@ export class Entity extends Module {
     }
 
     /**
-     * When "flip" attribute change
-     * @returns {void}
-     */
-    onFlipChange () {
-        if (this.sprite) {
-            this.sprite.props.flip = this.props.flip;
-        }
-    }
-
-    /**
      * When gravityFactor property change
      * @returns {void}
      */
@@ -418,14 +420,5 @@ export class Entity extends Module {
         if (this.body) {
             this.body.data.gravityScale = this.props.gravityFactor;
         }
-    }
-
-    /**
-     * When angle attribute change
-     * @returns {void}
-     */
-    onAngleChange () {
-        this.updateContainerPosition();
-        this.body.angle = this.props.angle;
     }
 }

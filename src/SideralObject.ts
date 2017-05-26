@@ -1,12 +1,10 @@
-import * as PIXI from "pixi.js";
-
 import { Signal } from "./Tool/Signal";
-import { TimerManager } from "./Tool/TimerManager";
+
+import { IProps, ISignals, IAddMultiple } from "./Interface";
 
 
 /**
  * The entry class of all object in Sideral
- * @class SideralObject
  */
 export class SideralObject {
 
@@ -14,74 +12,62 @@ export class SideralObject {
 
     /**
      * Unique id of the object
-     * @type {number}
+     * @readonly
      */
     id: number = SideralObject.generateId();
 
     /**
-     * List of all properties of the object
-     * @type {any}
+     * Name of the object (used to identify object, you should not forget to fill this value)
+     * @type {string}
      */
-    props: any = {};
+    name: string = "";
 
     /**
-     * List of all last value of properties of the object
-     * @type {any}
+     * Properties of the object
+     */
+    props: IProps = {};
+
+    /**
+     * Last values of properties of the object
      */
     last: any = {};
 
     /**
      * Context is a object which you can store anything, the content of the context will be passed to its children
-     * @type {any}
      */
     context: any = {};
 
     /**
      * List of all signals of the element
-     * @type {{[string]: Signal}}
      */
-    signals: {[key: string]: Signal} = {
-        update: new Signal(),
-        propChange: new Signal(),
+    signals: ISignals = {
+        update: <Signal> new Signal(),
+        propChange: <Signal> new Signal(),
+        addChild: <Signal> new Signal(),
+        removeChild: <Signal> new Signal()
     };
 
     /**
      * List of all children of this object
-     * @type {Array<SideralObject>}
      */
     children: SideralObject[] = [];
 
     /**
      * Parent of this object
-     * @type {SideralObject}
      */
     parent: SideralObject = null;
 
     /**
-     * Manage all timers of this object
-     * @type {TimerManager}
-     */
-    timers: TimerManager = new TimerManager(this);
-
-    /**
      * Know if this object has been initialized
      * @readonly
-     * @type {boolean}
      */
     initialized: boolean = false;
 
     /**
      * Know if this object has been killed
      * @readonly
-     * @type {boolean}
      */
     killed: boolean = false;
-
-    /**
-     * PIXI Container
-     * @type {PIXI.Container}
-     */
-    container: PIXI.Container = new PIXI.Container();
 
 
     /* LIFECYCLE */
@@ -89,8 +75,7 @@ export class SideralObject {
     /**
      * Lifecycle - When initialized by a parent (called only once when the instance is attached to the lifecycle of the game)
      * @access public
-     * @param {any} props - properties to merge
-     * @returns {void}
+     * @param props - properties to merge
      */
     initialize (props: any = {}): void {
         Object.keys(props).forEach(key => this.props[key] = props[key]);
@@ -101,22 +86,19 @@ export class SideralObject {
     /**
      * Lifecycle - Destroy the current instance
      * @access public
-     * @returns {void}
      */
     kill (): void {
         Object.keys(this.signals).forEach(key => this.signals[key].removeAll());
 
         this.children.forEach(child => child.kill());
 
-        if (this.container) {
-            this.container.destroy(true);
-        }
-
         if (this.parent) {
             this.parent.children = this.parent.children.filter(child => child.id !== this.id);
         }
 
         this.killed = true;
+
+        this.parent.signals.removeChild.dispatch(this.name, this);
     }
 
     /**
@@ -127,7 +109,6 @@ export class SideralObject {
      */
     update (tick: number): void {
         this.children.forEach(child => child.update(tick));
-        this.timers.update(tick);
         this.signals.update.dispatch(tick);
     }
 
@@ -137,15 +118,19 @@ export class SideralObject {
      * @returns {void}
      */
     nextCycle (): void {
+        const propChanged = [];
+
         this.children.forEach(child => child.nextCycle());
 
         Object.keys(this.props).forEach(key => {
             if (this.props[key] !== this.last[key]) {
-                this.signals.propChange.dispatch(key, this.props[key]);
+                propChanged.push(key);
             }
 
             this.last[key] = this.props[key];
         });
+
+        propChanged.forEach(prop => this.signals.propChange.dispatch(prop, this.props[prop]));
     }
 
 
@@ -171,43 +156,14 @@ export class SideralObject {
     }
 
     /**
-     * Swap the current PIXI container to another PIXI container. This is usefull if you want to change
-     * the PIXI Object without destroy children and parent relationship.
-     * @param {PIXI.DisplayObject} nextContainer: PIXI Container
-     * @access protected
-     * @returns {void|null} -
-     */
-    swapContainer (nextContainer): void {
-        if (!this.parent || (this.parent && !this.parent.container)) {
-            return null;
-        }
-
-        const containerIndex    = this.parent.container.children.findIndex(child => child === this.container),
-            children            = this.container.children.slice(0);
-
-        this.parent.container.removeChild(this.container);
-        this.container.destroy();
-
-        if (containerIndex > -1) {
-            this.parent.container.addChildAt(nextContainer, containerIndex);
-        } else {
-            this.parent.container.addChild(nextContainer);
-        }
-
-        this.container = nextContainer;
-        children.forEach(child => this.container.addChild(child));
-    }
-
-    /**
      * Add an item to the current object. The item added will enter into the lifecycle of the object and will become a children
      * of this object. The method "initialize" of the item will be called.
      * @access public
-     * @param {SideralObject} item - a SideralObject
-     * @param {Object=} settings - props to merge to the item
-     * @param {number=} index - set an index position for the item
-     * @returns {SideralObject} The item initialized
+     * @param item - A SideralObject
+     * @param props - Props to merge to the item
+     * @returns The item initialized
      */
-    add(item: SideralObject, settings: any = {}, index?: number): SideralObject {
+    add(item: SideralObject, props: any = {}): SideralObject {
         if (!(item instanceof SideralObject)) {
             throw new Error("SideralObject.add : item must be an instance of Sideral Abstract Class");
         }
@@ -216,24 +172,35 @@ export class SideralObject {
 
         Object.keys(this.context).forEach(key => item.context[key] = this.context[key]);
         this.children.push(item);
-        item.initialize(settings);
-
-        if (item.container && this.container) {
-            if (typeof index !== "undefined") {
-                this.container.addChildAt(item.container, index);
-            } else {
-                this.container.addChild(item.container);
-            }
-        }
+        item.initialize(props);
+        this.signals.addChild.dispatch(item.name, item);
 
         return item;
     }
 
     /**
+     * Add multiple items
+     * @param params - Parameters of the multiple add
+     */
+    addMultiple (params: IAddMultiple[]): void {
+        params.forEach(param => {
+            this.add(param.item, param.props);
+
+            if (param.assign) {
+                this[param.assign] = param.item;
+            }
+
+            if (param.callback) {
+                param.callback(param.item);
+            }
+        });
+    }
+
+    /**
      * Check if a property (an attribute from "this.props") has changed
      * @access public
-     * @param {string} propName - name of the property to check
-     * @returns {boolean} property has changed ?
+     * @param propName - name of the property to check
+     * @returns Property has changed ?
      */
     hasChanged(propName: string): boolean {
         if (!this.props[propName]) {
@@ -248,7 +215,7 @@ export class SideralObject {
 
     /**
      * Generate an unique id
-     * @returns {number}
+     * @returns The unique id
      */
     static generateId(): number {
         return Math.floor((1 + Math.random()) * 0x100000);
