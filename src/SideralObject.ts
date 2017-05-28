@@ -1,4 +1,4 @@
-import { Signal } from "./Tool/Signal";
+import { SignalEvent } from "./Tool/SignalEvent";
 
 import { IProps, ISignals, IAddMultiple } from "./Interface";
 
@@ -41,10 +41,10 @@ export class SideralObject {
      * List of all signals of the element
      */
     signals: ISignals = {
-        update: <Signal> new Signal(),
-        propChange: <Signal> new Signal(),
-        addChild: <Signal> new Signal(),
-        removeChild: <Signal> new Signal()
+        update: new SignalEvent(),
+        propChange: new SignalEvent(),
+        addChild: new SignalEvent(),
+        removeChild: new SignalEvent()
     };
 
     /**

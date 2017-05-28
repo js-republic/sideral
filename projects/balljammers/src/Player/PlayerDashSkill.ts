@@ -8,9 +8,9 @@ export class PlayerDashSkill extends Skill {
 
     /* ATTRIBUTES */
 
-    movable: boolean    = false;
-    duration: number    = 40;
-    side: number        = Player.SIDE.NONE;
+    movable: boolean = false;
+    duration: number = 40;
+    side: number = Player.SIDE.NONE;
     owner: Player;
 
 
@@ -25,6 +25,7 @@ export class PlayerDashSkill extends Skill {
         this.signals.skillStart.add(this.onSkillStart.bind(this));
         this.signals.skillUpdate.add(this.onSkillUpdate.bind(this));
     }
+
 
     /* EVENTS */
 

@@ -1,23 +1,38 @@
-import { Entity } from "../Entity";
-import { Scene } from "../Scene";
+import { Entity } from "./../Entity";
 
-import { Enum } from "../Tool/Enum";
+import { Enum } from "./../Tool";
+
+import { IParticlesProps } from "./../Interface";
 
 import "pixi-particles";
 
 
 /**
  * Generator of particles
- * @class Particles
- * @extends Entity
  */
 export class Particles extends Entity {
 
     /* ATTRIBUTES */
 
+    /**
+     * Properties of Particles
+     */
+    props: IParticlesProps;
+
+    /**
+     * Know if the particles is loaded and ready to emit
+     */
     loaded: boolean = false;
-    type: number    = Enum.TYPE.NONE;
-    emitter: any    = null;
+
+    /**
+     * The type of the Particles
+     */
+    type: number = Enum.TYPE.NONE;
+
+    /**
+     * The PIXI Emitter
+     */
+    emitter: any;
 
 
     /* LIFECYCLE */
@@ -28,16 +43,6 @@ export class Particles extends Entity {
     constructor () {
         super();
 
-        /**
-         * Properties of the class
-         * @name Particles#props
-         * @type {Object}
-         * @property {Entity} follow - If "follow" is not null, the particles will follow the entity
-         * @property {Array<string>|string} images - List of all images used for the particles (mustnot be null)
-         * @property {Object} config - Configuration Object for the particles
-         * @property {boolean} centered - If true, the position will be centered related to it's size when initialized
-         * @property {boolean} autoRun - if True, the particles will be emitted once the textures has been loaded
-         */
         this.setProps({
             config      : null,
             images      : [],
@@ -45,12 +50,6 @@ export class Particles extends Entity {
             autoRun     : true
         });
 
-        /**
-         * PIXI Emitter object
-         * @readonly
-         * @type {PIXI.particles.Emitter}
-         * @default null
-         */
         this.emitter = new (<any>PIXI.particles).Emitter(this.container, null, { emit: false });
 
         this.signals.propChange.bind("config", this.onConfigurationChange.bind(this));
@@ -60,7 +59,7 @@ export class Particles extends Entity {
     /**
      * @override
      */
-    kill () {
+    kill (): void {
         super.kill();
 
         if (this.emitter) {
@@ -72,7 +71,7 @@ export class Particles extends Entity {
      * @update
      * @override
      */
-    update (tick) {
+    update (tick): void {
         super.update(tick);
 
         if (this.emitter.emit && this.loaded) {
@@ -85,22 +84,31 @@ export class Particles extends Entity {
 
     /* METHODS */
 
-    run () {
+    /**
+     * Run the particles emitter
+     */
+    run (): void {
         if (this.props.duration) {
-            this.timers.add("duration", this.props.duration, this.kill.bind(this));
+            this.timers.addTimer("duration", this.props.duration, this.kill.bind(this));
         }
 
         this.emitter.emit = true;
     }
 
-    stop () {
+    /**
+     * Stop the current emitter
+     */
+    stop (): void {
         this.timers.remove("duration");
         this.emitter.cleanup();
 
         this.emitter.emit = false;
     }
 
-    isRunning () {
+    /**
+     * Know if this object is emitting
+     */
+    isRunning (): boolean {
         return this.emitter.emit;
     }
 
@@ -110,17 +118,16 @@ export class Particles extends Entity {
     /**
      * @override
      */
-    updateContainerPosition () {}
+    updateContainerPosition (): void {}
 
     /**
      * When property "configuration" has changed
      * @access protected
-     * @returns {void}
      */
-    onConfigurationChange () {
+    onConfigurationChange (): void {
         this.emitter.cleanup();
         this.emitter.init([].concat(this.props.images).map(image => PIXI.Texture.fromImage(image)), this.props.config);
-        this.loaded         = true;
+        this.loaded = true;
 
         if (this.props.autoRun) {
             this.run();

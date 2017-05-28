@@ -1,8 +1,8 @@
 import { SideralObject } from "./SideralObject";
 
-import { Signal, Util } from "./Tool";
+import { SignalEvent, Util } from "./Tool";
 
-import { IModuleProps, IModuleSignals, ISpawnMultiple } from "./Interface";
+import { IModuleProps, IModuleSignals, ISpawnMultiple, IFollow } from "./Interface";
 import {TimerManager} from "./Tool/TimerManager";
 
 
@@ -45,7 +45,7 @@ export class Module extends SideralObject {
 
         this.timers = <TimerManager> this.add(new TimerManager());
 
-        this.signals.click = <Signal> new Signal(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.click = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
 
         this.signals.propChange.bind("visible", this.onVisibleChange.bind(this));
         this.signals.propChange.bind(["x", "y", "width", "height", "angle"], this.updateContainerPosition.bind(this));
@@ -65,6 +65,44 @@ export class Module extends SideralObject {
 
 
     /* METHODS */
+
+    /**
+     * Set a new position of the module
+     * @param x - The position in x axis
+     * @param y - The position in y axis
+     */
+    position (x?: number, y?: number): void {
+        x = typeof x === "undefined" ? this.props.x : x;
+        y = typeof y === "undefined" ? this.props.y : y;
+
+        if (!this.initialized) {
+            this.setProps({ x, y });
+
+        } else {
+            this.props.x = x;
+            this.props.y = y;
+
+        }
+    }
+
+    /**
+     * Set a new size of the module
+     * @param width - The next width of the module
+     * @param height - The next height of the module
+     */
+    size (width?: number, height?: number): void {
+        width  = typeof width === "undefined" ? this.props.width : width;
+        height = typeof height === "undefined" ? this.props.height : height;
+
+        if (!this.initialized) {
+            this.setProps({ width, height });
+
+        } else {
+            this.props.width  = width;
+            this.props.height = height;
+
+        }
+    }
 
     /**
      * Add an item to the current object. The item added will enter into the lifecycle of the object and will become a children
@@ -140,7 +178,7 @@ export class Module extends SideralObject {
      * @returns -
      */
     swapContainer (nextContainer): void {
-        if (!this.parent || (this.parent && !this.parent.container)) {
+        if (!this.parent || !(this.parent instanceof Module)) {
             return null;
         }
 

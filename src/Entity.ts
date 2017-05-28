@@ -1,9 +1,9 @@
 import { Module } from "./Module";
 import { Shape, Sprite } from "./Module/";
-import { IEntityProps, IEntitySignals } from "./Interface";
+import { IEntityProps, IEntitySignals, IPauseState, IBodyContact, IPoint } from "./Interface";
 
 import { Body, CircularBody, RectangularBody } from './Tool/Body';
-import { Signal } from "./Tool/Signal";
+import { SignalEvent } from "./Tool/SignalEvent";
 import { Enum } from "./Tool/Enum";
 import { SkillManager } from "./Tool/SkillManager";
 
@@ -30,29 +30,81 @@ export class Entity extends Module {
      */
     skills: SkillManager;
 
-    type: number            = Enum.TYPE.SOLID;
-    box: string             = Enum.BOX.RECTANGLE;
-    group: number           = Enum.GROUP.ALL;
-    friction: boolean       = false;
-    lastPos                 = {x: 0, y: 0};
+    /**
+     * The type of the entity (see Enum.TYPE)
+     */
+    type: number = Enum.TYPE.SOLID;
 
-    standing: boolean       = false;
-    moving: boolean         = false;
+    /**
+     * The kind of box of the entity (see Enum.BOX)
+     */
+    box: string = Enum.BOX.RECTANGLE;
 
-    _bounce    = 0;
-    collides   = [];
+    /**
+     * The group of the entity (see Enum.GROUP)
+     */
+    group: number = Enum.GROUP.ALL;
+
+    /**
+     * If true, a friction will be added to its velocity when the entity will stop his movements
+     */
+    friction: boolean = false;
+
+    /**
+     * The last position of the Entity (in the last loop)
+     * @readonly
+     */
+    lastPos: IPoint = {x: 0, y: 0};
+
+    /**
+     * Know if the entity is currently standing or not
+     * @readonly
+     */
+    standing: boolean = false;
+
+    /**
+     * Know if the entity is currently moving or not
+     * @readonly
+     */
+    moving: boolean = false;
+
+    /**
+     * The last bounce factor
+     * @private
+     */
+    _bounce: number = 0;
+
+    /**
+     * Entities in collision with the current entity
+     * @readonly
+     */
+    collides: Array<IBodyContact> = [];
+
+    /**
+     * The body of the entity
+     * @readonly
+     */
     body:Body;
+
+    /**
+     * The sprite of the entity
+     * @readonly
+     */
     sprite: Sprite;
-    _debug: any;
-    _beforePauseState: {
-        x?: number;
-        y?: number;
-        vx?: number;
-        vy?: number;
-        gf?: number;
-        bodyVx?: number;
-        bodyVy?: number;
-    };
+
+    /**
+     * If debug mode is activated
+     * @private
+     * @readonly
+     */
+    _debug: Shape;
+
+    /**
+     * The pause state if the entity is paused
+     * @private
+     * @readonly
+     */
+    _beforePauseState: IPauseState;
 
 
     /* LIFECYCLE */
@@ -69,15 +121,19 @@ export class Entity extends Module {
             vy              : 0,
             accelX          : 0,
             accelY          : 0,
-            angle           : 0
+            angle           : 0,
+            bounce          : 0
         });
 
         this.skills = <SkillManager> this.add(new SkillManager());
 
-        this.signals.beginCollision = new Signal();
-        this.signals.collision      = new Signal();
-        this.signals.endCollision   = new Signal();
+        this.signals.beginCollision = new SignalEvent();
+        this.signals.collision      = new SignalEvent();
+        this.signals.endCollision   = new SignalEvent();
 
+        this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
+        this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
+        this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
         this.signals.propChange.bind("debug", this.onDebugChange.bind(this));
         this.signals.propChange.bind("gravityFactor", this.onGravityFactorChange.bind(this));
     }
@@ -116,22 +172,11 @@ export class Entity extends Module {
     }
 
     /**
-     * @update
-     * @lifecycle
-     * @override
-     */
-    update (tick) {
-        super.update(tick);
-
-        this.skills.update(tick);
-    }
-
-    /**
      * @kill
      * @lifecycle
      * @override
      */
-    kill () {
+    kill (): void {
         super.kill();
 
         if (this.body && this.context.scene.world) {
@@ -144,7 +189,7 @@ export class Entity extends Module {
      * @lifecycle
      * @override
      */
-    nextCycle () {
+    nextCycle (): void {
         super.nextCycle();
 
         if (this._beforePauseState) {
@@ -196,7 +241,7 @@ export class Entity extends Module {
     /**
      * @override
      */
-    position (x, y) {
+    position (x: number, y: number): void {
         super.position(x, y);
 
         if (this.body) {
@@ -208,10 +253,9 @@ export class Entity extends Module {
     /**
      * Will pause the entity (will not be affected about gravity; collisions and velocity)
      * @access public
-     * @param {boolean=} hide - If true, the entity will be invisible
-     * @returns {void}
+     * @param hide - If true, the entity will be invisible
      */
-    pause (hide) {
+    pause (hide?: boolean): void {
         this._beforePauseState = {
             x   : this.props.x,
             y   : this.props.y,
@@ -243,10 +287,9 @@ export class Entity extends Module {
     /**
      * Will resume the entity (to be affected about gravity, collisions and velocity)
      * @access public
-     * @param {boolean=} visible - If true, the entit will now be visible
-     * @returns {null} -
+     * @param visible - If true, the entity will now be visible
      */
-    resume (visible) {
+    resume (visible?: boolean): void {
         if (!this._beforePauseState) {
             return null;
         }
@@ -275,19 +318,19 @@ export class Entity extends Module {
 
     /**
      * Add a new spritesheet to the current entity
-     * @param {string} imagePath: path to the media
-     * @param {number} tilewidth: width of a tile
-     * @param {number} tileheight: height of a tile
-     * @param {Object=} settings: settings to pass to the spritesheet module
-     * @param {number=} index: z index position of the entity
-     * @returns {Object} the current spritesheet
+     * @param imagePath - path to the media
+     * @param tilewidth - width of a tile
+     * @param tileheight - height of a tile
+     * @param props - props to pass to the spritesheet module
+     * @param index - z index position of the entity
+     * @returns The current spritesheet
      */
-    addSprite (imagePath: string, tilewidth: number, tileheight: number, settings: any = {}, index?): Sprite {
-        settings.imagePath  = imagePath;
-        settings.width      = tilewidth;
-        settings.height     = tileheight;
+    addSprite (imagePath: string, tilewidth: number, tileheight: number, props: any = {}, index?: number): Sprite {
+        props.imagePath  = imagePath;
+        props.width      = tilewidth;
+        props.height     = tileheight;
 
-        const sprite: Sprite = this.add(new Sprite(), settings, index) as Sprite;
+        const sprite: Sprite = this.add(new Sprite(), props, index) as Sprite;
 
         if (!this.sprite) {
             this.sprite = sprite;
@@ -298,9 +341,8 @@ export class Entity extends Module {
 
     /**
      * Remove all velocity from the entity
-     * @returns {void}
      */
-    idle () {
+    idle (): void {
         this.props.vx = this.props.vy = this.props.accelX = this.props.accelY = 0;
 
         if (this.body) {
@@ -311,72 +353,27 @@ export class Entity extends Module {
         }
     }
 
-    /**
-     * set or remove the debug mode
-     * @returns {void}
-     */
-    toggleDebug () {
-        /*
-        if (this._debug) {
-            this._debug.kill();
-            this._debug = null;
-
-        } else {
-            this._debug = this.add(new Shape(), {
-                box     : this.box,
-                width   : this.props.width,
-                height  : this.props.height,
-                stroke  : "#FF0000",
-                fill    : "transparent"
-            });
-        }
-        */
-    }
-
-    /**
-     * Set a new type for the current entity
-     * @param {number} type: type corresponding of Entity.TYPE Object
-     * @returns {number} the type
-     */
-    setType (type: number): number {
-        if (Object.keys(Enum.TYPE).find(key => Enum.TYPE[key] === type)) {
-            this.type = type;
-
-            if (this.body) {
-                this.body.data.mass = this.props.mass;
-                this.body.data.updateMassProperties();
-            }
-        }
-
-        return this.type;
-    }
-
-    /**
-     * Set a new bounce factor
-     * @param {number} bounceFactor: next factor of bounce
-     * @returns {number} the next bounceFactor
-     */
-    setBounce (bounceFactor: number): number {
-        this._bounce = this.context.scene.setEntityBouncing(this, bounceFactor, this._bounce);
-
-        return this._bounce;
-    }
-
 
     /* EVENTS */
 
     /**
-     * When "debug" property has change
-     * @returns {void}
+     * When "bounce" attribute change
      */
-    onDebugChange () {
+    onBounceChange (): void {
+        this.context.scene.setEntityBouncing(this, this.props.bounce, this.last.bounce);
+    }
+
+    /**
+     * When "debug" property has change
+     */
+    onDebugChange (): void {
         if (this._debug) {
             this._debug.kill();
             this._debug = null;
         }
 
         if (this.props.debug) {
-            this._debug = this.add(new Shape(), {
+            this._debug = <Shape> this.add(new Shape(), {
                 box     : this.box,
                 width   : this.props.width,
                 height  : this.props.height,
@@ -390,9 +387,7 @@ export class Entity extends Module {
      * onPositionChange
      * @override
      */
-    onPositionChange () {
-        super.onPositionChange();
-
+    onPositionChange (): void {
         if (this.body) {
             this.body.x = this.props.x;
             this.body.y = this.props.y;
@@ -401,12 +396,8 @@ export class Entity extends Module {
 
     /**
      * When "width" or "height" attributes change
-     * @override
-     * @returns {void}
      */
-    onSizeChange () {
-        super.onSizeChange();
-
+    onSizeChange (): void {
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
         }
@@ -414,9 +405,8 @@ export class Entity extends Module {
 
     /**
      * When gravityFactor property change
-     * @returns {void}
      */
-    onGravityFactorChange () {
+    onGravityFactorChange (): void {
         if (this.body) {
             this.body.data.gravityScale = this.props.gravityFactor;
         }

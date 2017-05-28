@@ -1,12 +1,50 @@
 import { Module } from "./../Module";
 
+import { IAnimation, ISpriteProps } from "./../Interface";
 
+
+/**
+ * Sprite module to generate animations from spritesheets
+ */
 export class Sprite extends Module {
-    loaded = false;
-    image = null;
-    animations = [];
-    animation = null;
-    container = new PIXI.Sprite();
+
+    /* ATTRIBUTES */
+
+    /**
+     * Properties of a Sprite
+     */
+    props: ISpriteProps;
+
+    /**
+     * Know if the sprite is loaded and can be animated
+     * @readonly
+     */
+    loaded: boolean = false;
+
+    /**
+     * The image data
+     * @readonly
+     */
+    image: HTMLImageElement;
+
+    /**
+     * List of all animations
+     * @readonly
+     */
+    animations: Array<IAnimation> = [];
+
+    /**
+     * Current animation
+     * @readonly
+     */
+    animation: IAnimation;
+
+    /**
+     * The PIXI Container
+     * @readonly
+     */
+    container: PIXI.Sprite = new PIXI.Sprite();
+
 
     /* LIFECYCLE */
 
@@ -16,15 +54,9 @@ export class Sprite extends Module {
     constructor () {
         super();
 
-        this.setProps({
-            imagePath   : null,
-            autoKill    : false
-        });
-
         this.container.anchor.set(0.5, 0.5);
 
         this.signals.propChange.bind("imagePath", this.onImagePathChange.bind(this));
-        this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
     }
 
     /**
@@ -47,14 +79,14 @@ export class Sprite extends Module {
 
     /**
      * Add an animation for the current sprite
-     * @param {string} name: name of the animation
-     * @param {number} duration: duration of the animation (in ms)
-     * @param {Array<number>} frames: Array of frames to be displayed during the animation
-     * @param {number=} loopCount: number of loop. If loop == 0, there will be no limit of loop
-     * @param {{x: number, y: number}|null=} offset: offset x and y related to the position of the Entity
-     * @returns {Sprite} current instance to chain this function
+     * @param name - Name of the animation
+     * @param duration - Duration of the animation (in ms)
+     * @param frames - Array of frames to be displayed during the animation
+     * @param maxLoop - number of loop. If loop === -1, there will be no limit of loop
+     * @param offset - offset x and y related to the position of the Entity
+     * @returns current instance to chain this function
      */
-    addAnimation (name: string, duration: number, frames: number[], loopCount: number = -1, offset = null) {
+    addAnimation (name: string, duration: number, frames: Array<number>, maxLoop: number = -1, offset?: ({x: number, y: number})): this {
         if (!name || !frames) {
             throw new Error("Sprite.addAnimation: You must set a name, duration and frames.");
         }
@@ -62,12 +94,10 @@ export class Sprite extends Module {
         this.animations.push({
             name        : name,
             duration    : duration,
-            time        : 0,
             frames      : frames,
             frameIndex  : 0,
             loop        : 0,
-            maxLoop     : loopCount,
-            fraction    : Math.floor(duration / frames.length),
+            maxLoop     : maxLoop,
             offset      : offset,
             textureFrames: this._framesToRectangles(frames)
         });
@@ -81,11 +111,10 @@ export class Sprite extends Module {
 
     /**
      * Set the current animation for the sprite
-     * @param {string} name: name of the animation
-     * @param {boolean=} restart: if true, restart the entire information about the animation such as number of loop
-     * @returns {void|null} -
+     * @param name - Name of the animation
+     * @param restart - If true, restart the entire information about the animation such as number of loop
      */
-    setAnimation (name: string, restart: boolean = false): void | null {
+    setAnimation (name: string, restart: boolean = false): void {
         if (!restart && this.animation && this.animation.name === name) {
             return null;
         }
@@ -95,44 +124,45 @@ export class Sprite extends Module {
         if (this.animation) {
             this.animation.loop         = 0;
             this.animation.frameIndex   = 0;
-            this.animation.time         = 0;
 
             if (this.animation.offset) {
-                this.position(this.animation.offset.x, this.animation.offset.y);
+                this.setProps({
+                    x: this.animation.offset.x,
+                    y: this.animation.offset.y
+                });
             }
 
             if (this.loaded) {
                 this.container.texture.frame = this.animation.textureFrames[this.animation.frameIndex];
-                this.timers.add("sprite", this.animation.duration, this.onNextSprite.bind(this));
+                this.timers.addTimer("sprite", this.animation.duration, this.onNextSprite.bind(this));
             }
         }
     }
 
     /**
      * Get an existing animation for the sprite
-     * @param {string} name: name of the animation
-     * @returns {*} animation object
+     * @param name - Name of the animation
+     * @returns The animation object
      */
-    getAnimation (name: string) {
+    getAnimation (name: string): IAnimation {
         return this.animations.find(animation => animation.name === name);
     }
 
     /**
      * Remove the animation by its name
-     * @param {string} name: name of the animation to remove
-     * @returns {void}
+     * @param name - Name of the animation to remove
      */
-    removeAnimation (name: string) {
+    removeAnimation (name: string): void {
         this.animations = this.animations.filter(animation => animation.name === name);
     }
 
     /**
      * Convert frame indexes to pixi rectangles
      * @private
-     * @param {Array<number>} frames: frames to convert
-     * @returns {Array<PIXI.Rectangle>} frames converted to pixi rectangles
+     * @param frames - Frames to convert
+     * @returns Frames converted to pixi rectangles
      */
-    _framesToRectangles (frames: number[]) {
+    _framesToRectangles (frames: Array<number>): Array<PIXI.Rectangle> {
         if (!this.image) {
             return [];
         }
@@ -149,9 +179,8 @@ export class Sprite extends Module {
 
     /**
      * When timer of a frame is finished
-     * @returns {void|null} -
      */
-    onNextSprite () {
+    onNextSprite (): void {
         if (this.animation.frameIndex >= (this.animation.frames.length - 1)) {
             this.animation.loop++;
             this.animation.frameIndex = this.animation.maxLoop > -1 && this.animation.loop > this.animation.maxLoop ? this.animation.frames.length - 1 : 0;
@@ -171,10 +200,9 @@ export class Sprite extends Module {
     }
 
     /**
-     * When imagePath attributes change
-     * @returns {void}
+     * When "imagePath" attributes change
      */
-    onImagePathChange () {
+    onImagePathChange (): void {
         const loader = new PIXI.loaders.Loader();
 
         loader.add(this.props.imagePath).load(() => {

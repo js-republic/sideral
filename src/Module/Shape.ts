@@ -1,10 +1,28 @@
 import { Module } from "./../Module";
 
-import {Util, Enum} from "../Tool/";
+import { IShapeProps } from "./../Interface";
+
+import { Util, Enum } from "./../Tool/";
 
 
+/**
+ * The module to display shapes
+ */
 export class Shape extends Module {
-    container = new PIXI.Graphics();
+
+    /* ATTRIBUTES */
+
+    /**
+     * Properties of a Shape
+     */
+    props: IShapeProps;
+
+    /**
+     * PIXI Container
+     * @readonly
+     */
+    container: PIXI.Graphics = new PIXI.Graphics();
+
 
     /* LIFECYCLE */
 
@@ -20,22 +38,15 @@ export class Shape extends Module {
             box     : Enum.BOX.RECTANGLE
         });
 
-        this.signals.propChange.bind(["box", "fill", "stroke"], this._updateShape.bind(this));
+        this.signals.propChange.bind(["box", "fill", "stroke", "width", "height"], this._updateShape.bind(this));
     }
-
-    initialize (props) {
-        super.initialize(props);
-
-        this._updateShape();
-    }
-
-
-    /* EVENTS */
 
     /**
-     * @override
+     * @initialize
      */
-    onSizeChange () {
+    initialize (props): void {
+        super.initialize(props);
+
         this._updateShape();
     }
 
@@ -45,9 +56,8 @@ export class Shape extends Module {
     /**
      * Update the current shape
      * @private
-     * @returns {void}
      */
-    _updateShape () {
+    _updateShape (): void {
         const stroke    = Util.colorToDecimal(this.props.stroke),
             fill        = this.props.fill === "transparent" ? 0x000000 : Util.colorToDecimal(this.props.fill);
 
@@ -57,7 +67,6 @@ export class Shape extends Module {
             this.container.lineStyle(1, stroke, 1);
         }
 
-        console.log(fill, stroke);
         this.container.beginFill(fill, this.props.fill === "transparent" ? 0 : 1);
         this._drawShape();
         this.container.endFill();
@@ -66,9 +75,8 @@ export class Shape extends Module {
     /**
      * Draw the shape with the current type value
      * @private
-     * @returns {void}
      */
-    _drawShape () {
+    _drawShape (): void {
         const { x, y, width, height, box } = this.props;
 
         switch (box) {

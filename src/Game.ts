@@ -1,9 +1,7 @@
 import { SideralObject } from "./SideralObject";
 import { Scene } from "./Scene";
 
-import { Keyboard } from "./Tool/Keyboard";
-import { Util } from "./Tool/Util";
-import { Signal } from "./Tool/Signal";
+import { Keyboard, Util } from "./Tool";
 
 import { IGameProps } from "./Interface";
 
@@ -75,30 +73,22 @@ export class Game extends SideralObject {
     /**
      * @constructor
      */
-    constructor (width: number, height: number) {
+    constructor () {
         super();
 
-        this.props.width    = width;
-        this.props.height   = height;
         this.renderer       = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
+        this.context.game   = this;
 
-        this.context.game = this;
-
-        this.signals.keyPress = new Signal();
-
-        this.signals.propChange.bind("dom", this._attachGame.bind(this));
+        this.signals.propChange.bind("container", this._attachGame.bind(this));
         this.signals.propChange.bind(["width", "height"], this._resizeGame.bind(this));
         this.signals.propChange.bind("background", this._backgroundChange.bind(this));
     }
 
     /**
      * Update loop
-     * @override
-     * @lifecycle
-     * @param {number=} performance - performance returned by the navigator
-     * @returns {void|null} -
+     * @param performance - Performance returned by the navigator
      */
-    update (performance?: number) {
+    update (performance?: number): void {
         if (this.stopped) {
             return null;
         }
@@ -113,8 +103,8 @@ export class Game extends SideralObject {
         this.tick           = 1000 / (this.fps * 1000);
         this.tick           = this.tick < 0 ? 0 : this.tick;
 
-        this.children.forEach(scene => scene.update(this.tick));
-        this.children.forEach(scene => this.renderer.render(scene.container));
+        this.children.forEach(child => child.update(this.tick));
+        this.getScenes().forEach(scene => this.renderer.render(scene.container));
 
         this.nextCycle();
 
@@ -129,18 +119,18 @@ export class Game extends SideralObject {
      * @acess public
      * @param width - width of the game
      * @param height - height of the game
-     * @param dom - dom to attach the game
+     * @param container - container to attach the game
      * @returns current instance
      */
-    start (width: number, height: number, dom?): this {
+    start (width: number, height: number, container?: HTMLElement): this {
         this.setProps({
-            width   : width || this.props.width,
-            height  : height || this.props.height,
-            dom     : dom || this.props.dom
+            width       : width || this.props.width,
+            height      : height || this.props.height,
+            container   : container || this.props.container
         });
 
-        if (!this.props.width || !this.props.height || !this.props.dom) {
-            throw new Error("Engine.start: You must set 'width', 'height' and a 'dom' container");
+        if (!this.props.width || !this.props.height || !this.props.container) {
+            throw new Error("Engine.start: You must set 'width', 'height' and a 'container' container");
         }
 
         this.stopped = false;
@@ -153,9 +143,8 @@ export class Game extends SideralObject {
 
     /**
      * resize the current canvas
-     * @returns -
      */
-    resize () {
+    resize (): void {
         if (!this.renderer) {
             return null;
         }
@@ -187,15 +176,22 @@ export class Game extends SideralObject {
         this.keyboard = null;
     }
 
+    /**
+     * Get all scenes from the current game
+     * @returns Scenes
+     */
+    getScenes (): Array<Scene> {
+        return <Array<Scene>> this.children.filter(child => child instanceof Scene);
+    }
+
 
     /* PRIVATE */
 
     /**
-     * Attach the game to the dom in props
+     * Attach the game to the container in props
      * @private
-     * @returns {void}
      */
-    _attachGame () {
+    _attachGame (): void {
         if (this.last.container) {
             try {
                 this.last.container.removeChild(this.renderer.view);
@@ -210,9 +206,8 @@ export class Game extends SideralObject {
     /**
      * When width or height attributes change
      * @private
-     * @returns {void|null} -
      */
-    _resizeGame () {
+    _resizeGame (): void {
         if (!this.renderer) {
             return null;
         }
@@ -223,9 +218,8 @@ export class Game extends SideralObject {
     /**
      * When background attribute changes
      * @private
-     * @returns {void}
      */
-    _backgroundChange () {
+    _backgroundChange (): void {
         const color = Util.colorToDecimal(this.props.background) as number;
 
         if (!isNaN(color)) {

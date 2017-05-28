@@ -7,6 +7,11 @@ import { Entity } from "./../Entity";
 export interface IBodyContact {
 
     /**
+     * The entity target in contact
+     */
+    entity?: Entity;
+
+    /**
      * The id of the body
      */
     bodyId: number;

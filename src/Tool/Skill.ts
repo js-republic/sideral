@@ -5,7 +5,7 @@ import { ISkillSignals } from "./../Interface";
 import { Enum } from "./Enum";
 import { Timer } from "./Timer";
 import { TimerManager } from "./TimerManager";
-import { Signal } from "./Signal";
+import { SignalEvent } from "./SignalEvent";
 import { Entity } from '../Entity';
 import { Hitbox } from '../Entity/Hitbox';
 
@@ -114,15 +114,15 @@ export class Skill extends SideralObject {
     constructor () {
         super();
 
-        this.signals.preparationStart    = new Signal();
-        this.signals.preparationUpdate   = new Signal();
-        this.signals.preparationComplete = new Signal();
-        this.signals.skillStart          = new Signal();
-        this.signals.skillUpdate         = new Signal();
-        this.signals.skillComplete       = new Signal();
-        this.signals.reloadStart         = new Signal();
-        this.signals.reloadUpdate        = new Signal();
-        this.signals.reloadComplete      = new Signal();
+        this.signals.preparationStart    = new SignalEvent();
+        this.signals.preparationUpdate   = new SignalEvent();
+        this.signals.preparationComplete = new SignalEvent();
+        this.signals.skillStart          = new SignalEvent();
+        this.signals.skillUpdate         = new SignalEvent();
+        this.signals.skillComplete       = new SignalEvent();
+        this.signals.reloadStart         = new SignalEvent();
+        this.signals.reloadUpdate        = new SignalEvent();
+        this.signals.reloadComplete      = new SignalEvent();
     }
 
 

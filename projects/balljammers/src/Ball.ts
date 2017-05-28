@@ -1,21 +1,43 @@
 import { Entity } from "src/Entity";
-
 import { Particles } from "src/Entity/Particles";
+import { Enum } from "src/Tool";
 
-import { Enum } from "src/Tool/Enum";
+import { Goal } from "./Goal";
 
 import * as trailConfig from "./Particles/trail.json";
 
 
+/**
+ * The ball class
+ */
 export class Ball extends Entity {
 
     /* ATTRIBUTES */
 
-    name: string        = "ball";
-    friction: boolean   = true;
-    type: number        = Enum.TYPE.WEAK;
-    box: string         = Enum.BOX.CIRCLE;
-    trail: Particles    = null;
+    /**
+     * The name of the ball
+     */
+    name: string = "ball";
+
+    /**
+     * Enable friction mode
+     */
+    friction: boolean = true;
+
+    /**
+     * We set the type Weak to get angular velocity
+     */
+    type: number = Enum.TYPE.WEAK;
+
+    /**
+     * A ball has a circle shape
+     */
+    box: string = Enum.BOX.CIRCLE;
+
+    /**
+     * Particles to emit when the ball has a high velocity
+     */
+    trail: Particles = null;
 
 
     /* LIFECYCLE */
@@ -29,25 +51,15 @@ export class Ball extends Entity {
         this.setProps({
             width           : 26,
             height          : 26,
-            gravityFactor   : 1,
-            ball            : true
+            bounce          : 0.65,
+            gravityFactor   : 1
         });
 
+        console.log(this.signals);
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
         this.signals.update.add(this.updateVelocity.bind(this));
 
         this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
-    }
-
-    /**
-     * @initialize
-     * @lifecycle
-     * @override
-     */
-    initialize (props: any) {
-        super.initialize(props);
-
-        this.setBounce(0.65);
 
         this.trail = <Particles> this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),
@@ -55,8 +67,16 @@ export class Ball extends Entity {
             config  : trailConfig,
             autoRun : false
         });
+    }
 
-      this.respawn();
+    /**
+     * @initialize
+     * @lifecycle
+     * @override
+     */
+    initialize (props: any): void {
+        super.initialize(props);
+        this.respawn();
     }
 
 
@@ -64,9 +84,8 @@ export class Ball extends Entity {
 
     /**
      * Respawn the ball to an other position
-     * @returns {void}
      */
-    respawn () {
+    respawn (): void {
         this.resume(true);
         this.idle();
         this.position((this.context.scene.props.width / 2) - 200 + Math.floor(Math.random() * 400), 50);
@@ -77,9 +96,8 @@ export class Ball extends Entity {
 
     /**
      * Update the velocity of the ball
-     * @returns {void}
      */
-    updateVelocity () {
+    updateVelocity (): void {
         const bodySpeed     = Math.abs(this.body.vx),
             trailRunning    = this.trail.isRunning();
 
@@ -96,10 +114,9 @@ export class Ball extends Entity {
 
     /**
      * When entering in collision with a goal entity
-     * @param {Goal} goal: goal entity
-     * @returns {void}
+     * @param goal - Goal entity
      */
-    onCollisionWithGoal (goal) {
+    onCollisionWithGoal (goal: Goal) {
         if (this.props.y > goal.props.y)
             this.trail.stop();
             this.pause(true);{

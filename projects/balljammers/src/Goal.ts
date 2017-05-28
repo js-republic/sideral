@@ -1,11 +1,23 @@
-import { Entity } from "../../../src/Entity";
+import { Entity } from "src/Entity";
+import { Enum } from "src/Tool";
 
-import { Enum } from "../../../src/Tool/Enum";
 
-
+/**
+ * The goal class
+ */
 export class Goal extends Entity {
-    name    = "goal";
-    type    = Enum.TYPE.STATIC;
+
+    /* ATTRIBUTES */
+
+    /**
+     * The name  of the goal
+     */
+    name: string = "goal";
+
+    /**
+     * We set the type to static to be not affected by gravity and cannot be moved
+     */
+    type: number = Enum.TYPE.STATIC;
 
 
     /* LIFECYCLE */

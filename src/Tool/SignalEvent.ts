@@ -2,7 +2,7 @@ import * as signals from "signals";
 
 type EventFunction = (listener: Function, listenerContext?: any, priority?: number) => void;
 
-export class Signal extends signals.Signal {
+export class SignalEvent extends signals.Signal {
     keysBound = [];
 
     /**

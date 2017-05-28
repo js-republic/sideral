@@ -183,7 +183,7 @@ export class Tilemap extends Module {
      * @returns -
      * @private
      */
-    _loadDecorators (decorators: Array<any>, resources: Array<PIXI.Texture>): void {
+    _loadDecorators (decorators: any, resources: Array<PIXI.loaders.Resource>): void {
         if (!decorators || (decorators && !decorators.items)) {
             return null;
         }

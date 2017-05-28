@@ -1,4 +1,4 @@
-import { Signal } from "./../Tool";
+import { SignalEvent } from "./../Tool";
 
 
 /**
@@ -9,22 +9,22 @@ export interface ISignals {
     /**
      * Signal emitted everytime the object is updating
      */
-    update: Signal;
+    update: SignalEvent;
 
     /**
      * Signal emitted when a property (which the name is passed in parameter) has changed
      */
-    propChange: Signal;
+    propChange: SignalEvent;
 
     /**
      * Signal emitted when a new SideralObject is adding to the current object
      */
-    addChild: Signal;
+    addChild: SignalEvent;
 
     /**
      * Signal emitted when a SideralObject is removing from the current object
      */
-    removeChild: Signal;
+    removeChild: SignalEvent;
 }
 
 
@@ -36,17 +36,17 @@ export interface IKeyboardSignals extends ISignals {
     /**
      * Signal emitted everytime a key is pressed or released
      */
-    keyChange: Signal;
+    keyChange: SignalEvent;
 
     /**
      * Signal emitted when a key is pressed
      */
-    keyPress: Signal;
+    keyPress: SignalEvent;
 
     /**
      * Signal emitted when a key is released
      */
-    keyRelease: Signal;
+    keyRelease: SignalEvent;
 }
 
 
@@ -58,7 +58,7 @@ export interface IModuleSignals extends ISignals {
     /**
      * Signal emitted on click on the module
      */
-    click: Signal;
+    click: SignalEvent;
 }
 
 /**
@@ -69,47 +69,47 @@ export interface ISkillSignals extends ISignals {
     /**
      * When the preparation timer is started
      */
-    preparationStart: Signal;
+    preparationStart: SignalEvent;
 
     /**
      * When the preparation timer is updating
      */
-    preparationUpdate: Signal;
+    preparationUpdate: SignalEvent;
 
     /**
      * When the preparation timer is completed
      */
-    preparationComplete: Signal;
+    preparationComplete: SignalEvent;
 
     /**
      * When the skill is started
      */
-    skillStart: Signal;
+    skillStart: SignalEvent;
 
     /**
      * When the skill is updating
      */
-    skillUpdate: Signal;
+    skillUpdate: SignalEvent;
 
     /**
      * When the skill is completed
      */
-    skillComplete: Signal;
+    skillComplete: SignalEvent;
 
     /**
      * When the reload timer is started
      */
-    reloadStart: Signal;
+    reloadStart: SignalEvent;
 
     /**
      * When the reload timer is updating
      */
-    reloadUpdate: Signal;
+    reloadUpdate: SignalEvent;
 
     /**
      * When the reload timer is completed
      */
-    reloadComplete: Signal;
+    reloadComplete: SignalEvent;
 }
 
 /**
@@ -120,15 +120,15 @@ export interface IEntitySignals extends IModuleSignals {
     /**
      * When entity is entering in collision with an other entity
      */
-    beginCollision: Signal;
+    beginCollision: SignalEvent;
 
     /**
      * Signal emitted every update if the entity is currently in collision with an other entity
      */
-    collision: Signal;
+    collision: SignalEvent;
 
     /**
      * When entity is not in collision anymore
      */
-    endCollision: Signal;
+    endCollision: SignalEvent;
 }

@@ -1,15 +1,31 @@
 import { Entity } from "./../Entity";
 
+import { IHitboxProps } from "./../Interface";
+
 import { Enum } from "./../Tool/Enum";
 
 
+/**
+ * Hitbox is an helper class extended from Entity to generate hitbox contact between the owner and targets
+ */
 export class Hitbox extends Entity {
 
     /* PROPERTIES */
 
-    hit:number      = 0;
-    type:number     = Enum.TYPE.GHOST;
-    group:number    =  Enum.GROUP.ENTITIES;
+    /**
+     * Properties of a Hitbox
+     */
+    props: IHitboxProps;
+
+    /**
+     * The number of hits before destruction of the Hitbox
+     * @readonly
+     */
+    hit: number = 0;
+
+    type: number = Enum.TYPE.GHOST;
+
+    group: number = Enum.GROUP.ENTITIES;
 
 
     /* LIFECYCLE */
@@ -21,6 +37,7 @@ export class Hitbox extends Entity {
         super();
 
         this.setProps({
+            owner           : null,
             gravityFactor   : 0,
             multipleHit     : false,
             oncePerHit      : true,
@@ -30,48 +47,15 @@ export class Hitbox extends Entity {
         this.signals.beginCollision.add(this.onCollision.bind(this));
     }
 
-    /**
-     * @initialize
-     * @lifecycle
-     * @override
-     */
-    initialize (props) {
-        super.initialize(props);
-
-        const owner = this.props.owner;
-
-        this.props.x += this.props.offsetFlip !== null && owner.props.flip ? this.props.offsetFlip : this.props.offsetX || 0;
-        this.props.y += this.props.offsetY || 0;
-    }
-
-
-    /* METHODS */
-
-    /**
-     * Add a new offset
-     * @param {number} offsetX: number of offset in x axis
-     * @param {number} offsetY: number of offset in y axis
-     * @param {number} offsetFlip: number of offset in x axis when owner is flipping
-     * @returns {void}
-     */
-    offset (offsetX, offsetY, offsetFlip) {
-        offsetX     = typeof offsetX !== "undefined" ? offsetX : this.props.offsetX;
-        offsetY     = typeof offsetY !== "undefined" ? offsetY : this.props.offsetY;
-        offsetFlip  = typeof offsetFlip !== "undefined" ? offsetFlip : this.props.offsetFlip;
-
-        if (!this.initialized) {
-            this.setProps({ offsetX: offsetX, offsetY: offsetY, offsetFlip: offsetFlip });
-
-        } else {
-            this.props.offsetX      = offsetX;
-            this.props.offsetY      = offsetY;
-            this.props.offsetFlip   = offsetFlip;
-        }
-    }
 
     /* EVENTS */
 
-    onCollision (otherName, other) {
+    /**
+     * When entering in collision with an entity
+     * @param otherName - Name of the other entity
+     * @param other - The other entity
+     */
+    onCollision (otherName: string, other: Entity): void {
         const result = this.onHit(otherName, other);
 
         if (result) {
@@ -85,11 +69,11 @@ export class Hitbox extends Entity {
 
     /**
      * Event fired when hitbox hit an entity
-     * @param {string} name: name of the entity
-     * @param {Entity} other: entity
-     * @returns {boolean} Consider the hit like a correct hit
+     * @param name - Name of the entity
+     * @param target - The target
+     * @returns If true the hit will be counted
      */
-    onHit (name: string, other): boolean {
+    onHit (name: string, target: Entity): boolean {
         return true;
     }
 }

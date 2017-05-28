@@ -294,7 +294,9 @@ export class Scene extends Module {
      * When "gravity" property change
      */
     onGravityChange (): void {
-        this.world.gravity = [0, this.props.gravity];
+        if (this.world) {
+            this.world.gravity = [0, this.props.gravity];
+        }
     }
 
 

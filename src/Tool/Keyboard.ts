@@ -1,5 +1,5 @@
 import { SideralObject } from "./../SideralObject";
-import { Signal } from "./Signal";
+import { SignalEvent } from "./SignalEvent";
 import { Enum } from "./Enum";
 
 import { IKeyboardSignals } from "./../Interface";
@@ -44,9 +44,9 @@ export class Keyboard extends SideralObject {
     constructor () {
         super();
 
-        this.signals.keyChange  = <Signal> new Signal();
-        this.signals.keyPress   = <Signal> new Signal();
-        this.signals.keyRelease = <Signal> new Signal();
+        this.signals.keyChange  = new SignalEvent();
+        this.signals.keyPress   = new SignalEvent();
+        this.signals.keyRelease = new SignalEvent();
 
         this.signals.update.add(this._updateInputs.bind(this));
     }

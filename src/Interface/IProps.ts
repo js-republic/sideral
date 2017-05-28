@@ -1,4 +1,5 @@
 import { IFollow } from "./IFollow";
+import { Entity } from "./../Entity";
 
 
 /**
@@ -168,6 +169,16 @@ export interface IEntityProps extends IModuleProps {
      * The acceleration speed in y axis
      */
     accelY: number;
+
+    /**
+     * The factor of bounce
+     */
+    bounce: number;
+
+    /**
+     * If true, the entity will enter in debug mode and display it's size on screen
+     */
+    debug: boolean;
 }
 
 /**
@@ -189,4 +200,95 @@ export interface IWallProps extends IModuleProps {
      * Set or remove the debug mode
      */
     debug: boolean;
+}
+
+/**
+ * Properties of a Sprite
+ */
+export interface ISpriteProps extends IModuleProps {
+
+    /**
+     * The path of the spritesheet image
+     */
+    imagePath: string;
+
+    /**
+     * If true, the sprite will be killed after the animation has finished
+     */
+    autoKill: boolean;
+}
+
+/**
+ * Properties of a Shape
+ */
+export interface IShapeProps extends IModuleProps {
+
+    /**
+     * The color of the stroke
+     */
+    stroke: string;
+
+    /**
+     * The color of the fill
+     */
+    fill: string;
+
+    /**
+     * The type of box (see Enum for more informations)
+     */
+    box: string;
+}
+
+/**
+ * Properties of a particle
+ */
+export interface IParticlesProps extends IEntityProps {
+
+    /**
+     * Data algorithm for particles
+     */
+    config: any;
+
+    /**
+     * List of all images to use to generate particles
+     */
+    images: Array<string>;
+
+    /**
+     * Duration of particles (in ms)
+     */
+    duration: number;
+
+    /**
+     * If true, Particles will emit when initialized
+     */
+    autoRun: boolean;
+}
+
+/**
+ * Properties of a Hitbox
+ */
+export interface IHitboxProps extends IEntityProps {
+
+    offsetX: number;
+
+    /**
+     * If true, the hitbox will hits multiple targets
+     */
+    multipleHit: boolean;
+
+    /**
+     * If true, the hitbox will hit a target only once
+     */
+    oncePerHit: boolean;
+
+    /**
+     * The max number of hits before the destruction of the hitbox
+     */
+    maxHit: number;
+
+    /**
+     * The entity owner of the hitbox
+     */
+    owner: Entity;
 }

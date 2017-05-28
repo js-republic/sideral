@@ -1,7 +1,7 @@
 import { Hitbox } from "src/Entity/Hitbox";
-import { Ball } from '../Ball';
-import { Skill } from "src/Tool/Skill";
-import { Enum } from "src/Tool/Enum";
+
+import { Player } from "./Player";
+import { Ball } from "./../Ball";
 
 
 export class PlayerAttackHitbox extends Hitbox {
@@ -13,12 +13,8 @@ export class PlayerAttackHitbox extends Hitbox {
      * @override
      * @lifecycle
      */
-    initialize (props: any) {
-        const owner = props.owner;
-
+    initialize (props: any): void {
         this.size(20, 30);
-        this.offset(owner.props.width, owner.props.height - this.props.height, -this.props.width);
-
         super.initialize(props);
     }
 
@@ -39,7 +35,7 @@ export class PlayerAttackHitbox extends Hitbox {
      * @returns {Boolean} correct hit
      */
     onHitWithBall (ball: Ball) {
-        const owner = this.props.owner;
+        const owner = this.props.owner as Player;
 
         ball.props.vx   = owner.props.powerX * (owner.props.x < ball.props.x ? 1 : -1) * (owner.standing ? 1 : 2);
         ball.props.vy   = -Math.abs(owner.props.powerY);
