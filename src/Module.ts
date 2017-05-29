@@ -43,6 +43,16 @@ export class Module extends SideralObject {
     constructor () {
         super();
 
+        this.setProps({
+            x       : 0,
+            y       : 0,
+            width   : 0,
+            height  : 0,
+            flip    : false,
+            angle   : 0,
+            visible : true
+        });
+
         this.timers = <TimerManager> this.add(new TimerManager());
 
         this.signals.click = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
@@ -118,7 +128,7 @@ export class Module extends SideralObject {
             props.z = z;
         }
 
-        super.add(item);
+        super.add(item, props);
 
         if (item instanceof Module) {
             if (typeof props.z !== "undefined") {

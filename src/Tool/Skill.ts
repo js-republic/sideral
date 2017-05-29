@@ -230,10 +230,7 @@ export class Skill extends SideralObject {
     updateSkill (value: number, ratio: number, duration: number): void {
         if (!this.movable) {
             this.owner.props.vy = this.owner.props.accelY = 0;
-
-            if (this.owner.standing || !this.owner.props.gravityFactor) {
-                this.owner.props.vx = this.owner.props.accelX = 0;
-            }
+            this.owner.props.vx = this.owner.props.accelX = 0;
         }
 
         this.signals.skillUpdate.dispatch(this.name, value, ratio, duration);

@@ -1,5 +1,3 @@
-export * from './Body';
-
 export * from './Enum';
 export * from './SignalEvent';
 export * from './Skill';

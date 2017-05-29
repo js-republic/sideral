@@ -23,7 +23,7 @@ export interface IPauseState {
     /**
      * The gravity factor
      */
-    gf: number;
+    gf?: number;
 
     /**
      * The velocity in x axis of the p2.Body

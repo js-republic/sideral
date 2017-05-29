@@ -31,11 +31,9 @@ export class Hitbox extends Entity {
     /* LIFECYCLE */
 
     /**
-     * @constructor
+     * @initialize
      */
-    constructor () {
-        super();
-
+    initialize (props) {
         this.setProps({
             owner           : null,
             gravityFactor   : 0,
@@ -44,7 +42,9 @@ export class Hitbox extends Entity {
             maxHit          : 1
         });
 
-        this.signals.beginCollision.add(this.onCollision.bind(this));
+        super.initialize(props);
+
+        this.physic.signals.beginCollision.add(this.onCollision.bind(this));
     }
 
 

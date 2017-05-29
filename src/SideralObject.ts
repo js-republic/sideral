@@ -1,6 +1,6 @@
 import { SignalEvent } from "./Tool/SignalEvent";
 
-import { IProps, ISignals, IAddMultiple } from "./Interface";
+import { IProps, ISignals, IAddMultiple, IContext } from "./Interface";
 
 
 /**
@@ -28,6 +28,11 @@ export class SideralObject {
     props: IProps = {};
 
     /**
+     * Default properties of the Sideral Object
+     */
+    defaultProps: any;
+
+    /**
      * Last values of properties of the object
      */
     last: any = {};
@@ -35,7 +40,7 @@ export class SideralObject {
     /**
      * Context is a object which you can store anything, the content of the context will be passed to its children
      */
-    context: any = {};
+    context: IContext = {};
 
     /**
      * List of all signals of the element
@@ -71,6 +76,19 @@ export class SideralObject {
 
 
     /* LIFECYCLE */
+
+    /**
+     * @constructor
+     */
+    constructor () {
+        if (this.defaultProps) {
+            console.log(this.defaultProps);
+
+            Object.keys(this.defaultProps).forEach(key => {
+                this.props[key] = this.defaultProps[key];
+            });
+        }
+    }
 
     /**
      * Lifecycle - When initialized by a parent (called only once when the instance is attached to the lifecycle of the game)

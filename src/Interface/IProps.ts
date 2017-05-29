@@ -1,3 +1,5 @@
+import * as p2 from "p2";
+
 import { IFollow } from "./IFollow";
 import { Entity } from "./../Entity";
 
@@ -146,11 +148,6 @@ export interface ITimerProps extends IProps {
 export interface IEntityProps extends IModuleProps {
 
     /**
-     * The factor of gravity
-     */
-    gravityFactor: number;
-
-    /**
      * The velocity in x axis
      */
     vx: number;
@@ -169,11 +166,6 @@ export interface IEntityProps extends IModuleProps {
      * The acceleration speed in y axis
      */
     accelY: number;
-
-    /**
-     * The factor of bounce
-     */
-    bounce: number;
 
     /**
      * If true, the entity will enter in debug mode and display it's size on screen
@@ -291,4 +283,55 @@ export interface IHitboxProps extends IEntityProps {
      * The entity owner of the hitbox
      */
     owner: Entity;
+}
+
+/**
+ * Properties of Physic
+ */
+export interface IPhysicProps extends IModuleProps {
+
+    /**
+     * The box type of Physic (see Enum.BOX)
+     */
+    box: string;
+
+    /**
+     * Owner of the physic
+     */
+    owner: Entity;
+
+    /**
+     * The p2.Material used in the p2.Shape
+     */
+    material: p2.Material;
+
+    /**
+     * The factor of gravity
+     */
+    gravityFactor: number;
+
+    /**
+     * Factor of bounce
+     */
+    bounce: number;
+
+    /**
+     * Velocity in x axis
+     */
+    vx: number;
+
+    /**
+     * Velocity in y axis
+     */
+    vy: number;
+
+    /**
+     * Acceleration in x axis
+     */
+    accelX: number;
+
+    /**
+     * Acceleration in y axis
+     */
+    accelY: number;
 }

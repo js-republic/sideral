@@ -206,12 +206,15 @@ export class Tilemap extends Module {
      * @private
      */
     _loadWalls (wallDatas: Array<any> = [], debug: boolean = false): void {
-        this.walls = <Array<Wall>> wallDatas.map(wall => {
-            const [box, x, y, width, height, directionConstraint] = wall;
+        this.walls = <Array<Wall>> wallDatas.map(wallData => {
+            const [box, x, y, width, height, directionConstraint] = wallData,
+                wall = <Wall> this.spawn(new Wall(), x, y, { box, width, height, directionConstraint });
 
-            return this.spawn(new Wall(), x, y, { box, width, height, directionConstraint,
-                debug: debug
-            });
+            if (debug) {
+                wall.toggleDebug();
+            }
+
+            return wall;
         });
     }
 }

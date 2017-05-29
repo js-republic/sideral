@@ -101,12 +101,9 @@ export class Player extends Entity {
     /* LIFECYCLE */
 
     /**
-     * @constructor
+     * @initialize
      */
-    constructor () {
-        super();
-
-        // props
+    initialize (props) {
         this.setProps({
             speed       : 280,
             powerX      : 150,
@@ -114,8 +111,10 @@ export class Player extends Entity {
             jump        : 600
         });
 
+        super.initialize(props);
+
         // signals
-        this.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
+        this.physic.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
 
         // skills
         this.skills.addSkill("attack", new PlayerAttackSkill());

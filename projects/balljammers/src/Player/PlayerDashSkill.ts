@@ -1,5 +1,5 @@
 import { Skill } from "src/Tool/Skill";
-import { Sprite } from "src/Module/Sprite";
+import { Sprite } from "src/Module/";
 
 import { Player } from './Player';
 
@@ -34,7 +34,7 @@ export class PlayerDashSkill extends Skill {
      * @returns {void}
      */
     onSkillStart () {
-        this.owner.context.scene.add(new Sprite(), {
+        (<Sprite> this.owner.context.scene.add(new Sprite(), {
             imagePath   : "images/effects/smoke.png",
             width       : 128,
             height      : 128,
@@ -43,7 +43,7 @@ export class PlayerDashSkill extends Skill {
             autoKill    : true,
             flip        : this.owner.props.flip
 
-        }).addAnimation("idle", 25, [20, 21, 22, 23, 24, 25, 26, 27, 28, 29], 1);
+        })).addAnimation("idle", 25, [20, 21, 22, 23, 24, 25, 26, 27, 28, 29], 1);
     }
 
     /**
@@ -51,8 +51,8 @@ export class PlayerDashSkill extends Skill {
      * @returns {void}
      */
     onSkillUpdate () {
-        this.owner.props.vx = this.owner.props.speed * (this.side === Player.SIDE.LEFT ? -5 : 5);
-        this.owner.body.vy  = this.owner.props.vy = 0;
+        this.owner.props.vx         = this.owner.props.speed * (this.side === Player.SIDE.LEFT ? -5 : 5);
+        this.owner.physic.props.vy  = this.owner.props.vy = 0;
     }
 
     /**

@@ -76,11 +76,11 @@ export class Arena extends Scene {
         keyboard.signals.keyPress.bind(Enum.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
         keyboard.signals.keyPress.bind(Enum.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
 
-        this.ball           = <Ball> this.spawn(new Ball(), 100, 100);
-        this.goalLeft       = <Ball> this.spawn(new Goal(), 0, 448 - 130);
-        this.goalRight      = <Goal> this.spawn(new Goal(), this.props.width - 45, 448 - 130, { flip: true });
-        this.playerLeft     = <PlayerCat> this.spawn(new PlayerCat(), this.spawnX, 150, { playerLeft: true });
-        this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true });
+        this.ball           = <Ball> this.spawn(new Ball(), 100, 100, { debug: true });
+        this.goalLeft       = <Ball> this.spawn(new Goal(), 0, 448 - 130, { debug: true });
+        this.goalRight      = <Goal> this.spawn(new Goal(), this.props.width - 45, 448 - 130, { flip: true, debug: true });
+        this.playerLeft     = <PlayerCat> this.spawn(new PlayerCat(), this.spawnX, 150, { playerLeft: true, debug: true });
+        this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true, debug: true });
 
         this.flameParticles = <Particles>this.add(new Particles(), {
             images  : ["images/particles/bolt.png", "images/particles/fire.png"],

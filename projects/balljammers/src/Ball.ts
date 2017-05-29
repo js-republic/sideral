@@ -3,6 +3,7 @@ import { Particles } from "src/Entity/Particles";
 import { Enum } from "src/Tool";
 
 import { Goal } from "./Goal";
+import { Arena } from "./Arena";
 
 import * as trailConfig from "./Particles/trail.json";
 
@@ -43,20 +44,17 @@ export class Ball extends Entity {
     /* LIFECYCLE */
 
     /**
-     * @constructor
+     * @initialize
      */
-    constructor () {
-        super();
-
+    initialize (props) {
         this.setProps({
-            width           : 26,
-            height          : 26,
-            bounce          : 0.65,
-            gravityFactor   : 1
+            width: 26,
+            height: 26
         });
 
-        console.log(this.signals);
-        this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
+        super.initialize(props);
+
+        this.physic.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
         this.signals.update.add(this.updateVelocity.bind(this));
 
         this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
@@ -67,15 +65,7 @@ export class Ball extends Entity {
             config  : trailConfig,
             autoRun : false
         });
-    }
 
-    /**
-     * @initialize
-     * @lifecycle
-     * @override
-     */
-    initialize (props: any): void {
-        super.initialize(props);
         this.respawn();
     }
 
@@ -98,7 +88,7 @@ export class Ball extends Entity {
      * Update the velocity of the ball
      */
     updateVelocity (): void {
-        const bodySpeed     = Math.abs(this.body.vx),
+        const bodySpeed     = Math.abs(this.physic.props.vx),
             trailRunning    = this.trail.isRunning();
 
         this.props.vx = this.props.vy = 0;
@@ -117,10 +107,10 @@ export class Ball extends Entity {
      * @param goal - Goal entity
      */
     onCollisionWithGoal (goal: Goal) {
-        if (this.props.y > goal.props.y)
+        if (this.props.y > goal.props.y) {
             this.trail.stop();
-            this.pause(true);{
-            this.context.scene.goal(goal);
+            this.pause(true);
+            (<Arena> this.context.scene).goal(goal);
         }
     }
 }

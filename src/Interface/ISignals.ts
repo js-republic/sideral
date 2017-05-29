@@ -113,9 +113,9 @@ export interface ISkillSignals extends ISignals {
 }
 
 /**
- * Signals of Entity
+ * Signals of Physic
  */
-export interface IEntitySignals extends IModuleSignals {
+export interface IPhysicSignals extends IModuleSignals {
 
     /**
      * When entity is entering in collision with an other entity

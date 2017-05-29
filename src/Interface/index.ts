@@ -6,3 +6,4 @@ export * from "./IContact";
 export * from "./IAnimation";
 export * from "./IPoint";
 export * from "./IPauseState";
+export * from "./IContext";

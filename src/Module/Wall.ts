@@ -1,7 +1,8 @@
 import { Material } from "p2";
 
-import { Body, CircularBody, RectangularBody } from "./../Tool/Body";
-import { Enum } from "./../Tool/Enum";
+import { Physic } from "./../Module/Physic";
+import { Shape } from "./Shape";
+import { Enum } from "./../Tool/";
 import { Module } from "./../Module";
 import { Entity } from "./../Entity";
 import { IWallProps } from "./../Interface";
@@ -9,7 +10,6 @@ import { IWallProps } from "./../Interface";
 
 /**
  * Module for wall tilemap
- * TODO: Finish refactoring
  */
 export class Wall extends Module {
 
@@ -21,10 +21,21 @@ export class Wall extends Module {
     props: IWallProps;
 
     /**
-     * Body of the wall
+     * Group of wall
+     */
+    group: number = Enum.GROUP.GROUND;
+
+    /**
+     * Physic body of the wall
      * @readonly
      */
-    body: Body;
+    physic: Physic;
+
+    /**
+     * Debug mode
+     * @private
+     */
+    _debug: Shape;
 
 
     /* LIFECYCLE */
@@ -36,21 +47,35 @@ export class Wall extends Module {
     initialize (props) {
         super.initialize(props);
 
-        const settings = {
-            mass: 0, gravityScale: 0, fixedX: true, fixedY: true, group: Enum.GROUP.GROUND, material: Wall.wallMaterial
-        };
-
-        switch (this.props.box) {
-            case Enum.BOX.CIRCLE: this.body = new CircularBody(this, this.props.x, this.props.y, this.props.width, settings);
-                break;
-
-            default: this.body = new RectangularBody(this, this.props.x, this.props.y, this.props.width, this.props.height, settings);
-                break;
-        }
+        this.physic = <Physic> this.spawn(new Physic(), this.props.x, this.props.y, {
+            width   : this.props.width,
+            height  : this.props.height,
+            material: Wall.wallMaterial,
+            owner   : this
+        });
     }
 
 
     /* METHODS */
+
+    /**
+     * Set or unset the debug mode for a wall
+     */
+    toggleDebug (): void {
+        if (this._debug) {
+            this._debug.kill();
+            this._debug = null;
+
+        } else {
+            this._debug = <Shape> this.add(new Shape(), {
+                box     : this.props.box,
+                width   : this.props.width,
+                height  : this.props.height,
+                stroke  : "#FF0000",
+                fill    : "transparent"
+            });
+        }
+    }
 
     /**
      * Know if the entity is constrained by the DirectionConstraint
@@ -58,7 +83,7 @@ export class Wall extends Module {
      * @returns If the entity is constrained by the DirectionConstraint
      */
     isConstrainedByDirection (entity: Entity) {
-        return !this.resolveDirectionConstraint(this.props.directionConstraint, this.body.x, this.body.y, this.body.width, this.body.height, entity);
+        return !this.resolveDirectionConstraint(this.props.directionConstraint, this.props.x, this.props.y, this.props.width, this.props.height, entity);
     }
 
     /**

@@ -1,9 +1,8 @@
 import { Module } from "./Module";
 import { Shape, Sprite } from "./Module/";
-import { IEntityProps, IEntitySignals, IPauseState, IBodyContact, IPoint } from "./Interface";
+import { IEntityProps, IPauseState, IPoint } from "./Interface";
 
-import { Body, CircularBody, RectangularBody } from './Tool/Body';
-import { SignalEvent } from "./Tool/SignalEvent";
+import { Physic } from "./Module/Physic";
 import { Enum } from "./Tool/Enum";
 import { SkillManager } from "./Tool/SkillManager";
 
@@ -19,11 +18,6 @@ export class Entity extends Module {
      * Properties of the entity
      */
     props: IEntityProps;
-
-    /**
-     * Signals of the entity
-     */
-    signals: IEntitySignals;
 
     /**
      * Manager of skills of the entity
@@ -69,22 +63,10 @@ export class Entity extends Module {
     moving: boolean = false;
 
     /**
-     * The last bounce factor
-     * @private
-     */
-    _bounce: number = 0;
-
-    /**
-     * Entities in collision with the current entity
+     * The physic body of the entity
      * @readonly
      */
-    collides: Array<IBodyContact> = [];
-
-    /**
-     * The body of the entity
-     * @readonly
-     */
-    body:Body;
+    physic: Physic;
 
     /**
      * The sprite of the entity
@@ -116,26 +98,18 @@ export class Entity extends Module {
         super();
 
         this.setProps({
-            gravityFactor   : 1,
             vx              : 0,
             vy              : 0,
             accelX          : 0,
             accelY          : 0,
-            angle           : 0,
-            bounce          : 0
+            angle           : 0
         });
 
         this.skills = <SkillManager> this.add(new SkillManager());
 
-        this.signals.beginCollision = new SignalEvent();
-        this.signals.collision      = new SignalEvent();
-        this.signals.endCollision   = new SignalEvent();
-
         this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
         this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
-        this.signals.propChange.bind("bounce", this.onBounceChange.bind(this));
         this.signals.propChange.bind("debug", this.onDebugChange.bind(this));
-        this.signals.propChange.bind("gravityFactor", this.onGravityFactorChange.bind(this));
     }
 
     /**
@@ -146,29 +120,15 @@ export class Entity extends Module {
     initialize (props) {
         super.initialize(props);
 
-        if (this.type === Enum.TYPE.NONE) {
-            return this.onSizeChange();
+        if (this.type !== Enum.TYPE.NONE) {
+            this.physic = <Physic> this.spawn(new Physic(), this.props.x, this.props.y, {
+                width   : this.props.width,
+                height  : this.props.height,
+                owner   : this
+            });
+
+            this.context.scene.addPhysic(this.physic);
         }
-
-        const settings = {
-            mass            : this.type < 0 ? 0 : this.type,
-            gravityScale    : this.props.gravityFactor,
-            group           : this.group,
-            fixedRotation   : this.type !== Enum.TYPE.WEAK,
-            angularVelocity : this.type === Enum.TYPE.WEAK ? 1 : 0
-        };
-
-        switch (this.box) {
-            case Enum.BOX.CIRCLE:
-                this.body = new CircularBody(this, this.props.x, this.props.y, this.props.width / 2, settings);
-                break;
-
-            default: 
-                this.body = new RectangularBody(this, this.props.x, this.props.y, this.props.width, this.props.height, settings);
-                break;
-        }
-
-        this.onSizeChange();
     }
 
     /**
@@ -179,8 +139,8 @@ export class Entity extends Module {
     kill (): void {
         super.kill();
 
-        if (this.body && this.context.scene.world) {
-            this.context.scene.world.removeBody(this.body.data);
+        if (this.physic) {
+            this.context.scene.removePhysic(this.physic);
         }
     }
 
@@ -196,43 +156,40 @@ export class Entity extends Module {
             return null;
         }
 
-        if (this.body) {
-            if (this.last.x !== this.body.x) {
+        if (this.physic) {
+            const { x, y, vx, vy, angle, accelX, accelY } = this.physic.props;
+
+
+            if (this.last.x !== x) {
                 this.lastPos.x = this.last.x;
             }
 
-            if (this.last.y !== this.body.y) {
+            if (this.last.y !== y) {
                 this.lastPos.y = this.last.y;
             }
 
             this.setProps({
-                x: this.body.x,
-                y: this.body.y
+                x       : x,
+                y       : y,
+                angle   : angle
             });
 
-            this.moving         = Boolean(this.body.data.velocity[0]) || !this.standing;
-            this.standing       = Boolean(this.collides.find(collide => collide.isAbove));
-            this.props.x        = this.body.x;
-            this.props.y        = this.body.y;
-            this.props.angle    = this.body.angle;
-
-            this.body.data.force[0]     = this.props.accelX;
-            this.body.data.force[1]     = this.props.accelY;
+            this.moving         = Boolean(vx) || !this.standing;
+            this.standing       = Boolean(this.physic.collides.find(collide => collide.isAbove));
+            this.physic.props.accelX = this.props.accelX;
+            this.physic.props.accelY = this.props.accelY;
 
             if (this.props.vx || (!this.props.vx && !this.friction)) {
-                this.body.vx = this.props.vx;
+                this.physic.props.vx = this.props.vx;
             }
 
-            if (this.props.vy || (!this.props.vy && (!this.props.gravityFactor || !this.context.scene.props.gravity))) {
-                this.body.vy = this.props.vy;
+            if (this.props.vy || (!this.props.vy && (!this.physic.props.gravityFactor || !this.context.scene.props.gravity))) {
+                this.physic.props.vy = this.props.vy;
             }
 
-            this.container.rotation = this.body.data.angle;
-
+            this.container.rotation = this.physic.props.angle;
             this.container.position.set(this.props.x + this.container.pivot.x, this.props.y + this.container.pivot.y);
         }
-
-        this.collides.forEach(collide => collide.entity && !collide.entity._beforePauseState && this.signals.collision.dispatch(collide.entity.name, collide.entity));
     }
 
 
@@ -244,10 +201,12 @@ export class Entity extends Module {
     position (x: number, y: number): void {
         super.position(x, y);
 
-        if (this.body) {
-            this.body.x = this.props.x;
-            this.body.y = this.props.y;
+/*
+        if (this.physic) {
+            this.physic.props.x = this.props.x;
+            this.physic.props.y = this.props.y;
         }
+        */
     }
 
     /**
@@ -260,23 +219,21 @@ export class Entity extends Module {
             x   : this.props.x,
             y   : this.props.y,
             vx  : this.props.vx,
-            vy  : this.props.vy,
-            gf  : this.props.gravityFactor
+            vy  : this.props.vy
         };
 
-        if (this.body) {
-            this._beforePauseState.bodyVx         = this.body.vx;
-            this._beforePauseState.bodyVy         = this.body.vy;
-            this.body.vx                = 0;
-            this.body.vy                = 0;
-            this.body.data.gravityScale = 0;
-            this.body.disable();
+        if (this.physic) {
+            this._beforePauseState.bodyVx   = this.physic.props.vx;
+            this._beforePauseState.bodyVy   = this.physic.props.vy;
+            this._beforePauseState.gf       = this.physic.props.gravityFactor;
+
+            this.physic.idle(true);
+            this.context.scene.removePhysic(this.physic);
         }
 
         this.setProps({
-            vx              : 0,
-            vy              : 0,
-            gravityFactor   : 0
+            vx  : 0,
+            vy  : 0
         });
 
         if (hide) {
@@ -295,18 +252,18 @@ export class Entity extends Module {
         }
 
         this.setProps({
-            vx              : this._beforePauseState.vx,
-            vy              : this._beforePauseState.vy,
-            gravityFactor   : this._beforePauseState.gf
+            vx : this._beforePauseState.vx,
+            vy : this._beforePauseState.vy,
         });
 
-        if (this.body) {
-            this.body.x             = this.props.x;
-            this.body.y             = this.props.y;
-            this.body.vx            = this._beforePauseState.bodyVx;
-            this.body.vy            = this._beforePauseState.bodyVy;
-            this.body.data.gravityScale = this._beforePauseState.gf;
-            this.body.enable();
+        if (this.physic) {
+            this.physic.props.x     = this.props.x;
+            this.physic.props.y     = this.props.y;
+            this.physic.props.vx    = this._beforePauseState.bodyVx;
+            this.physic.props.vy    = this._beforePauseState.bodyVy;
+            this.physic.props.gravityFactor = this._beforePauseState.gf;
+
+            this.context.scene.addPhysic(this.physic);
         }
 
         this._beforePauseState = null;
@@ -341,27 +298,18 @@ export class Entity extends Module {
 
     /**
      * Remove all velocity from the entity
+     * @param removePhysicGravity - If true and if this Entity has a Physic, it will be no longer affected by gravity
      */
-    idle (): void {
+    idle (removePhysicGravity: boolean = false): void {
         this.props.vx = this.props.vy = this.props.accelX = this.props.accelY = 0;
 
-        if (this.body) {
-            this.body.data.velocity[0] = 0;
-            this.body.data.velocity[1] = 0;
-            this.body.data.force[0] = 0;
-            this.body.data.force[1] = 0;
+        if (this.physic) {
+            this.physic.idle(removePhysicGravity);
         }
     }
 
 
     /* EVENTS */
-
-    /**
-     * When "bounce" attribute change
-     */
-    onBounceChange (): void {
-        this.context.scene.setEntityBouncing(this, this.props.bounce, this.last.bounce);
-    }
 
     /**
      * When "debug" property has change
@@ -388,10 +336,12 @@ export class Entity extends Module {
      * @override
      */
     onPositionChange (): void {
-        if (this.body) {
-            this.body.x = this.props.x;
-            this.body.y = this.props.y;
+        /*
+        if (this.physic) {
+            this.physic.props.x = this.props.x;
+            this.physic.props.y = this.props.y;
         }
+        */
     }
 
     /**
@@ -400,15 +350,6 @@ export class Entity extends Module {
     onSizeChange (): void {
         if (this._debug) {
             this._debug.size(this.props.width, this.props.height);
-        }
-    }
-
-    /**
-     * When gravityFactor property change
-     */
-    onGravityFactorChange (): void {
-        if (this.body) {
-            this.body.data.gravityScale = this.props.gravityFactor;
         }
     }
 }

@@ -1,15 +1,12 @@
-import { Material, World, ContactMaterial } from "p2";
+import { Material, World, ContactMaterial, Body } from "p2";
 
 import { Module } from "./Module";
 import { Entity } from "./Entity";
 
 import { ISceneProps, IContact } from "./Interface";
 
-import { Enum } from "./Tool/Enum";
-import { Util } from "./Tool/Util";
-
-import { Tilemap } from "./Module/Tilemap";
-import { Wall } from "./Module/Wall";
+import { Enum, Util } from "./Tool";
+import { Tilemap, Wall, Physic } from "./Module/";
 
 
 /**
@@ -37,20 +34,25 @@ export class Scene extends Module {
 
     /**
      * The p2 World physics
-     * @type {p2.World}
+     * @readonly
      */
     world: World = null;
 
     /**
      * List of all materials of the world
-     * @type {Array}
+     * @readonly
      */
     materials: Array<Material> = [];
 
     /**
+     * List of all physics in this scenes
+     * @readonly
+     */
+    physics: Array<Physic> = [];
+
+    /**
      * The amplitude of the screen shake
      * @readonly
-     * @type {number}
      */
     shakeAmplitude: number      = 0;
 
@@ -124,14 +126,14 @@ export class Scene extends Module {
         this.world      = new World({ gravity: [0, gravity] });
         this.materials  = [this.world.defaultMaterial];
 
-        this.getAllEntities().filter(entity => entity.body).forEach(entity => {
-            const materialId = entity.body.shape.material.id;
+        this.getAllEntities().filter(entity => entity.physic).forEach(entity => {
+            const materialId = entity.physic.shape.material.id;
 
             if (!this.materials.find(material => material.id === materialId)) {
-                this.materials.push(entity.body.shape.material);
+                this.materials.push(entity.physic.shape.material);
             }
 
-            this.world.addBody(entity.body.data);
+            this.addPhysic(entity.physic);
         });
 
         this.setProps({ gravityFactor: gravity });
@@ -147,10 +149,43 @@ export class Scene extends Module {
      */
     disablePhysics () {
         if (this.world) {
-            this.world.bodies.forEach(body => this.world.removeBody(body));
+            this.physics.forEach(physic => this.removePhysic(physic));
 
             this.materials  = [];
+            this.physics    = [];
             this.world      = null;
+        }
+    }
+
+    /**
+     * Get the default p2.Material
+     * @returns The default p2.Material
+     */
+    getDefaultMaterial (): Material {
+        return this.world && this.world.defaultMaterial;
+    }
+
+    /**
+     * Add a new Physic object to the current scene
+     * @param physic - Physic object to add
+     */
+    addPhysic (physic: Physic): void {
+        this.physics.push(physic);
+
+        if (this.world) {
+            this.world.addBody(physic.body);
+        }
+    }
+
+    /**
+     * Remove a Physic object to the current scene
+     * @param physic - Physic object to remove
+     */
+    removePhysic (physic: Physic): void {
+        this.physics = this.physics.filter(x => x.id === physic.id);
+
+        if (this.world) {
+            this.world.removeBody(physic.body);
         }
     }
 
@@ -173,33 +208,37 @@ export class Scene extends Module {
     }
 
     /**
+     * Get the entity owner of the physic by its body id
+     * @param body - The body to check
+     * @returns The entity found
+     */
+    getPhysicOwnerByBody (body: Body): Entity {
+        const physic = this.physics.find(x => x.body.id === body.id);
+
+        return physic && physic.props.owner;
+    }
+
+    /**
      * Set a new bouncing factor for the entity
-     * @param entity: entity with a new bounce factor
-     * @param bounce: next bouncing factor
-     * @param lastBounce: last bouncing factor
+     * @param physic - The physic to change the bounce factor
+     * @param bounce - Next value of bouncing
+     * @param lastBounce - Last value of bouncing
      * @returns Bouncing factor
      */
-    setEntityBouncing (entity: Entity, bounce: number, lastBounce: number): number {
-        if (!entity || (entity && !entity.body)) {
-            return bounce;
-        }
-
+    setPhysicBouncing (physic: Physic, bounce: number, lastBounce: number): number {
         if (lastBounce) {
-            const id = entity.body.shape.material.id;
+            const id = physic.shape.material.id;
 
             this.world.contactMaterials.filter(x => x.materialA.id === id || x.materialB.id === id)
                 .forEach(contactMaterial => this.world.removeContactMaterial(contactMaterial));
         }
 
         if (!bounce) {
-            entity.body.shape.material = this.world.defaultMaterial;
+            physic.shape.material = this.getDefaultMaterial();
 
         } else {
-            const materialOptions = {
-                restitution         : bounce
-            } as p2.ContactMaterialOptions;
-
-            const material = entity.body.shape.material = new Material(Scene.generateId());
+            const materialOptions   = { restitution : bounce } as p2.ContactMaterialOptions,
+                material            = physic.shape.material = new Material(Scene.generateId());
 
             this.materials.push(material);
 
@@ -290,6 +329,7 @@ export class Scene extends Module {
             }
         }
     }
+
     /**
      * When "gravity" property change
      */
@@ -309,19 +349,19 @@ export class Scene extends Module {
      */
     _onPreSolve ({ contactEquations }): void {
         contactEquations.forEach(contactEquation => {
-            const ownerA    = contactEquation.bodyA.owner,
-                ownerB      = contactEquation.bodyB.owner,
+            const ownerA    = this.getPhysicOwnerByBody(contactEquation.bodyA),
+                ownerB      = this.getPhysicOwnerByBody(contactEquation.bodyB),
                 wallA       = (ownerA instanceof Wall) && ownerA,
                 wallB       = (ownerB instanceof Wall) && ownerB,
-                entityA     = wallA ? false : ownerA,
-                entityB     = wallB ? false : ownerB;
+                entityA     = ownerA && (wallA ? false : ownerA),
+                entityB     = ownerB && (wallB ? false : ownerB);
 
             if ((entityA && entityA.type === Enum.TYPE.GHOST) || (entityB && entityB.type === Enum.TYPE.GHOST)) {
                 contactEquation.enabled = false;
 
             } else if ((!wallA && wallB) || (wallA && !wallB)) {
-                const wall = wallA || wallB,
-                    entity  = wallA ? entityB : entityA;
+                const wall = <Wall> wallA || wallB,
+                    entity  = <Entity> wallA ? entityB : entityA;
 
                 if (entity) {
                     contactEquation.enabled = !wall.isConstrainedByDirection(entity);
@@ -340,52 +380,52 @@ export class Scene extends Module {
         const contact = this._resolveContact(bodyA, bodyB);
 
         if (contact.entityA && contact.contactA) {
-            contact.entityA.collides.push(contact.contactA);
+            contact.entityA.physic.collides.push(contact.contactA);
         }
 
         if (contact.entityB && contact.contactB) {
-            contact.entityB.collides.push(contact.contactB);
+            contact.entityB.physic.collides.push(contact.contactB);
         }
 
         if (contact.entityA && contact.entityB) {
-            contact.entityA.signals.beginCollision.dispatch(contact.entityB.name, contact.entityB);
-            contact.entityB.signals.beginCollision.dispatch(contact.entityA.name, contact.entityA);
+            contact.entityA.physic.signals.beginCollision.dispatch(contact.entityB.name, contact.entityB);
+            contact.entityB.physic.signals.beginCollision.dispatch(contact.entityA.name, contact.entityA);
         }
     }
 
     /**
      * p2 JS event when two shapes ends to overlap
-     * @param bodyA: Body A entered in collision
-     * @param bodyB: Body B entered in collision
+     * @param bodyA - Body A entered in collision
+     * @param bodyB - Body B entered in collision
      * @private
      */
     _onEndContact ({ bodyA, bodyB }): void {
         const contact = this._resolveContact(bodyA, bodyB);
 
         if (contact.entityA) {
-            contact.entityA.collides = contact.entityA.collides.filter(collide => collide.bodyId !== contact.contactA.bodyId);
+            contact.entityA.physic.collides = contact.entityA.physic.collides.filter(collide => collide.bodyId !== contact.contactA.bodyId);
         }
 
         if (contact.entityB) {
-            contact.entityB.collides = contact.entityB.collides.filter(collide => collide.bodyId !== contact.contactB.bodyId);
+            contact.entityB.physic.collides = contact.entityB.physic.collides.filter(collide => collide.bodyId !== contact.contactB.bodyId);
         }
 
         if (contact.entityA && contact.entityB) {
-            contact.entityA.signals.endCollision.dispatch(contact.entityB.name, contact.entityB);
-            contact.entityB.signals.endCollision.dispatch(contact.entityA.name, contact.entityA);
+            contact.entityA.physic.signals.endCollision.dispatch(contact.entityB.name, contact.entityB);
+            contact.entityB.physic.signals.endCollision.dispatch(contact.entityA.name, contact.entityA);
         }
     }
 
     /**
      * p2 JS event when two shapes is overlaping
      * @private
-     * @param bodyA: Body A entered in collision
-     * @param bodyB: Body B entered in collision
+     * @param bodyA - Body A entered in collision
+     * @param bodyB - Body B entered in collision
      * @returns Contact resolver
      */
-    _resolveContact (bodyA, bodyB): IContact {
-        const ownerA    = bodyA.owner,
-            ownerB      = bodyB.owner;
+    _resolveContact (bodyA: Body, bodyB: Body): IContact {
+        const ownerA    = this.getPhysicOwnerByBody(bodyA),
+            ownerB      = this.getPhysicOwnerByBody(bodyB);
 
         let contactA    = null,
             contactB    = null;
