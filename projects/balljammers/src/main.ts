@@ -1,4 +1,4 @@
-import { Game } from "src/Game";
+import { Game } from "src/SideralObject";
 
 import { Arena } from "./Arena";
 

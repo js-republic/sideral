@@ -10,3 +10,16 @@ export interface IPoint {
      */
     y: number;
 }
+
+export interface ISize {
+
+    /**
+     * The width of a shape
+     */
+    width: number;
+
+    /**
+     * The height of a shape
+     */
+    height: number;
+}

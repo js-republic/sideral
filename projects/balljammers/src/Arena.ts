@@ -1,6 +1,6 @@
-import { Scene } from "src";
-import { Enum } from "src/Tool/";
-import { Particles } from "src/Entity/Particles";
+import { Scene } from "src/Module";
+import { Enum } from "src/Tool";
+import { Particles } from "src/Entity";
 
 import { Ball } from "./Ball";
 import { Goal } from "./Goal";
@@ -64,20 +64,21 @@ export class Arena extends Scene {
         const keyboard = this.context.game.keyboard;
 
         // signals
-        keyboard.signals.keyPress.bind(Enum.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.S, pressed => this.playerLeft && this.playerLeft.fall(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.SPACE, pressed => pressed && this.playerLeft && this.playerLeft.attack());
+        keyboard.signals.keyChange.bind(Enum.KEY.Q, pressed => this.playerLeft && this.playerLeft.moveLeft(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.D, pressed => this.playerLeft && this.playerLeft.moveRight(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.Z, pressed => this.playerLeft && this.playerLeft.jump(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.S, pressed => this.playerLeft && this.playerLeft.fall(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.SPACE, pressed => pressed && this.playerLeft && this.playerLeft.attack());
 
-        keyboard.signals.keyPress.bind(Enum.KEY.ARROW_LEFT, pressed => this.playerRight && this.playerRight.moveLeft(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.ARROW_RIGHT, pressed => this.playerRight && this.playerRight.moveRight(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.ARROW_UP, pressed => this.playerRight && this.playerRight.jump(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
-        keyboard.signals.keyPress.bind(Enum.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
+        keyboard.signals.keyChange.bind(Enum.KEY.ARROW_LEFT, pressed => this.playerRight && this.playerRight.moveLeft(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.ARROW_RIGHT, pressed => this.playerRight && this.playerRight.moveRight(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.ARROW_UP, pressed => this.playerRight && this.playerRight.jump(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.ARROW_DOWN, pressed => this.playerRight && this.playerRight.fall(pressed));
+        keyboard.signals.keyChange.bind(Enum.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
+
 
         this.ball           = <Ball> this.spawn(new Ball(), 100, 100, { debug: true });
-        this.goalLeft       = <Ball> this.spawn(new Goal(), 0, 448 - 130, { debug: true });
+        this.goalLeft       = <Goal> this.spawn(new Goal(), 0, 448 - 130, { debug: true });
         this.goalRight      = <Goal> this.spawn(new Goal(), this.props.width - 45, 448 - 130, { flip: true, debug: true });
         this.playerLeft     = <PlayerCat> this.spawn(new PlayerCat(), this.spawnX, 150, { playerLeft: true, debug: true });
         this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true, debug: true });

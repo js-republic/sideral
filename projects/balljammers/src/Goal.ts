@@ -7,19 +7,6 @@ import { Enum } from "src/Tool";
  */
 export class Goal extends Entity {
 
-    /* ATTRIBUTES */
-
-    /**
-     * The name  of the goal
-     */
-    name: string = "goal";
-
-    /**
-     * We set the type to static to be not affected by gravity and cannot be moved
-     */
-    type: number = Enum.TYPE.STATIC;
-
-
     /* LIFECYCLE */
 
     /**
@@ -28,11 +15,17 @@ export class Goal extends Entity {
     constructor () {
         super();
 
+        this.name = "goal";
+
         this.setProps({
+            type            : Enum.TYPE.STATIC,
             width           : 45,
             height          : 130
         });
+    }
 
+    initialize (props) {
+        super.initialize(props);
         this.addSprite("images/goal.png", this.props.width, this.props.height);
     }
 }

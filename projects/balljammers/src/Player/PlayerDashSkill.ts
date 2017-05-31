@@ -1,5 +1,5 @@
-import { Skill } from "src/Tool/Skill";
-import { Sprite } from "src/Module/";
+import { Skill } from "src/Entity";
+import { Sprite } from "src/Module";
 
 import { Player } from './Player';
 
@@ -8,8 +8,6 @@ export class PlayerDashSkill extends Skill {
 
     /* ATTRIBUTES */
 
-    movable: boolean = false;
-    duration: number = 40;
     side: number = Player.SIDE.NONE;
     owner: Player;
 
@@ -21,6 +19,9 @@ export class PlayerDashSkill extends Skill {
      */
     constructor () {
         super();
+
+        this.movable    = false;
+        this.duration   = 20;
 
         this.signals.skillStart.add(this.onSkillStart.bind(this));
         this.signals.skillUpdate.add(this.onSkillUpdate.bind(this));
@@ -48,16 +49,20 @@ export class PlayerDashSkill extends Skill {
 
     /**
      * When skill updates
-     * @returns {void}
      */
     onSkillUpdate () {
-        this.owner.props.vx         = this.owner.props.speed * (this.side === Player.SIDE.LEFT ? -5 : 5);
-        this.owner.physic.props.vy  = this.owner.props.vy = 0;
+        this.owner.props.vx = this.owner.props.speed * (this.side === Player.SIDE.LEFT ? -5 : 5);
+        this.owner.props.vy = 0;
+
+        /*
+        if (this.owner.physic) {
+            this.owner.physic.setVelocity(null, 0);
+        }
+        */
     }
 
     /**
      * When skill is complete
-     * @returns {void}
      */
     onSkillComplete () {
         super.onSkillComplete();

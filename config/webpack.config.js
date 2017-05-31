@@ -9,7 +9,7 @@ module.exports = {
     },
 
     entry: {
-        "balljammers/dist/sideral": "./projects/balljammers/src/main.ts"
+        "balljammers": "./projects/balljammers/src/main.ts"
     },
 
     resolve: {
@@ -37,7 +37,7 @@ module.exports = {
     },
 
     devServer: {
-        contentBase : path.join(__dirname, "../projects/balljammers"),
+        contentBase : path.join(__dirname, "../projects"),
         compress    : true,
         port        : 3332,
     },

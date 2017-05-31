@@ -23,18 +23,18 @@ export class Hitbox extends Entity {
      */
     hit: number = 0;
 
-    type: number = Enum.TYPE.GHOST;
-
-    group: number = Enum.GROUP.ENTITIES;
-
 
     /* LIFECYCLE */
 
     /**
-     * @initialize
+     * @constructor
      */
-    initialize (props) {
+    constructor () {
+        super();
+
         this.setProps({
+            type            : Enum.TYPE.GHOST,
+            group           : Enum.GROUP.ENTITIES,
             owner           : null,
             gravityFactor   : 0,
             multipleHit     : false,
@@ -42,9 +42,7 @@ export class Hitbox extends Entity {
             maxHit          : 1
         });
 
-        super.initialize(props);
-
-        this.physic.signals.beginCollision.add(this.onCollision.bind(this));
+        this.signals.beginCollision.add(this.onCollision.bind(this));
     }
 
 
@@ -56,6 +54,8 @@ export class Hitbox extends Entity {
      * @param other - The other entity
      */
     onCollision (otherName: string, other: Entity): void {
+        console.log("begin collision with", otherName);
+
         const result = this.onHit(otherName, other);
 
         if (result) {

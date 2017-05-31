@@ -1,9 +1,9 @@
 import { Entity } from "src/Entity";
 import { Enum } from "src/Tool";
-import { IEntityProps } from "src/Interface/IProps";
+import { IEntityProps } from "src/Interface";
 
 import { Ball } from "./../Ball";
-import { PlayerAttackSkill } from "./PlayerAttackSkill";
+import { PlayerAttackSkill } from "./PlayerAttack";
 import { PlayerDashSkill } from "./PlayerDashSkill";
 
 
@@ -114,7 +114,7 @@ export class Player extends Entity {
         super.initialize(props);
 
         // signals
-        this.physic.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
+        this.signals.beginCollision.bind("ball", this.onCollisionWithBall.bind(this));
 
         // skills
         this.skills.addSkill("attack", new PlayerAttackSkill());
@@ -122,8 +122,6 @@ export class Player extends Entity {
     }
 
     /**
-     * @update
-     * @lifecycle
      * @override
      */
     update (tick): void {
@@ -133,8 +131,6 @@ export class Player extends Entity {
     }
 
     /**
-     * @nextCycle
-     * @lifecycle
      * @override
      */
     nextCycle (): void {
@@ -237,11 +233,13 @@ export class Player extends Entity {
      */
     dash (side): void {
         if (this.dashSide === side && !this.skills.isRunning("dash") && !this.timers.isFinished("dash")) {
+            console.log("run dash");
+
             this.skills.run("dash", { side: side });
 
         } else {
             this.dashSide = side;
-            this.timers.addTimer("dash", 100, () => this.dashSide = Player.SIDE.NONE);
+            this.timers.addTimer("dash", 300, () => this.dashSide = Player.SIDE.NONE);
         }
     }
 

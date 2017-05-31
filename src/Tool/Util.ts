@@ -57,7 +57,7 @@ export class Util {
      * @returns {number} number of meters
      */
     static pixelToMeter (px: number, inversed?: boolean): number {
-        return px; // px * 0.05 * (inversed ? -1 : 1);
+        return px * 0.05 * (inversed ? -1 : 1);
     }
 
     /**
@@ -67,7 +67,7 @@ export class Util {
      * @returns {number} number of pixels
      */
     static meterToPixel (meter: number, inversed?: boolean): number {
-        return meter; // meter * 20 * (inversed ? -1 : 1);
+        return meter * 20 * (inversed ? -1 : 1);
     }
 
     /**

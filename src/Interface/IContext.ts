@@ -1,5 +1,5 @@
-import { Scene } from "./../Scene";
-import { Game } from "./../Game";
+import { Scene } from "./../Module";
+import { Game } from "./../SideralObject";
 
 
 /**

@@ -25,11 +25,6 @@ export class Particles extends Entity {
     loaded: boolean = false;
 
     /**
-     * The type of the Particles
-     */
-    type: number = Enum.TYPE.NONE;
-
-    /**
      * The PIXI Emitter
      */
     emitter: any;
@@ -44,6 +39,7 @@ export class Particles extends Entity {
         super();
 
         this.setProps({
+            type        : Enum.TYPE.NONE,
             config      : null,
             images      : [],
             duration    : 0,

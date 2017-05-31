@@ -16,26 +16,6 @@ export class Ball extends Entity {
     /* ATTRIBUTES */
 
     /**
-     * The name of the ball
-     */
-    name: string = "ball";
-
-    /**
-     * Enable friction mode
-     */
-    friction: boolean = true;
-
-    /**
-     * We set the type Weak to get angular velocity
-     */
-    type: number = Enum.TYPE.WEAK;
-
-    /**
-     * A ball has a circle shape
-     */
-    box: string = Enum.BOX.CIRCLE;
-
-    /**
      * Particles to emit when the ball has a high velocity
      */
     trail: Particles = null;
@@ -43,19 +23,28 @@ export class Ball extends Entity {
 
     /* LIFECYCLE */
 
+    constructor () {
+        super();
+
+        this.name = "ball";
+
+        this.setProps({
+            box     : Enum.BOX.CIRCLE,
+            type    : Enum.TYPE.WEAK,
+            friction: true,
+            width   : 26,
+            height  : 26
+        });
+
+        this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
+        this.signals.update.add(this.updateVelocity.bind(this));
+    }
+
     /**
      * @initialize
      */
     initialize (props) {
-        this.setProps({
-            width: 26,
-            height: 26
-        });
-
         super.initialize(props);
-
-        this.physic.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
-        this.signals.update.add(this.updateVelocity.bind(this));
 
         this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
 
@@ -88,7 +77,7 @@ export class Ball extends Entity {
      * Update the velocity of the ball
      */
     updateVelocity (): void {
-        const bodySpeed     = Math.abs(this.physic.props.vx),
+        const bodySpeed     = Math.abs(this.physic.getVelocity().x),
             trailRunning    = this.trail.isRunning();
 
         this.props.vx = this.props.vy = 0;

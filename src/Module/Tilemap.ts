@@ -1,15 +1,15 @@
 import { Body } from "p2";
 
-import { Module } from "../Module";
-import { Scene } from "./../Scene";
+import { Module, Scene } from "./../Module";
 
-import { Shape } from "./Shape";
-
-import { Enum } from "../Tool/Enum";
-
-import { Wall } from "../Module/Wall";
+import { Shape } from "./index";
+import { Enum } from "./../Tool";
+import { Wall } from "./../Entity";
 
 
+/**
+ * Class to generate tilemap
+ */
 export class Tilemap extends Module {
 
     /* ATTRIBUTES */
@@ -207,14 +207,9 @@ export class Tilemap extends Module {
      */
     _loadWalls (wallDatas: Array<any> = [], debug: boolean = false): void {
         this.walls = <Array<Wall>> wallDatas.map(wallData => {
-            const [box, x, y, width, height, directionConstraint] = wallData,
-                wall = <Wall> this.spawn(new Wall(), x, y, { box, width, height, directionConstraint });
+            const [box, x, y, width, height, directionConstraint] = wallData;
 
-            if (debug) {
-                wall.toggleDebug();
-            }
-
-            return wall;
+            return <Wall> this.spawn(new Wall(), x, y, { box, width, height, directionConstraint, debug: debug });
         });
     }
 }

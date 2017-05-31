@@ -168,6 +168,36 @@ export interface IEntityProps extends IModuleProps {
     accelY: number;
 
     /**
+     * The factor of gravity
+     */
+    gravityFactor: number;
+
+    /**
+     * Factor of bounce
+     */
+    bounce: number;
+
+    /**
+     * The box shape of the entity (see Enum.BOX)
+     */
+    box: string;
+
+    /**
+     * The group linked to the entity (see Enum.GROUP)
+     */
+    group: number;
+
+    /**
+     * The type of the entity (see Enum.TYPE)
+     */
+    type: number;
+
+    /**
+     * Set or unset the fraction mode when moving
+     */
+    friction: boolean;
+
+    /**
      * If true, the entity will enter in debug mode and display it's size on screen
      */
     debug: boolean;
@@ -176,22 +206,12 @@ export interface IEntityProps extends IModuleProps {
 /**
  * Properties of a Wall
  */
-export interface IWallProps extends IModuleProps {
-
-    /**
-     * The type of box of the wall (rectangular, circular, etc.) see Enum
-     */
-    box: string;
+export interface IWallProps extends IEntityProps {
 
     /**
      * The direction constraint of the wall
      */
     directionConstraint: string;
-
-    /**
-     * Set or remove the debug mode
-     */
-    debug: boolean;
 }
 
 /**
@@ -283,55 +303,4 @@ export interface IHitboxProps extends IEntityProps {
      * The entity owner of the hitbox
      */
     owner: Entity;
-}
-
-/**
- * Properties of Physic
- */
-export interface IPhysicProps extends IModuleProps {
-
-    /**
-     * The box type of Physic (see Enum.BOX)
-     */
-    box: string;
-
-    /**
-     * Owner of the physic
-     */
-    owner: Entity;
-
-    /**
-     * The p2.Material used in the p2.Shape
-     */
-    material: p2.Material;
-
-    /**
-     * The factor of gravity
-     */
-    gravityFactor: number;
-
-    /**
-     * Factor of bounce
-     */
-    bounce: number;
-
-    /**
-     * Velocity in x axis
-     */
-    vx: number;
-
-    /**
-     * Velocity in y axis
-     */
-    vy: number;
-
-    /**
-     * Acceleration in x axis
-     */
-    accelX: number;
-
-    /**
-     * Acceleration in y axis
-     */
-    accelY: number;
 }
