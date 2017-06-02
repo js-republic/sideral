@@ -107,8 +107,6 @@ export class Entity extends Module {
     }
 
     /**
-     * @initialize
-     * @lifecycle
      * @override
      */
     initialize (props) {
@@ -125,8 +123,6 @@ export class Entity extends Module {
     }
 
     /**
-     * @kill
-     * @lifecycle
      * @override
      */
     kill (): void {
@@ -138,8 +134,6 @@ export class Entity extends Module {
     }
 
     /**
-     * @nextCycle
-     * @lifecycle
      * @override
      */
     nextCycle (): void {

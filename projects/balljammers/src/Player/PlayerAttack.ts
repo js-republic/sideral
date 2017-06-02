@@ -1,4 +1,4 @@
-import { Hitbox, Skill } from "src/Entity";
+import { Hitbox, Skill, Entity } from "src/Entity";
 import { Enum } from "src/Tool";
 
 import { Player } from "./Player";
@@ -25,10 +25,8 @@ export class PlayerAttackHitbox extends Hitbox {
      * @event hit
      * @override
      */
-    onHit (name: string, other) {
-        console.log(name);
-
-        return name === "ball" ? this.onHitWithBall(other) : false;
+    onHit (name: string, other: Entity) {
+        return name === "ball" ? this.onHitWithBall(<Ball> other) : false;
     }
 
     /**

@@ -59,7 +59,7 @@ export class Arena extends Scene {
     initialize (props: any) {
         super.initialize(props);
         this.setTilemap(tilemapGrass);
-        this.enablePhysics(2000);
+        this.enablePhysics(100);
 
         const keyboard = this.context.game.keyboard;
 

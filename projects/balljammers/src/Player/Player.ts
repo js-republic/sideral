@@ -233,8 +233,6 @@ export class Player extends Entity {
      */
     dash (side): void {
         if (this.dashSide === side && !this.skills.isRunning("dash") && !this.timers.isFinished("dash")) {
-            console.log("run dash");
-
             this.skills.run("dash", { side: side });
 
         } else {

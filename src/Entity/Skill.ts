@@ -51,7 +51,7 @@ export class Skill extends SideralObject {
     /**
      * Type of duration
      */
-    durationType: string = Enum.DURATION_TYPE.FRAME;
+    durationType: string = Enum.DURATION_TYPE.MS;
 
     /**
      * Duration of the preparation
@@ -61,7 +61,7 @@ export class Skill extends SideralObject {
     /**
      * Type of duration for the preparation
      */
-    preparationType: string = Enum.DURATION_TYPE.FRAME;
+    preparationType: string = Enum.DURATION_TYPE.MS;
 
     /**
      * Duration of the reload
@@ -70,9 +70,8 @@ export class Skill extends SideralObject {
 
     /**
      * Type of duration for the reload
-     * @type {string}
      */
-    reloadType: string = Enum.DURATION_TYPE.FRAME;
+    reloadType: string = Enum.DURATION_TYPE.MS;
 
     /**
      * If true, the skill cannot be stopable

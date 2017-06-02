@@ -54,8 +54,6 @@ export class Hitbox extends Entity {
      * @param other - The other entity
      */
     onCollision (otherName: string, other: Entity): void {
-        console.log("begin collision with", otherName);
-
         const result = this.onHit(otherName, other);
 
         if (result) {

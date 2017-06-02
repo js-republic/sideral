@@ -54,11 +54,6 @@ export class Scene extends Module {
     shakeAmplitude: number      = 0;
 
     /**
-     * Know if the Scene is launching the p2.World step
-     */
-    worldInStep: boolean = false;
-
-    /**
      * All physic in queue
      */
     _physicQueue: Array<Physic> = [];
@@ -111,12 +106,9 @@ export class Scene extends Module {
             const fixedStep = (1 / 60) * this.props.motionFactor,
                 maxStep     = 3;
 
-            this.worldInStep = true;
             this.world.step(fixedStep, Util.limit(tick, 0, maxStep * fixedStep), maxStep);
-            this.worldInStep = false;
 
-            this._physicQueue.forEach(physic => this.physics.find(x => x.id === physic.id) ? this.removePhysic(physic) :this.addPhysic(physic));
-            this._physicQueue = [];
+            this._physicQueue.forEach(physic => this.physics.find(x => x.id === physic.id) && this.addPhysic(physic));
         }
 
         if (this.container && this.shakeAmplitude) {
@@ -182,12 +174,6 @@ export class Scene extends Module {
      * @param physic - Physic object to add
      */
     addPhysic (physic: Physic): void {
-        if (this.worldInStep) {
-            this._physicQueue.push(physic);
-
-            return null;
-        }
-
         if (this.world) {
             this.world.addBody(physic.body);
             this.physics.push(physic);
@@ -199,12 +185,6 @@ export class Scene extends Module {
      * @param physic - Physic object to remove
      */
     removePhysic (physic: Physic): void {
-        if (this.worldInStep) {
-            this._physicQueue.push(physic);
-
-            return null;
-        }
-
         if (this.world) {
             this.world.removeBody(physic.body);
         }
@@ -421,8 +401,13 @@ export class Scene extends Module {
      * @private
      */
     _onEndContact ({ bodyA, bodyB }): void {
-        const contact = this._resolveContact(bodyA, bodyB),
-            { entityA, entityB } = contact;
+        const contact = this._resolveContact(bodyA, bodyB);
+
+        if (!contact) {
+            return null;
+        }
+
+        const { entityA, entityB } = contact;
 
         if (entityA) {
             entityA.collides = entityA.collides.filter(collide => collide.bodyId !== contact.contactA.bodyId);

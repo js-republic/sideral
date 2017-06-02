@@ -65,6 +65,13 @@ export class Module extends SideralObject {
      * @initialize
      */
     initialize (props) {
+        // We call the updateFollow to update the position of the module before create the Physic
+        if (props.follow) {
+            this.updateFollow(null, props.follow);
+            props.x = this.props.x;
+            props.y = this.props.y;
+        }
+
         super.initialize(props);
 
         this.updateContainerPosition();
@@ -249,9 +256,11 @@ export class Module extends SideralObject {
     /**
      * Update the position of this entity if it follows a target
      */
-    updateFollow (): void {
-        if (this.props.follow) {
-            const { offsetX, offsetY, offsetFlipX, centered, target } = this.props.follow;
+    updateFollow (tick: number, follow?: IFollow): void {
+        follow = follow || this.props.follow;
+
+        if (follow) {
+            const { offsetX, offsetY, offsetFlipX, centered, target } = follow;
 
             this.props.x = target.props.x + (target.props.flip && offsetFlipX !== null ? offsetFlipX : offsetX) + (centered ? (target.props.width / 2) - (this.props.width / 2) : 0);
             this.props.y = target.props.y + offsetY + (centered ? (target.props.height / 2) - (this.props.height / 2) : 0);

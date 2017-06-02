@@ -21,7 +21,7 @@ export class PlayerDashSkill extends Skill {
         super();
 
         this.movable    = false;
-        this.duration   = 20;
+        this.duration   = 40;
 
         this.signals.skillStart.add(this.onSkillStart.bind(this));
         this.signals.skillUpdate.add(this.onSkillUpdate.bind(this));
