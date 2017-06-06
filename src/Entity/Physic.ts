@@ -41,6 +41,18 @@ export class Physic {
      */
     shape: Shape;
 
+    /**
+     * Offset of the body in x axis relative to the Entity (because the body position is the center of the entity)
+     * @readonly
+     */
+    offsetX: number;
+
+    /**
+     * Offset of the body in y axis relative to the Entity (because the body position is the center of the entity)
+     * @readonly
+     */
+    offsetY: number;
+
 
     /* LIFECYCLE */
 
@@ -56,13 +68,16 @@ export class Physic {
      * @param props - Optional properties to pass to the body
      */
     constructor (owner: any, x: number, y: number, width: number, height: number, type: number, box: string, props: any = {}) {
-        this.owner  = owner;
-        this.shape  = this.constructShape(box, width, height, props.group || Enum.GROUP.ALL);
-        this.body   = this.constructBody(type, x + (width / 2), y + (height / 2), props.gravityFactor || 1);
-        this.id     = this.body.id;
+        this.owner      = owner;
+        this.offsetX    = width / 2;
+        this.offsetY    = height / 2;
+        this.shape      = this.constructShape(box, width, height, props.group || Enum.GROUP.ALL);
+        this.body       = this.constructBody(type, x + (width / 2), y + (height / 2), props.gravityFactor || 1);
+        this.id         = this.body.id;
         this.shape.material = props.material || this.owner.context.scene.getDefaultMaterial();
 
         this.body.addShape(this.shape);
+        this.setBounciness(this.owner.props.bounce);
     }
 
 
@@ -89,6 +104,16 @@ export class Physic {
     }
 
     /**
+     * Set a new factor of bounciness
+     * @param bounce - The next factor of bounciness
+     */
+    setBounciness (bounce: number): void {
+        if (this.owner) {
+            this.owner.context.scene.setPhysicBouncing(this, bounce);
+        }
+    }
+
+    /**
      * Get the real size of the body
      */
     getSize (): ISize {
@@ -111,8 +136,8 @@ export class Physic {
         const size = this.getSize();
 
         return {
-            x: Util.meterToPixel(this.body.interpolatedPosition[0] - (size.width / 2)),
-            y: Util.meterToPixel(this.body.interpolatedPosition[1] - (size.height / 2))
+            x: Util.meterToPixel(this.body.interpolatedPosition[0]) - this.offsetX,
+            y: Util.meterToPixel(this.body.interpolatedPosition[1]) - this.offsetY
         };
     }
 
@@ -169,11 +194,11 @@ export class Physic {
      */
     setPosition (x?: number, y?: number): void {
         if (x || x === 0) {
-            this.body.position[0] = Util.pixelToMeter(x);
+            this.body.position[0] = Util.pixelToMeter(x + this.offsetX);
         }
 
         if (y || y === 0) {
-            this.body.position[1] = Util.pixelToMeter(y);
+            this.body.position[1] = Util.pixelToMeter(y + this.offsetY);
         }
     }
 
@@ -212,7 +237,7 @@ export class Physic {
      * @param angle - The angle (in Degree)
      */
     setAngle (angle): void {
-        this.body.angle = Util.toRadians(angle);
+        this.body.interpolatedAngle = Util.toRadians(angle);
     }
 
     /**
@@ -309,14 +334,11 @@ export class Physic {
             position        : [Util.pixelToMeter(x), Util.pixelToMeter(y)],
             mass            : type < 0 ? 0 : type,
             gravityScale    : gravityFactor,
-            fixedRotation   : type !== Enum.TYPE.WEAK,
-            angularVelocity : type === Enum.TYPE.WEAK ? 1 : 0
+            sensor          : type === Enum.TYPE.GHOST,
+            fixedRotation   : type !== Enum.TYPE.WEAK
         };
 
         const body          = new Body(settings);
-
-        body.damping        = 0;
-        body.angularDamping = 0;
 
         return body;
     }

@@ -3,6 +3,7 @@ import { Particles } from "src/Entity/Particles";
 import { Enum } from "src/Tool";
 
 import { Goal } from "./Goal";
+import { Player } from "./Player/Player";
 import { Arena } from "./Arena";
 
 import * as trailConfig from "./Particles/trail.json";
@@ -20,6 +21,8 @@ export class Ball extends Entity {
      */
     trail: Particles = null;
 
+    lastPlayer: Player;
+
 
     /* LIFECYCLE */
 
@@ -31,12 +34,14 @@ export class Ball extends Entity {
         this.setProps({
             box     : Enum.BOX.CIRCLE,
             type    : Enum.TYPE.WEAK,
-            friction: true,
+            friction: 0.5,
+            bounce  : 0.52,
             width   : 26,
             height  : 26
         });
 
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
+        this.signals.beginCollision.bind("player", this.onCollisionWithPlayer.bind(this));
         this.signals.update.add(this.updateVelocity.bind(this));
     }
 
@@ -46,7 +51,7 @@ export class Ball extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        this.addSprite("images/ball.png", 32, 32, { x: -3, y: -2 });
+        this.addSprite("images/ball.png", 32, 32, { x: -3, y: -3 });
 
         this.trail = <Particles> this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),
@@ -101,5 +106,13 @@ export class Ball extends Entity {
             this.pause(true);
             (<Arena> this.context.scene).goal(goal);
         }
+    }
+
+    /**
+     * When entering in collision with a player entity
+     * @param player - Player which entered in colision with this ball
+     */
+    onCollisionWithPlayer (player: Player) {
+        this.lastPlayer = player;
     }
 }

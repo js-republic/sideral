@@ -122,11 +122,13 @@ export class SideralObject {
         this.children.forEach(child => child.nextCycle());
 
         Object.keys(this.props).forEach(key => {
-            if (this.props[key] !== this.last[key]) {
-                propChanged.push(key);
-            }
+            const prop = this.props[key];
 
-            this.last[key] = this.props[key];
+            if (prop !== this.last[key]) {
+                propChanged.push(key);
+                this.last[key] = this.props[key];
+
+            }
         });
 
         propChanged.forEach(prop => this.signals.propChange.dispatch(prop, this.props[prop]));

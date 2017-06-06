@@ -139,7 +139,6 @@ export class Skill extends SideralObject {
         delete hitboxProps.y;
 
         hitboxProps.owner   = this.owner;
-        hitboxProps.debug   = true;
 
         return <Hitbox> this.owner.context.scene.spawn(hitbox, x, y, Object.assign({}, hitboxProps));
     }
@@ -151,10 +150,10 @@ export class Skill extends SideralObject {
     run (params = {}): void {
         const startSkill = () => {
             Object.assign(this, params);
-            this.signals.preparationComplete.dispatch(this.name);
+            this.signals.preparationComplete.dispatch();
 
-            this.timers.addTimer("skill", this.getTimerDuration(this.duration, this.durationType), this.onSkillComplete.bind(this), {
-                init: (value, ratio, duration) => this.signals.skillStart.dispatch(this.name, value, ratio, duration),
+            this.timers.addTimer("skill", this.getTimerDuration(this.duration, this.durationType), this._onSkillComplete.bind(this), {
+                init: this.signals.skillStart.dispatch.bind(this),
                 update: this.updateSkill.bind(this)
             });
 
@@ -178,8 +177,8 @@ export class Skill extends SideralObject {
 
         if (this.preparation) {
             this.timers.addTimer("preparation", this.getTimerDuration(this.preparation, this.preparationType), startSkill.bind(this), {
-                init: (value, ratio, duration) => this.signals.preparationStart.dispatch(this.name, value, ratio, duration),
-                update: (value, ratio, duration) => this.signals.preparationUpdate.dispatch(this.name, value, ratio, duration)
+                init: this.signals.preparationStart.dispatch.bind(this),
+                update: this.signals.preparationUpdate.dispatch.bind(this)
             });
 
        } else {
@@ -223,31 +222,33 @@ export class Skill extends SideralObject {
 
     /**
      * Skill update
+     * @param tick - The current tick of the timer
      * @param value - The current value of the timer
      * @param ratio - The ratio of the Timer (from 0 to 1)
      * @param duration - The total duration of the timer
      */
-    updateSkill (value: number, ratio: number, duration: number): void {
+    updateSkill (tick: number, value: number, ratio: number, duration: number): void {
         if (!this.movable) {
             this.owner.props.vy = this.owner.props.accelY = 0;
             this.owner.props.vx = this.owner.props.accelX = 0;
         }
 
-        this.signals.skillUpdate.dispatch(this.name, value, ratio, duration);
+        this.signals.skillUpdate.dispatch(tick, value, ratio, duration);
     }
 
     /**
      * When the skill is complete
+     * @private
      */
-    onSkillComplete (): void {
+    _onSkillComplete (): void {
         this.signals.skillComplete.dispatch(this);
 
         if (this.reload) {
             this.timers.addTimer("reload", this.getTimerDuration(this.reload, this.reloadType), () => {
                 this.ready = true;
-                this.signals.reloadComplete.dispatch(this.name);
+                this.signals.reloadComplete.dispatch;
             }, {
-                update: (value, ratio, duration) => this.signals.reloadUpdate.dispatch(this.name, value, ratio, duration)
+                update: this.signals.reloadUpdate.dispatch.bind(this)
             });
         }
 

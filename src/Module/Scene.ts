@@ -142,7 +142,7 @@ export class Scene extends Module {
 
         this.setProps({ gravityFactor: gravity });
 
-        this.world.setGlobalStiffness(1e8);
+        this.world.setGlobalStiffness(Number.MAX_VALUE);
         this.world.on("beginContact", this._onBeginContact.bind(this), false);
         this.world.on("endContact", this._onEndContact.bind(this), false);
         this.world.on("preSolve", this._onPreSolve.bind(this), false);
@@ -223,14 +223,13 @@ export class Scene extends Module {
      * Set a new bouncing factor for the entity
      * @param physic - The physic to change the bounce factor
      * @param bounce - Next value of bouncing
-     * @param lastBounce - Last value of bouncing
      * @returns Bouncing factor
      */
-    setPhysicBouncing (physic: Physic, bounce: number, lastBounce: number): number {
-        if (lastBounce) {
-            const id = physic.shape.material.id;
+    setPhysicBouncing (physic: Physic, bounce: number): number {
+        if (physic.shape.material.id !== this.getDefaultMaterial().id) {
+            const materialId = physic.shape.material.id;
 
-            this.world.contactMaterials.filter(x => x.materialA.id === id || x.materialB.id === id)
+            this.world.contactMaterials.filter(x => x.materialA.id === materialId || x.materialB.id === materialId)
                 .forEach(contactMaterial => this.world.removeContactMaterial(contactMaterial));
         }
 
@@ -238,7 +237,11 @@ export class Scene extends Module {
             physic.shape.material = this.getDefaultMaterial();
 
         } else {
-            const materialOptions   = { restitution : bounce } as p2.ContactMaterialOptions,
+            const materialOptions   = {
+                    restitution : bounce,
+                    stiffness   : Number.MAX_VALUE,
+                    friction    : this.world.defaultContactMaterial.friction
+                } as p2.ContactMaterialOptions,
                 material            = physic.shape.material = new Material(Scene.generateId());
 
             this.materials.push(material);

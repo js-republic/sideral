@@ -78,11 +78,6 @@ export interface IGameProps extends IProps {
      * Background color of the game
      */
     background: string;
-
-    /**
-     * the HTMLElement which will contain the game
-     */
-    container: HTMLElement;
 }
 
 /**
@@ -303,4 +298,21 @@ export interface IHitboxProps extends IEntityProps {
      * The entity owner of the hitbox
      */
     owner: Entity;
+}
+
+
+/**
+ * Properties of a Text
+ */
+export interface ITextProps extends IModuleProps {
+
+    /**
+     * The text to be drawn
+     */
+    text: string;
+
+    /**
+     * Style properties
+     */
+    defaultStyle: any;
 }

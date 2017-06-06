@@ -98,7 +98,7 @@ export class Timer extends SideralObject {
         const finished  = this.value <= 0 || (Math.abs(this.value) >= Math.abs(this.props.duration));
 
         if (this.props.update) {
-            this.props.update(this.props.duration - this.value, this.getValueRationed(true), this.props.duration);
+            this.props.update(tick, this.props.duration - this.value, this.getValueRationed(true), this.props.duration);
         }
 
         if (finished && this.props.recurrence) {

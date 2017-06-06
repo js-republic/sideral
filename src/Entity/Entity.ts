@@ -104,6 +104,8 @@ export class Entity extends Module {
         this.signals.propChange.bind(["width", "height"], this.onSizeChange.bind(this));
         this.signals.propChange.bind(["x", "y"], this.onPositionChange.bind(this));
         this.signals.propChange.bind("debug", this.onDebugChange.bind(this));
+        this.signals.propChange.bind("bounce", () => this.physic && this.physic.setBounciness(this.props.bounce));
+        this.signals.propChange.bind("angle", () => this.physic && this.physic.setAngle(this.props.angle));
     }
 
     /**
@@ -120,6 +122,8 @@ export class Entity extends Module {
 
             this.physic.enable();
         }
+
+        this.onDebugChange();
     }
 
     /**
@@ -145,17 +149,19 @@ export class Entity extends Module {
 
         if (this.physic) {
             const vel   = this.physic.getVelocity(),
-                accel   = this.physic.getAcceleration(),
                 pos     = this.physic.getPosition(),
                 angle   = this.physic.getAngle();
 
-            this.physic.setAcceleration(this.props.accelX, this.props.accelY);
+            // this.physic.setAcceleration(this.props.accelX, this.props.accelY);
             this.physic.setVelocity((this.props.vx || (!this.props.vx && !this.props.friction)) && this.props.vx, this.props.vy || null);
 
             this.moving = Boolean(vel.x) || !this.standing;
-            this.props.x        = pos.x;
-            this.props.y        = pos.y;
-            this.props.angle    = angle;
+            this.setProps({
+                x       : pos.x,
+                y       : pos.y,
+                angle   : angle
+            });
+            this.updateContainerPosition();
         }
 
         this.standing = Boolean(this.collides.find(collide => collide.isAbove));
@@ -163,20 +169,6 @@ export class Entity extends Module {
 
 
     /* METHODS */
-
-    /**
-     * @override
-     */
-    position (x: number, y: number): void {
-        super.position(x, y);
-
-        /*
-        if (this.physic) {
-            this.physic.props.x = this.props.x;
-            this.physic.props.y = this.props.y;
-        }
-        */
-    }
 
     /**
      * Will pause the entity (will not be affected about gravity; collisions and velocity)
@@ -231,6 +223,7 @@ export class Entity extends Module {
         if (this.physic) {
             this.physic.setPosition(this.props.x, this.props.y);
             this.physic.setVelocity(this._beforePauseState.bodyVx, this._beforePauseState.bodyVy);
+            this.physic.setGravityFactor(this._beforePauseState.gf);
             this.physic.enable();
         }
 
@@ -304,12 +297,9 @@ export class Entity extends Module {
      * @override
      */
     onPositionChange (): void {
-        /*
         if (this.physic) {
-            this.physic.props.x = this.props.x;
-            this.physic.props.y = this.props.y;
+            this.physic.setPosition(this.props.x, this.props.y);
         }
-        */
     }
 
     /**

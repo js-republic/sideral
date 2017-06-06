@@ -4,7 +4,8 @@ import { IEntityProps } from "src/Interface";
 
 import { Ball } from "./../Ball";
 import { PlayerAttackSkill } from "./PlayerAttack";
-import { PlayerDashSkill } from "./PlayerDashSkill";
+import { PlayerDashSkill } from "./PlayerDash";
+import { PlayerDoubleJumpSkill } from "./PlayerDoubleJump";
 
 
 export interface IPlayerProps extends IEntityProps {
@@ -28,6 +29,11 @@ export interface IPlayerProps extends IEntityProps {
      * The power of jump
      */
     jump: number;
+
+    /**
+     * The score of the player
+     */
+    score: number;
 }
 
 
@@ -104,11 +110,14 @@ export class Player extends Entity {
      * @initialize
      */
     initialize (props) {
+        this.name = "player";
+
         this.setProps({
             speed       : 280,
             powerX      : 150,
             powerY      : 790,
-            jump        : 600
+            jump        : 600,
+            score       : 0
         });
 
         super.initialize(props);
@@ -119,6 +128,7 @@ export class Player extends Entity {
         // skills
         this.skills.addSkill("attack", new PlayerAttackSkill());
         this.skills.addSkill("dash", new PlayerDashSkill());
+        this.skills.addSkill("doubleJump", new PlayerDoubleJumpSkill());
     }
 
     /**
@@ -194,16 +204,17 @@ export class Player extends Entity {
             if (this.standing) {
                 this.doubleJump = true;
                 canJump         = true;
+                this.props.vy   = -Math.abs(this.props.jump);
 
             } else if (this.doubleJump) {
                 this.doubleJump = false;
                 canJump         = true;
+                this.skills.run("doubleJump");
             }
 
             if (canJump) {
                 this.dashSide       = null;
                 this.fallPressed    = false;
-                this.props.vy       = -Math.abs(this.props.jump);
             }
 
         }

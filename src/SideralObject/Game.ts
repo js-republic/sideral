@@ -25,9 +25,10 @@ export class Game extends SideralObject {
     props: IGameProps = {
         width       : 10,
         height      : 10,
-        background  : "#DDDDDD",
-        container   : document.getElementById("sideral")
+        background  : "#DDDDDD"
     };
+
+    container: HTMLElement = document.getElementById("sideral");
 
     /**
      * The current frame per second of the game
@@ -77,7 +78,6 @@ export class Game extends SideralObject {
         this.renderer       = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
         this.context.game   = this;
 
-        this.signals.propChange.bind("container", this._attachGame.bind(this));
         this.signals.propChange.bind(["width", "height"], this._resizeGame.bind(this));
         this.signals.propChange.bind("background", this._backgroundChange.bind(this));
     }
@@ -123,16 +123,15 @@ export class Game extends SideralObject {
     start (width: number, height: number, container?: HTMLElement): this {
         this.setProps({
             width       : width || this.props.width,
-            height      : height || this.props.height,
-            container   : container || this.props.container
+            height      : height || this.props.height
         });
 
-        if (!this.props.width || !this.props.height || !this.props.container) {
+        if (!this.props.width || !this.props.height) {
             throw new Error("Engine.start: You must set 'width', 'height' and a 'container' container");
         }
 
         this.stopped = false;
-        this._attachGame();
+        this.attach(container);
         this._resizeGame();
         this.update();
 
@@ -182,24 +181,24 @@ export class Game extends SideralObject {
         return <Array<Scene>> this.children.filter(child => child instanceof Scene);
     }
 
-
-    /* PRIVATE */
-
     /**
-     * Attach the game to the container in props
-     * @private
+     * Attach the game to a dom
      */
-    _attachGame (): void {
-        if (this.last.container) {
+    attach (container?: HTMLElement): void {
+        container = container || this.container;
+
+        if (this.container) {
             try {
-                this.last.container.removeChild(this.renderer.view);
+                this.container.removeChild(this.renderer.view);
             } catch (e) { }
         }
 
-        if (this.props.container) {
-            this.props.container.appendChild(this.renderer.view);
-        }
+        this.container = container;
+        this.container.appendChild(this.renderer.view);
     }
+
+
+    /* PRIVATE */
 
     /**
      * When width or height attributes change

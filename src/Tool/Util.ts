@@ -47,6 +47,14 @@ export class Util {
      * @returns {number} number of degrees
      */
     static toDegree (radians: number): number {
+        /*
+        radians = radians % (2 * Math.PI);
+
+        if (radians < 0) {
+            radians += 2 * Math.PI;
+        }
+        */
+
         return radians * 180 / Math.PI;
     }
 

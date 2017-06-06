@@ -1,4 +1,4 @@
-import { Scene } from "src/Module";
+import { Scene, Text } from "src/Module";
 import { Enum } from "src/Tool";
 import { Particles } from "src/Entity";
 
@@ -44,6 +44,11 @@ export class Arena extends Scene {
     playerRight: PlayerCat;
 
     /**
+     * The score text
+     */
+    score: Text;
+
+    /**
      * The particles to be emitted when there is a new goal
      */
     flameParticles: Particles;
@@ -77,11 +82,19 @@ export class Arena extends Scene {
         keyboard.signals.keyChange.bind(Enum.KEY.ENTER, pressed => pressed && this.playerRight && this.playerRight.attack());
 
 
-        this.ball           = <Ball> this.spawn(new Ball(), 100, 100, { debug: true });
-        this.goalLeft       = <Goal> this.spawn(new Goal(), 0, 448 - 130, { debug: true });
-        this.goalRight      = <Goal> this.spawn(new Goal(), this.props.width - 45, 448 - 130, { flip: true, debug: true });
-        this.playerLeft     = <PlayerCat> this.spawn(new PlayerCat(), this.spawnX, 150, { playerLeft: true, debug: true });
-        this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true, debug: true });
+        this.ball           = <Ball> this.spawn(new Ball(), 100, 100);
+        this.goalLeft       = <Goal> this.spawn(new Goal(), 0, 448 - 130);
+        this.goalRight      = <Goal> this.spawn(new Goal(), this.props.width - 45, 448 - 130, { flip: true });
+        this.playerLeft     = <PlayerCat> this.spawn(new PlayerCat(), this.spawnX, 150, { playerLeft: true });
+        this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true });
+        this.score          = <Text> this.spawn(new Text(), this.props.width / 2, 10, {
+            text: "0 - 0",
+            defaultStyle: {
+                fill: "white",
+                stroke: "black",
+                strokeThickness: 4
+            }
+        });
 
         this.flameParticles = <Particles>this.add(new Particles(), {
             images  : ["images/particles/bolt.png", "images/particles/fire.png"],
@@ -106,7 +119,12 @@ export class Arena extends Scene {
         this.flameParticles.run();
         this.props.motionFactor = 0.25;
 
-        this.timers.addTimer("goal", 1000, () => {
+        const playerWon = goalSide.props.flip ? this.playerLeft : this.playerRight;
+
+        playerWon.props.score++;
+        this.score.props.text = `${this.playerLeft.props.score} - ${this.playerRight.props.score}`;
+
+        this.timers.addTimer("goal", 500, () => {
             this.props.motionFactor = 1;
 
             this.ball.respawn();

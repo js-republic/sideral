@@ -73,7 +73,7 @@ export class Particles extends Entity {
         if (this.emitter.emit && this.loaded) {
             this.emitter.resetPositionTracking();
             this.emitter.updateSpawnPos(this.props.x, this.props.y);
-            this.emitter.update((this.context.game.currentUpdate - this.context.game.lastUpdate) * 0.001);
+            this.emitter.update(tick);
         }
     }
 
