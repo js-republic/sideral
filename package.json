@@ -15,7 +15,7 @@
     "test-dev": "node_modules/.bin/karma start config/karma.conf.dev.js",
     "eslint": "./node_modules/.bin/eslint src",
     "generate-doc": "./node_modules/.bin/jsdoc -c ./config/jsdoc.json",
-    "doc": "typedoc --out ./ts-doc ./src --module amd --target ES6 --mode file",
+    "doc": "typedoc --out ./ts-doc src/ --module amd --target ES6 --mode file",
     "doc:serve": "simplehttpserver ./ts-doc"
   },
   "repository": {
