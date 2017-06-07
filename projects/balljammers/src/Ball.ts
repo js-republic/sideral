@@ -1,6 +1,6 @@
 import { Entity } from "src/Entity";
 import { Particles } from "src/Entity/Particles";
-import { Enum } from "src/Tool";
+import { Enum, Assets } from "src/Tool";
 
 import { Goal } from "./Goal";
 import { Player } from "./Player/Player";
@@ -8,6 +8,9 @@ import { Arena } from "./Arena";
 
 import * as trailConfig from "./Particles/trail.json";
 
+
+Assets.preload("images/ball.png")
+    .preload("images/particles/bolt.png");
 
 /**
  * The ball class

@@ -1,5 +1,5 @@
 import { Scene, Text } from "src/Module";
-import { Enum } from "src/Tool";
+import { Enum, Assets } from "src/Tool";
 import { Particles } from "src/Entity";
 
 import { Ball } from "./Ball";
@@ -9,6 +9,10 @@ import { PlayerCat } from "./Player/Cat/Cat";
 
 import * as tilemapGrass from "../tilemaps/grass.json";
 import * as fireConfig from "./Particles/flame.json";
+
+
+// Preload
+Assets.preloadTilemap(tilemapGrass);
 
 
 /**

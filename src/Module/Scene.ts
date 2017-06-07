@@ -1,6 +1,6 @@
 import { Material, World, ContactMaterial, Body } from "p2";
 
-import { Enum, Util } from "./../Tool";
+import { Enum, Util, Assets } from "./../Tool";
 import { Entity, Wall, Physic } from "./../Entity";
 import { Module, Tilemap } from "./index";
 import { ISceneProps, IContact } from "./../Interface";
@@ -128,9 +128,13 @@ export class Scene extends Module {
 
         gravity         = typeof gravity === "undefined" ? this.props.gravity : gravity;
         this.world      = new World({ gravity: [0, gravity] });
-        this.materials  = [this.world.defaultMaterial];
+        this.materials  = [this.getDefaultMaterial()];
 
         this.getAllEntities().filter(entity => entity.physic).forEach(entity => {
+            if (!entity.physic.shape.material) {
+                entity.physic.shape.material = this.getDefaultMaterial();
+            }
+
             const materialId = entity.physic.shape.material.id;
 
             if (!this.materials.find(material => material.id === materialId)) {
@@ -280,19 +284,15 @@ export class Scene extends Module {
      * @returns Array of all entities (even their children)
      */
     getAllEntities (): Array<Entity> {
-        const findChildrenEntities = entity => {
-            let childrenEntities = [entity];
+        const findChildrenEntities = child => {
+            let childrenEntities = child instanceof Entity ? [child] : [];
 
-            entity.children.forEach(child => {
-                if (child instanceof Entity) {
-                    childrenEntities = childrenEntities.concat(findChildrenEntities(child));
-                }
-            });
+            child.children.forEach(subchild => childrenEntities = childrenEntities.concat(findChildrenEntities(subchild)));
 
             return childrenEntities;
         };
 
-        return this.getEntities().reduce((acc, entity) => acc.concat(findChildrenEntities(entity)), []);
+        return this.children.reduce((acc, entity) => acc.concat(findChildrenEntities(entity)), []);
     }
 
     /**

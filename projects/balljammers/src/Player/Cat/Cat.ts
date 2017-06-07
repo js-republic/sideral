@@ -1,4 +1,9 @@
 import { Player } from "../Player";
+import { Assets } from "src/Tool";
+
+
+Assets.preload("images/characters/redcat.png")
+    .preload("images/characters/cat.png");
 
 
 export class PlayerCat extends Player {

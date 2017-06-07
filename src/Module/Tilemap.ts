@@ -3,7 +3,7 @@ import { Body } from "p2";
 import { Module, Scene } from "./../Module";
 
 import { Shape } from "./index";
-import { Enum } from "./../Tool";
+import { Enum, Assets } from "./../Tool";
 import { Wall } from "./../Entity";
 
 
@@ -76,21 +76,17 @@ export class Tilemap extends Module {
         this.props.width *= this.tilewidth;
         this.props.height = data.grid[0].length * this.tileheight;
 
-        // Load all assets
         if (data.backgrounds) {
-            data.backgrounds.forEach((background, index) => loader.add(`background${index}`, background.path));
+            Assets.getTexture(data.backgrounds.map(background => background.path), textures => this._loadBackgrounds(data.backgrounds, textures));
         }
+
+        Assets.getImage(data.path, image => this._loadGrids(data.grid, image));
 
         if (data.decorators) {
-            Object.keys(data.decorators.data).forEach(key => loader.add(key, data.decorators.data[key]));
+            Assets.getTexture(Object.keys(data.decorators.data).map(key => data.decorators.data[key]), textures => this._loadDecorators(data.decorators, textures));
         }
 
-        loader.load((currentLoader, resources) => {
-            this._loadBackgrounds(data.backgrounds, resources);
-            this._loadGrids(data.grid, data.path);
-            this._loadDecorators(data.decorators, resources);
-            this._loadWalls(data.walls, data.debug);
-        });
+        this._loadWalls(data.walls, data.debug);
     }
 
     /**
@@ -114,12 +110,11 @@ export class Tilemap extends Module {
      * Load all grids provided by the data
      * @private
      * @param grid - Grid provided by the data
-     * @param path - Path to the image
+     * @param image - Image data
      */
-    _loadGrids (grid: any, path: string): void {
+    _loadGrids (grid: any, image: HTMLImageElement): void {
         const canvas    = document.createElement("canvas"),
-            ctx         = canvas.getContext("2d"),
-            image       = new Image();
+            ctx         = canvas.getContext("2d");
 
         const { width, height } = this.props,
             { tilewidth, tileheight} = this;
@@ -127,38 +122,33 @@ export class Tilemap extends Module {
         canvas.width    = width;
         canvas.height   = height;
 
-        // Render the tilemap into the canvas
-        image.onload = () => {
-            grid.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
-                ctx.drawImage(image,
-                    Math.floor(tile * tilewidth) % image.width,
-                    Math.floor(tile * tilewidth / image.width) * tileheight,
-                    tilewidth, tileheight,
-                    x * tilewidth, y * tileheight,
-                    tilewidth, tileheight
-                );
-            })));
+        grid.forEach(layer => layer.forEach((line, y) => line.forEach((tile, x) => {
+            ctx.drawImage(image,
+                Math.floor(tile * tilewidth) % image.width,
+                Math.floor(tile * tilewidth / image.width) * tileheight,
+                tilewidth, tileheight,
+                x * tilewidth, y * tileheight,
+                tilewidth, tileheight
+            );
+        })));
 
-            this.gridContainer = PIXI.Sprite.from(canvas);
-            this.container.addChildAt(this.gridContainer, 1);
-        };
-
-        image.src = path;
+        this.gridContainer = PIXI.Sprite.from(canvas);
+        this.container.addChildAt(this.gridContainer, 1);
     }
 
     /**
      * Load all backgrounds provided by the tilemap
      * @param backgrounds - Array of backgrounds data
-     * @param resources - PIXI Loader resources
+     * @param textures - PIXI Textures
      * @private
      */
-    _loadBackgrounds (backgrounds: Array<any>, resources: Array<PIXI.Texture>): void {
+    _loadBackgrounds (backgrounds: Array<any>, textures: Array<PIXI.Texture>): void {
         if (!backgrounds) {
             return null;
         }
 
         this.backgroundContainers = backgrounds.reverse().map((background, index) => {
-            const backgroundContainer = new PIXI.Sprite(resources[`background${index}`].texture);
+            const backgroundContainer = new PIXI.Sprite(textures.find(texture => texture.baseTexture.imageUrl === background.path));
 
             this.container.addChildAt(backgroundContainer, 0);
 
@@ -179,17 +169,16 @@ export class Tilemap extends Module {
     /**
      * Load all decorators provided by the tilemap
      * @param decorators - array of decorators data
-     * @param resources - PIXI Textures resources
-     * @returns -
+     * @param textures - PIXI Textures resources
      * @private
      */
-    _loadDecorators (decorators: any, resources: Array<PIXI.loaders.Resource>): void {
+    _loadDecorators (decorators: any, textures: Array<PIXI.Texture>): void {
         if (!decorators || (decorators && !decorators.items)) {
             return null;
         }
 
         this.decoratorContainers = decorators.items.map(item => {
-            const decoratorContainer = new PIXI.Sprite(resources[item[0]].texture);
+            const decoratorContainer = new PIXI.Sprite(textures.find(texture => texture.baseTexture.imageUrl === decorators.data[item[0]]));
 
             decoratorContainer.x = item[1];
             decoratorContainer.y = item[2];

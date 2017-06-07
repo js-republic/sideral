@@ -72,12 +72,15 @@ export class Physic {
         this.offsetX    = width / 2;
         this.offsetY    = height / 2;
         this.shape      = this.constructShape(box, width, height, props.group || Enum.GROUP.ALL);
-        this.body       = this.constructBody(type, x + (width / 2), y + (height / 2), props.gravityFactor || 1);
+        this.body       = this.constructBody(type, x + this.offsetX, y + this.offsetY, props.gravityFactor || 1);
         this.id         = this.body.id;
         this.shape.material = props.material || this.owner.context.scene.getDefaultMaterial();
 
         this.body.addShape(this.shape);
-        this.setBounciness(this.owner.props.bounce);
+
+        if (this.owner.props.bounce) {
+            this.setBounciness(this.owner.props.bounce);
+        }
     }
 
 
@@ -194,11 +197,11 @@ export class Physic {
      */
     setPosition (x?: number, y?: number): void {
         if (x || x === 0) {
-            this.body.position[0] = Util.pixelToMeter(x + this.offsetX);
+            this.body.interpolatedPosition[0] = this.body.position[0] = Util.pixelToMeter(x + this.offsetX);
         }
 
         if (y || y === 0) {
-            this.body.position[1] = Util.pixelToMeter(y + this.offsetY);
+            this.body.interpolatedPosition[1] = this.body.position[1] = Util.pixelToMeter(y + this.offsetY);
         }
     }
 
@@ -237,7 +240,7 @@ export class Physic {
      * @param angle - The angle (in Degree)
      */
     setAngle (angle): void {
-        this.body.interpolatedAngle = Util.toRadians(angle);
+        this.body.interpolatedAngle = this.body.angle = Util.toRadians(angle);
     }
 
     /**

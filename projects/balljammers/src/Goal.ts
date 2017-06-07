@@ -1,6 +1,8 @@
 import { Entity } from "src/Entity";
-import { Enum } from "src/Tool";
+import { Enum, Assets } from "src/Tool";
 
+
+Assets.preload("images/goal.png");
 
 /**
  * The goal class

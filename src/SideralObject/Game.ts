@@ -1,6 +1,6 @@
 import { SideralObject, Keyboard } from "./index";
 import { Scene } from "./../Module";
-import { Util } from "./../Tool";
+import { Util, Assets } from "./../Tool";
 import { IGameProps } from "./../Interface";
 
 
@@ -38,21 +38,25 @@ export class Game extends SideralObject {
 
     /**
      * The current latency of the game (in ms)
+     * @readonly
      */
     latency: number = 0;
 
     /**
      * The factor of time to avoid framerate dependance
+     * @readonly
      */
     tick: number = 1;
 
     /**
      * The date of the current update in timestamp
+     * @readonly
      */
     currentUpdate: number = 0;
 
     /**
      * The date of the last update in timestamp
+     * @readonly
      */
     lastUpdate: number = 0;
 
@@ -63,6 +67,7 @@ export class Game extends SideralObject {
 
     /**
      * The keyboard event manager (you must enable it before use it)
+     * @readonly
      */
     keyboard: Keyboard;
 
@@ -133,7 +138,9 @@ export class Game extends SideralObject {
         this.stopped = false;
         this.attach(container);
         this._resizeGame();
-        this.update();
+
+        // Load the global assets
+        Assets.load(() => this.update());
 
         return this;
     }

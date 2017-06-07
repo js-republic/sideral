@@ -1,4 +1,5 @@
 import { Module } from "./../Module";
+import { Assets } from "src/Tool";
 
 import { IAnimation, ISpriteProps } from "./../Interface";
 
@@ -203,14 +204,12 @@ export class Sprite extends Module {
      * When "imagePath" attributes change
      */
     onImagePathChange (): void {
-        const loader = new PIXI.loaders.Loader();
+        Assets.get(this.props.imagePath, resource => {
+            const texture = resource.texture;
 
-        loader.add(this.props.imagePath).load(() => {
-            const texture = loader.resources[this.props.imagePath].texture;
-
-            texture.frame = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
-            this.container.texture = texture;
-            this.image = loader.resources[this.props.imagePath].data;
+            texture.frame           = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
+            this.container.texture  = texture;
+            this.image              = resource.data;
 
             this.animations.forEach(animation => animation.textureFrames = this._framesToRectangles(animation.frames));
 

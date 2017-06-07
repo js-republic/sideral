@@ -28,9 +28,9 @@
   ],
   "walls": [
     ["rectangle", -10, 448, 900, 60],
-    ["rectangle", 0, 0, 20, 320],
-    ["rectangle", 814, 0, 20, 320],
-    ["rectangle", 0, 0, 900, 20]
+    ["rectangle", 1, 1, 20, 320],
+    ["rectangle", 813, 1, 20, 320],
+    ["rectangle", 1, 1, 900, 20]
   ],
   "decorators": {
     "data": {
