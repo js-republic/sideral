@@ -9,11 +9,11 @@ module.exports = {
     },
 
     entry: {
-        "balljammers/sideral":"./projects/balljammers/src"
+        "balljammers": "./projects/balljammers/src/main.ts"
     },
 
     resolve: {
-        extensions: [".js", ".json", ".jsx"],
+        extensions: [".js", ".json", ".jsx", ".ts"],
         modules: [path.resolve("./"), "node_modules"]
     },
 
@@ -21,6 +21,10 @@ module.exports = {
 
     module: {
         loaders: [
+            {
+                test: /\.tsx?$/,
+                loader: "awesome-typescript-loader"
+            },
             {
                 test: /\.jsx?$/,
                 loader: "babel-loader",
@@ -33,7 +37,7 @@ module.exports = {
     },
 
     devServer: {
-        contentBase : path.join(__dirname, "../projects/balljammers"),
+        contentBase : path.join(__dirname, "../projects"),
         compress    : true,
         port        : 3332,
     },

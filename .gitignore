@@ -1,4 +1,6 @@
 .idea
+.vscode/
+/dist/
 public/lib
 **/*/sideral.js
 **/*/sideral.js.map
@@ -9,3 +11,4 @@ coverage
 node_modules
 docs
 .DS_Store
+ts-doc/
