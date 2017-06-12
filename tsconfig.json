@@ -2,10 +2,10 @@
   "compileOnSave": false,
   "compilerOptions": {
     "allowJs": true,
-    "outDir": "./dist/out-tsc",
-    "baseUrl": ".",
-    "rootDir": ".",
-    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "",
+    "rootDir": "./src",
+    "sourceMap": false,
     "declaration": false,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
@@ -19,8 +19,7 @@
       "dom"
     ]
   },
-  "files": [
-      "src/typings.d.ts",
-      "projects/balljammers/src/main.ts"
+  "include":[
+    "src/**/*"
   ]
 }

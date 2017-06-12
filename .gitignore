@@ -1,9 +1,5 @@
 .idea
 .vscode/
-/dist/
-public/lib
-**/*/sideral.js
-**/*/sideral.js.map
 logs
 *.log
 npm-debug.log*
@@ -12,3 +8,4 @@ node_modules
 docs
 .DS_Store
 ts-doc/
+projects/*.js
