@@ -13,7 +13,7 @@
     "test": "node_modules/.bin/karma start config/karma.conf.prod.js",
     "test-dev": "node_modules/.bin/karma start config/karma.conf.dev.js",
     "eslint": "./node_modules/.bin/eslint src",
-    "doc": "typedoc --out ./ts-doc --module amd --target ES6 --mode file --rootDir src",
+    "doc": "typedoc --out ./ts-doc --module amd --target ES6 --mode file --rootDir src --includes src/**/*",
     "doc:serve": "simplehttpserver ./ts-doc"
   },
   "repository": {
