@@ -1,7 +1,21 @@
-import { Sound } from "./index";
+import { SoundManager, SoundLoader } from "./index";
 
 
+/**
+ * Interface for an Asset loader
+ */
+export interface ILoader {
 
+    /**
+     * Pixi loader
+     */
+    pixi: PIXI.loaders.Loader;
+
+    /**
+     * Sound manager
+     */
+    sound: SoundLoader;
+}
 
 
 /**
@@ -12,13 +26,57 @@ export class Assets {
     /* ATTRIBUTES */
 
     /**
-     * PIXI Loaders
+     * Sound manager
      * @readonly
      */
-    static Loaders: any = {};
+    sounds: SoundManager = new SoundManager();
+
+    /**
+     * PIXI & Sound Loaders
+     * @readonly
+     */
+    static Loaders: { [s: string]: ILoader } = {};
+
+    /**
+     * Current environment of the Assets
+     * @readonly
+     */
+    static env: string = "global";
 
 
     /* METHODS */
+
+    /**
+     * Load all assets from an environment
+     * @param afterCallback - Callback to be launched after the full load
+     * @param env - Environnement to load
+     */
+    static load (afterCallback?: Function, env?: string): void {
+        env = env || "global";
+
+        let pixiLoaded      = false,
+            soundLoaded     = false;
+
+        const loader        = Assets.getLoader(env),
+            onLoad          = () => {
+                if (afterCallback && soundLoaded && pixiLoaded) {
+                    afterCallback();
+                }
+            },
+            onSoundLoaded   = () => {
+                soundLoaded = true;
+                onLoad();
+            },
+            onPixiLoaded    = () => {
+                pixiLoaded = true;
+                onLoad();
+            };
+
+        Assets.env = env;
+
+        loader.pixi.load(onPixiLoaded);
+        loader.sound.load(onSoundLoaded);
+    }
 
     /**
      * Preload an image
@@ -30,7 +88,7 @@ export class Assets {
         
         [].concat(url).forEach(nextUrl => {
             if (!Object.keys(loader).find(key => key === nextUrl)) {
-                loader.add(nextUrl);
+                loader.pixi.add(nextUrl);
             }
         });
 
@@ -38,14 +96,17 @@ export class Assets {
     }
 
     /**
-     * Load all assets from an environment
-     * @param afterCallback - Callback to be launched after the full load
-     * @param env - Environnement to load
+     * Preload a sound
+     * @param id - id of the sound
+     * @param url - Url of the sound to preload
+     * @param env - Choose an environment to preload the assets
      */
-    static load (afterCallback?: Function, env?: string): void {
+    static preloadSound (id: string, url: Array<string> | string, env?: string): typeof Assets {
         const loader = Assets.getLoader(env);
 
-        loader.load(afterCallback);
+        loader.sound.preload(id, url);
+
+        return Assets;
     }
 
     /**
@@ -74,18 +135,21 @@ export class Assets {
     static isReady (env: string = "global"): boolean {
         const loader = Assets.getLoader(env);
 
-        return loader.progress >= 100 && !loader.loading;
+        return loader.pixi.progress >= 100 && !loader.pixi.loading && !loader.sound;
     }
 
     /**
      * Get the PIXI Loader by its environment
      * @param env - Loader of the environment
      */
-    static getLoader (env: string = "global"): PIXI.loaders.Loader {
+    static getLoader (env: string = "global"): ILoader {
         let loader = Assets.Loaders[env];
 
         if (!loader) {
-            loader = Assets.Loaders[env] = new PIXI.loaders.Loader();
+            loader = Assets.Loaders[env] = {
+                pixi: new PIXI.loaders.Loader(),
+                sound: new SoundLoader()
+            };
         }
 
         return loader;
@@ -99,13 +163,13 @@ export class Assets {
      */
     static get (url: Array<string> | string, onLoad: Function, env?: string): void {
         const loader = Assets.getLoader(env),
-            resources = Array.isArray(url) ? url.map(nextUrl => loader.resources[nextUrl]) : loader.resources[url];
+            resources = Array.isArray(url) ? url.map(nextUrl => loader.pixi.resources[nextUrl]) : loader.pixi.resources[url];
 
         if (Assets.isReady(env)) {
             onLoad(resources);
 
         } else {
-            loader.onComplete.add(() => onLoad(resources));
+            loader.pixi.onComplete.add(() => onLoad(resources));
         }
     }
 

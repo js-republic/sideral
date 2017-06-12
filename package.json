@@ -79,7 +79,7 @@
     "webpack-dev-server": "^2.4.5"
   },
   "dependencies": {
-    "createjs-soundjs": "^0.6.2",
+    "howler": "^2.0.4",
     "p2": "^0.7.1",
     "pixi-particles": "^2.1.5",
     "pixi.js": "^4.3.2",

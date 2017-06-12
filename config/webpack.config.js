@@ -9,7 +9,8 @@ module.exports = {
     },
 
     entry: {
-        "balljammers": "./projects/balljammers/src/main.ts"
+        "balljammers": "./projects/balljammers/src/main.ts",
+        "spaceshooter": "./projects/spaceshooter/src/main.js"
     },
 
     resolve: {

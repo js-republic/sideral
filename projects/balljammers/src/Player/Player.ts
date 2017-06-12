@@ -1,11 +1,14 @@
 import { Entity } from "src/Entity";
-import { Enum } from "src/Tool";
+import { Enum, Assets } from "src/Tool";
 import { IEntityProps } from "src/Interface";
 
 import { Ball } from "./../Ball";
 import { PlayerAttackSkill } from "./PlayerAttack";
 import { PlayerDashSkill } from "./PlayerDash";
 import { PlayerDoubleJumpSkill } from "./PlayerDoubleJump";
+
+
+Assets.preloadSound("jump", "sounds/jump.mp3");
 
 
 export interface IPlayerProps extends IEntityProps {
