@@ -1,18 +1,19 @@
-import { Scene, Text } from "src/Module";
-import { Enum, Assets } from "src/Tool";
-import { Particles } from "src/Entity";
+import { Scene, Text } from "sideral/Module";
+import { Enum, Assets } from "sideral/Tool";
+import { Particles } from "sideral/Entity";
 
 import { Ball } from "./Ball";
 import { Goal } from "./Goal";
 
 import { PlayerCat } from "./Player/Cat/Cat";
 
-import * as tilemapGrass from "../tilemaps/grass.json";
+import * as tilemapGrass from "./../tilemaps/grass.json";
 import * as fireConfig from "./Particles/flame.json";
 
 
 // Preload
-Assets.preloadTilemap(tilemapGrass);
+Assets.preloadTilemap(tilemapGrass)
+    .preload("fire", "images/particles/fire.png");
 
 
 /**
@@ -101,7 +102,7 @@ export class Arena extends Scene {
         });
 
         this.flameParticles = <Particles>this.add(new Particles(), {
-            images  : ["images/particles/bolt.png", "images/particles/fire.png"],
+            images  : ["bolt", "fire"],
             config  : fireConfig,
             autoRun : false
         });

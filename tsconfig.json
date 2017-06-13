@@ -2,9 +2,15 @@
   "compileOnSave": false,
   "compilerOptions": {
     "allowJs": true,
+    "checkJs": true,
+    "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
-    "baseUrl": "",
-    "rootDir": "./src",
+    "moduleResolution": "node",
+    "baseUrl": "./",
+    "rootDir": "",
+    "paths":{
+      "sideral/*": ["src/*"]
+    },
     "sourceMap": false,
     "declaration": false,
     "moduleResolution": "node",

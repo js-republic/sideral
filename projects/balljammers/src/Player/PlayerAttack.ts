@@ -1,5 +1,5 @@
-import { Hitbox, Skill, Entity } from "src/Entity";
-import { Enum } from "src/Tool";
+import { Hitbox, Skill, Entity } from "sideral/Entity";
+import { Enum } from "sideral/Tool";
 
 import { Player } from "./Player";
 import { Ball } from "./../Ball";

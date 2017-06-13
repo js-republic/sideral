@@ -80,17 +80,16 @@ export class Assets {
 
     /**
      * Preload an image
+     * @param id - Id of the image
      * @param url - Url of the image to preload
      * @param env - Choose an environment to preload the assets
      */
-    static preload (url: Array<string> | string, env?: string): typeof Assets {
+    static preload (id: string, url: string, env?: string): typeof Assets {
         const loader = Assets.getLoader(env);
-        
-        [].concat(url).forEach(nextUrl => {
-            if (!Object.keys(loader).find(key => key === nextUrl)) {
-                loader.pixi.add(nextUrl);
-            }
-        });
+
+        if (!loader.pixi.resources[id]) {
+            loader.pixi.add(id, url);
+        }
 
         return Assets;
     }
@@ -116,14 +115,14 @@ export class Assets {
      */
     static preloadTilemap (data: any, env?: string): typeof Assets {
         if (data.backgrounds) {
-            Assets.preload(data.backgrounds.map(background => background.path), env);
+            data.backgrounds.forEach(background => Assets.preload(background.path, background.path, env));
         }
 
         if (data.decorators) {
-            Assets.preload(Object.keys(data.decorators.data).map(key => data.decorators.data[key]), env);
+            Object.keys(data.decorators.data).forEach(key => Assets.preload(data.decorators.data[key], data.decorators.data[key], env));
         }
 
-        Assets.preload(data.path, env);
+        Assets.preload(data.path, data.path, env);
 
         return Assets;
     }
@@ -157,13 +156,28 @@ export class Assets {
 
     /**
      * Get a resource loaded
-     * @param url - Url of the image to get
+     * @param id - Id of the image
      * @param onLoad - Callback when the resource is ready
      * @param env - The environment to get the resource
      */
-    static get (url: Array<string> | string, onLoad: Function, env?: string): void {
-        const loader = Assets.getLoader(env),
-            resources = Array.isArray(url) ? url.map(nextUrl => loader.pixi.resources[nextUrl]) : loader.pixi.resources[url];
+    static get (id: Array<string> | string, onLoad: Function, env?: string): void {
+        const loader = Assets.getLoader(env);
+        let resources = Array.isArray(id) ? id.map(x => loader.pixi.resources[x]) : loader.pixi.resources[id],
+            validated = false;
+
+        if (Array.isArray(resources)) {
+            resources = resources.filter(resource => Boolean(resource));
+            validated = Boolean(resources.length);
+
+        } else {
+            validated = Boolean(resources);
+
+        }
+
+        if (!validated) {
+            console.warn(`Assets warning: some image are missing. [${Array.isArray(id) ? id.join(",") : id }]`);
+            return null;
+        }
 
         if (Assets.isReady(env)) {
             onLoad(resources);
@@ -175,21 +189,30 @@ export class Assets {
 
     /**
      * Get an image loaded
-     * @param url - Url of the image to get
+     * @param id - Id of the image
      * @param onLoad - Callback when the resource is ready
      * @param env - The environment to get the resource
      */
-    static getImage (url: Array<string> | string, onLoad: Function, env?: string): void {
-        Assets.get(url, resource => onLoad(Array.isArray(resource) ? resource.map(x => x.data) : resource.data), env);
+    static getImage (id: Array<string> | string, onLoad: Function, env?: string): void {
+        Assets.get(id, resource => onLoad(Array.isArray(resource) ? resource.map(x => x.data) : resource.data), env);
     }
 
     /**
      * Get a texture loaded
-     * @param url - Url of the texture to get
+     * @param id - Id of the image
      * @param onLoad - Callback when the resource is ready
      * @param env - The environment to get the resource
      */
-    static getTexture (url: Array<string> | string, onLoad: Function, env?: string): void {
-        Assets.get(url, resource => onLoad(Array.isArray(resource) ? resource.map(x => x.texture) : resource.texture), env);
+    static getTexture (id: Array<string> | string, onLoad: Function, env?: string): void {
+        Assets.get(id, resource => onLoad(Array.isArray(resource) ? resource.map(x => x.texture) : resource.texture), env);
+    }
+
+    /**
+     * Get a Sound Manager
+     * @param env - The environment of sound
+     * @returns The sound manager
+     */
+    static getSound (env?: string): SoundManager {
+        return this.getLoader(env).sound.manager;
     }
 }

@@ -1,6 +1,6 @@
-import { Skill } from "src/Entity";
-import { Sprite } from "src/Module";
-import { Enum } from "src/Tool";
+import { Skill } from "sideral/Entity";
+import { Sprite } from "sideral/Module";
+import { Enum } from "sideral/Tool";
 
 import { Player } from "./Player";
 

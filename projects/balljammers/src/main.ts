@@ -1,5 +1,5 @@
-import { Game } from "src/SideralObject";
-import { Assets } from "src/Tool";
+import { Game } from "sideral/SideralObject";
+import { Assets } from "sideral/Tool";
 
 import { Arena } from "./Arena";
 

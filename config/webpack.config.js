@@ -15,7 +15,10 @@ module.exports = {
 
     resolve: {
         extensions: [".js", ".json", ".jsx", ".ts", ".tsx"],
-        modules: [path.resolve("./"), "node_modules"]
+        modules: [path.resolve(__dirname, "../"), "node_modules"],
+        alias: {
+            sideral: path.resolve(__dirname, "../src/")
+        }
     },
 
     devtool: "source-map",

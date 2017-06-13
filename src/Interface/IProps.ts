@@ -215,9 +215,9 @@ export interface IWallProps extends IEntityProps {
 export interface ISpriteProps extends IModuleProps {
 
     /**
-     * The path of the spritesheet image
+     * The Assets id of the spritesheet image
      */
-    imagePath: string;
+    imageId: string;
 
     /**
      * If true, the sprite will be killed after the animation has finished

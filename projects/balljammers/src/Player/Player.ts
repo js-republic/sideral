@@ -1,6 +1,6 @@
-import { Entity } from "src/Entity";
-import { Enum, Assets } from "src/Tool";
-import { IEntityProps } from "src/Interface";
+import { Entity } from "sideral/Entity";
+import { Enum, Assets } from "sideral/Tool";
+import { IEntityProps } from "sideral/Interface";
 
 import { Ball } from "./../Ball";
 import { PlayerAttackSkill } from "./PlayerAttack";
@@ -216,6 +216,7 @@ export class Player extends Entity {
             }
 
             if (canJump) {
+                Assets.getSound().play("jump");
                 this.dashSide       = null;
                 this.fallPressed    = false;
             }

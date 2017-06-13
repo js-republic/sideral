@@ -1,5 +1,5 @@
 import { Module } from "./../Module";
-import { Assets } from "src/Tool";
+import { Assets } from "./../Tool";
 
 import { IAnimation, ISpriteProps } from "./../Interface";
 
@@ -57,7 +57,7 @@ export class Sprite extends Module {
 
         this.container.anchor.set(0.5, 0.5);
 
-        this.signals.propChange.bind("imagePath", this.onImagePathChange.bind(this));
+        this.signals.propChange.bind("imageId", this.onImageIdChange.bind(this));
     }
 
     /**
@@ -201,10 +201,10 @@ export class Sprite extends Module {
     }
 
     /**
-     * When "imagePath" attributes change
+     * When "imageId" attributes change
      */
-    onImagePathChange (): void {
-        Assets.get(this.props.imagePath, resource => {
+    onImageIdChange (): void {
+        Assets.get(this.props.imageId, resource => {
             const texture = resource.texture;
 
             texture.frame           = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);

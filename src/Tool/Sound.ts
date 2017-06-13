@@ -1,9 +1,15 @@
-import Howler from "howler";
+import { Howl } from "howler";
 
 
 export class SoundLoader {
 
     /* ATTRIBUTES */
+
+    /**
+     * Sound Manager provided by the loader
+     * @readonly
+     */
+    manager: SoundManager = new SoundManager();
 
     /**
      * List of all sounds to load
@@ -25,9 +31,7 @@ export class SoundLoader {
      * @param url - path of the sound
      */
     preload (id: string, url: Array<string> | string): void {
-        console.log(Howler);
-
-        const sound = new Howler({
+        const sound = new Howl({
             src     : [].concat(url),
             preload : false
         });
@@ -41,7 +45,7 @@ export class SoundLoader {
      * Know if the sound has completly load all sounds
      */
     isReady (): boolean {
-        return !Object.keys[this.sounds].
+        return !Object.keys(this.sounds).
             map(key => this.sounds[key].state()).
             filter(state => state !== "loaded").length;
     }
@@ -58,8 +62,8 @@ export class SoundLoader {
     /**
      * Get all sounds in array
      */
-    getAll (): Array<Howler> {
-        return Object.keys[this.sounds].map(key => this.sounds[key]);
+    getAll (): Array<Howl> {
+        return Object.keys(this.sounds).map(key => this.sounds[key]);
     }
 
 
@@ -71,6 +75,7 @@ export class SoundLoader {
      */
     _onSoundLoad (): void {
         if (this.onLoad && this.isReady()) {
+            this.manager.sounds = this.sounds;
             this.onLoad();
         }
     }
@@ -90,6 +95,12 @@ export class SoundManager {
      */
     music: any = null;
 
+    /**
+     * List of all sounds availabe
+     * @readonly
+     */
+    sounds: any = {};
+
 
     /* METHODS */
 
@@ -97,8 +108,12 @@ export class SoundManager {
      * Play a sound
      * @param id - id of the sound to play
      */
-    play (id: string): any {
-        return null; // createjs.Sound.play(id);
+    play (id: string): void {
+        const sound = this.sounds[id];
+
+        if (sound) {
+            sound.play();
+        }
     }
 
     /**

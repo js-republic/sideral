@@ -1,8 +1,8 @@
-import { Entity } from "src/Entity";
-import { Enum, Assets } from "src/Tool";
+import { Entity } from "sideral/Entity";
+import { Enum, Assets } from "sideral/Tool";
 
 
-Assets.preload("images/goal.png");
+Assets.preload("goal", "images/goal.png");
 
 /**
  * The goal class
@@ -28,6 +28,6 @@ export class Goal extends Entity {
 
     initialize (props) {
         super.initialize(props);
-        this.addSprite("images/goal.png", this.props.width, this.props.height);
+        this.addSprite("goal", this.props.width, this.props.height);
     }
 }

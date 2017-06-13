@@ -1,6 +1,6 @@
 import { Entity } from "./../Entity";
 
-import { Enum } from "./../Tool";
+import { Enum, Assets } from "./../Tool";
 
 import { IParticlesProps } from "./../Interface";
 
@@ -121,15 +121,17 @@ export class Particles extends Entity {
      * @access protected
      */
     onConfigurationChange (): void {
-        this.emitter.cleanup();
-        this.emitter.init([].concat(this.props.images).map(image => PIXI.Texture.fromImage(image)), this.props.config);
-        this.loaded = true;
+        Assets.getTexture([].concat(this.props.images), textures => {
+            this.emitter.cleanup();
+            this.emitter.init(textures, this.props.config);
+            this.loaded = true;
 
-        if (this.props.autoRun) {
-            this.run();
+            if (this.props.autoRun) {
+                this.run();
 
-        } else {
-            this.emitter.emit = false;
-        }
+            } else {
+                this.emitter.emit = false;
+            }
+        });
     }
 }
