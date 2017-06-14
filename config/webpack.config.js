@@ -9,13 +9,12 @@ module.exports = {
     },
 
     entry: {
-        "balljammers": "./projects/balljammers/src/main.ts",
-        "spaceshooter": "./projects/spaceshooter/src/main.js"
+        "balljammers": "./projects/balljammers/src/main.ts"
     },
 
     resolve: {
         extensions: [".js", ".json", ".jsx", ".ts", ".tsx"],
-        modules: [path.resolve(__dirname, "../"), "node_modules"],
+        modules: ["node_modules"],
         alias: {
             sideral: path.resolve(__dirname, "../src/")
         }
@@ -26,11 +25,11 @@ module.exports = {
     module: {
         loaders: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts$/,
                 loader: "awesome-typescript-loader"
             },
             {
-                test: /\.jsx?$/,
+                test: /\.js$/,
                 loader: "babel-loader",
                 exclude: /node_modules/,
                 query: {

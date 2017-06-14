@@ -13,7 +13,10 @@ import * as fireConfig from "./Particles/flame.json";
 
 // Preload
 Assets.preloadTilemap(tilemapGrass)
-    .preload("fire", "images/particles/fire.png");
+    .preload("fire", "images/particles/fire.png")
+    .preloadSound("goal", "sounds/goal.mp3")
+    .preloadSound("explosion", "sounds/explosion.mp3")
+    .preloadSound("battleTheme", "sounds/battleTheme.mp3");
 
 
 /**
@@ -69,7 +72,7 @@ export class Arena extends Scene {
     initialize (props: any) {
         super.initialize(props);
         this.setTilemap(tilemapGrass);
-        this.enablePhysics(100);
+        this.enablePhysics(75);
 
         const keyboard = this.context.game.keyboard;
 
@@ -108,6 +111,8 @@ export class Arena extends Scene {
         });
 
         (<any>window).scene = this;
+
+        Assets.getSound().playMusic("battleTheme", true);
     }
 
 
@@ -124,7 +129,11 @@ export class Arena extends Scene {
         this.flameParticles.run();
         this.props.motionFactor = 0.25;
 
-        const playerWon = goalSide.props.flip ? this.playerLeft : this.playerRight;
+        const playerWon = goalSide.props.flip ? this.playerLeft : this.playerRight,
+            sound       = Assets.getSound();
+
+        sound.play("explosion");
+        sound.play("goal");
 
         playerWon.props.score++;
         this.score.props.text = `${this.playerLeft.props.score} - ${this.playerRight.props.score}`;

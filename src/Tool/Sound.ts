@@ -1,4 +1,4 @@
-import { Howl } from "howler";
+import { Howl, Howler } from "howler";
 
 
 export class SoundLoader {
@@ -108,19 +108,58 @@ export class SoundManager {
      * Play a sound
      * @param id - id of the sound to play
      */
-    play (id: string): void {
+    play (id: string): any {
         const sound = this.sounds[id];
 
         if (sound) {
             sound.play();
         }
+
+        return sound;
     }
 
     /**
      * Play a music background
      * @param id - id of the sound to play
      */
-    playMusic (id: string): any {
-        return this.music = this.play(id);
+    playMusic (id: string, loop: boolean = false): void {
+        if (this.music) {
+            this.music.stop();
+        }
+
+        if (id) {
+            this.music = this.play(id);
+
+        } else if (this.music) {
+            this.music.play();
+
+        }
+
+        if (loop) {
+            this.music.loop(loop);
+        }
+    }
+
+    /**
+     * Stop the current music
+     */
+    stop (): void {
+        if (this.music) {
+            this.music.stop();
+        }
+    }
+
+    /**
+     * Mute all sounds
+     */
+    mute (): void {
+        Howler.mute(true);
+    }
+
+    /**
+     * Unmute sounds
+     */
+    unmute (): void {
+        Howler.mute(false);
     }
 }

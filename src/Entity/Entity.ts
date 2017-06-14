@@ -98,6 +98,7 @@ export class Entity extends Module {
         this.signals.beginCollision = new SignalEvent();
         this.signals.collision      = new SignalEvent();
         this.signals.endCollision   = new SignalEvent();
+        this.signals.wallCollision  = new SignalEvent();
 
         this.skills = <SkillManager> this.add(new SkillManager());
 

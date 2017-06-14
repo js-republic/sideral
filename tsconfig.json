@@ -2,18 +2,16 @@
   "compileOnSave": false,
   "compilerOptions": {
     "allowJs": true,
-    "checkJs": true,
     "allowSyntheticDefaultImports": true,
     "outDir": "./dist",
     "moduleResolution": "node",
-    "baseUrl": "./",
+    "baseUrl": "",
     "rootDir": "",
     "paths":{
       "sideral/*": ["src/*"]
     },
     "sourceMap": false,
     "declaration": false,
-    "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
@@ -24,8 +22,5 @@
       "es2016",
       "dom"
     ]
-  },
-  "include":[
-    "src/**/*"
-  ]
+  }
 }

@@ -8,7 +8,8 @@ import { PlayerDashSkill } from "./PlayerDash";
 import { PlayerDoubleJumpSkill } from "./PlayerDoubleJump";
 
 
-Assets.preloadSound("jump", "sounds/jump.mp3");
+Assets.preloadSound("jump", "sounds/jump.mp3")
+    .preloadSound("swish", "sounds/swish.wav");
 
 
 export interface IPlayerProps extends IEntityProps {
@@ -239,6 +240,7 @@ export class Player extends Entity {
      * When pressing the key attack
      */
     attack (): void {
+        Assets.getSound().play("swish");
         this.skills.run("attack", { follow: this });
     }
 

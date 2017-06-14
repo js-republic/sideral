@@ -26,12 +26,6 @@ export class Assets {
     /* ATTRIBUTES */
 
     /**
-     * Sound manager
-     * @readonly
-     */
-    sounds: SoundManager = new SoundManager();
-
-    /**
      * PIXI & Sound Loaders
      * @readonly
      */
@@ -55,11 +49,13 @@ export class Assets {
         env = env || "global";
 
         let pixiLoaded      = false,
-            soundLoaded     = false;
+            soundLoaded     = false,
+            callbackCalled  = false;
 
         const loader        = Assets.getLoader(env),
             onLoad          = () => {
-                if (afterCallback && soundLoaded && pixiLoaded) {
+                if (afterCallback && soundLoaded && pixiLoaded && !callbackCalled) {
+                    callbackCalled = true;
                     afterCallback();
                 }
             },
@@ -134,7 +130,7 @@ export class Assets {
     static isReady (env: string = "global"): boolean {
         const loader = Assets.getLoader(env);
 
-        return loader.pixi.progress >= 100 && !loader.pixi.loading && !loader.sound;
+        return loader.pixi.progress >= 100 && !loader.pixi.loading && loader.sound.isReady();
     }
 
     /**

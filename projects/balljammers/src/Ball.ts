@@ -10,7 +10,8 @@ import * as trailConfig from "./Particles/trail.json";
 
 
 Assets.preload("ball", "images/ball.png")
-    .preload("bolt", "images/particles/bolt.png");
+    .preload("bolt", "images/particles/bolt.png")
+    .preloadSound("ball", "sounds/ball.wav");
 
 /**
  * The ball class
@@ -45,6 +46,7 @@ export class Ball extends Entity {
 
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
         this.signals.beginCollision.bind("player", this.onCollisionWithPlayer.bind(this));
+        this.signals.wallCollision.add(this.onCollision.bind(this));
         this.signals.update.add(this.updateVelocity.bind(this));
     }
 
@@ -80,6 +82,10 @@ export class Ball extends Entity {
 
 
     /* EVENTS */
+
+    onCollision () {
+         Assets.getSound().play("ball");
+    }
 
     /**
      * Update the velocity of the ball

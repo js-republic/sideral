@@ -11,9 +11,6 @@ export class Goal extends Entity {
 
     /* LIFECYCLE */
 
-    /**
-     * @constructor
-     */
     constructor () {
         super();
 

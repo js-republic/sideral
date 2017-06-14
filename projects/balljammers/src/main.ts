@@ -3,7 +3,11 @@ import { Assets } from "sideral/Tool";
 
 import { Arena } from "./Arena";
 
+
 const game = new Game();
+
+
+Assets.getSound().mute();
 
 game.enableKeyboard(true);
 game.start(832, 576);

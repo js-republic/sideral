@@ -128,6 +128,11 @@ export interface IEntitySignal extends IModuleSignals {
     collision: SignalEvent;
 
     /**
+     * Signal emitted every time the entity hit a wall
+     */
+    wallCollision: SignalEvent;
+
+    /**
      * When entity is not in collision anymore
      */
     endCollision: SignalEvent;

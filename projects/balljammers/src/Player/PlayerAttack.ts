@@ -1,5 +1,5 @@
 import { Hitbox, Skill, Entity } from "sideral/Entity";
-import { Enum } from "sideral/Tool";
+import { Enum, Assets } from "sideral/Tool";
 
 import { Player } from "./Player";
 import { Ball } from "./../Ball";
@@ -36,6 +36,8 @@ export class PlayerAttackHitbox extends Hitbox {
      */
     onHitWithBall (ball: Ball) {
         const owner = this.props.owner as Player;
+
+        Assets.getSound().play("ball");
 
         ball.props.vx   = owner.props.powerX * (owner.props.x < ball.props.x ? 1 : -1) * (owner.standing ? 1 : 2);
         ball.props.vy   = -Math.abs(owner.props.powerY);

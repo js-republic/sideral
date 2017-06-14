@@ -34,7 +34,7 @@ export class PlayerDoubleJumpSkill extends Skill {
      */
     onSkillStart (): void {
         (<Sprite> this.owner.context.scene.add(new Sprite(), {
-            imagePath   : "images/effects/smoke.png",
+            imageId     : "smoke",
             width       : 128,
             height      : 128,
             x           : this.owner.props.x + (this.owner.props.width / 2) - 64,

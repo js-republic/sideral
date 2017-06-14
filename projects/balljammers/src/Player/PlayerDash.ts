@@ -5,7 +5,8 @@ import { Assets } from "sideral/Tool";
 import { Player } from './Player';
 
 
-Assets.preload("smoke", "images/effects/smoke.png");
+Assets.preload("smoke", "images/effects/smoke.png")
+    .preloadSound("dash", "sounds/dash.wav");
 
 export class PlayerDashSkill extends Skill {
 
@@ -39,8 +40,10 @@ export class PlayerDashSkill extends Skill {
      * @returns {void}
      */
     onSkillStart () {
+        Assets.getSound().play("dash");
+
         (<Sprite> this.owner.context.scene.add(new Sprite(), {
-            imagePath   : "smoke",
+            imageId     : "smoke",
             width       : 128,
             height      : 128,
             x           : this.owner.props.x + (this.owner.props.width / 2) - 64,

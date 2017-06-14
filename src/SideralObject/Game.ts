@@ -28,6 +28,9 @@ export class Game extends SideralObject {
         background  : "#DDDDDD"
     };
 
+    /**
+     * Dom container of the game
+     */
     container: HTMLElement = document.getElementById("sideral");
 
     /**
@@ -71,6 +74,18 @@ export class Game extends SideralObject {
      */
     keyboard: Keyboard;
 
+    /**
+     * Know if the game is loaded
+     * @readonly
+     */
+    loaded: boolean = false;
+
+    /**
+     * Object to add when Game is ready
+     * @private
+     */
+    _addQueue: Array<any> = [];
+
 
     /* LIFECYCLE */
 
@@ -101,7 +116,7 @@ export class Game extends SideralObject {
 
         // 100ms latency max
         this.currentUpdate  = performance;
-        this.latency        = Util.limit(performance - this.lastUpdate, 0, 100);
+        this.latency        = Util.limit(performance - this.lastUpdate, 8, 100);
         this.fps            = Math.floor(1000 / this.latency);
         this.tick           = 1000 / (this.fps * 1000);
         this.tick           = this.tick < 0 ? 0 : this.tick;
@@ -116,6 +131,19 @@ export class Game extends SideralObject {
 
 
     /* METHODS */
+
+    /**
+     * @override 
+     */
+    add(item: SideralObject, props: any = {}): SideralObject {
+        if (!this.loaded) {
+            this._addQueue.push({ item: item, props: props });
+
+            return item;
+        }
+
+        return super.add(item, props);
+    }
 
     /**
      * Start the game loop
@@ -140,7 +168,13 @@ export class Game extends SideralObject {
         this._resizeGame();
 
         // Load the global assets
-        Assets.load(() => this.update());
+        Assets.load(() => {
+            this.loaded = true;
+            this._addQueue.forEach(queue => this.add(queue.item, queue.props));
+
+            this._addQueue = [];
+            this.update();
+        });
 
         return this;
     }

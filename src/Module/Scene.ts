@@ -381,17 +381,25 @@ export class Scene extends Module {
      * @private
      */
     _onBeginContact ({ bodyA, bodyB }): void {
-        const contact = this._resolveContact(bodyA, bodyB);
+        const contact = this._resolveContact(bodyA, bodyB),
+            { entityA, entityB } = contact;
 
-        if (contact.entityA && contact.contactA) {
-            contact.entityA.collides.push(contact.contactA);
+        if (entityA && contact.contactA) {
+            entityA.collides.push(contact.contactA);
         }
 
-        if (contact.entityB && contact.contactB) {
-            contact.entityB.collides.push(contact.contactB);
+        if (entityB && contact.contactB) {
+            entityB.collides.push(contact.contactB);
         }
 
-        if (contact.entityA && contact.entityB) {
+
+        if (entityA instanceof Wall) {
+            entityB.signals.wallCollision.dispatch();
+
+        } else if (entityB instanceof Wall) {
+            entityA.signals.wallCollision.dispatch();
+
+        } else if (entityA && entityB) {
             contact.entityA.signals.beginCollision.dispatch(contact.entityB.name, contact.entityB);
             contact.entityB.signals.beginCollision.dispatch(contact.entityA.name, contact.entityA);
         }
@@ -445,11 +453,11 @@ export class Scene extends Module {
         const isAbove = (xA, yA, widthA, xB, yB, widthB) => yB >= yA && (xA > xB - widthA) && (xA < xB + widthB);
 
         switch (true) {
-            case ownerB instanceof Wall:
+            case Boolean(ownerB instanceof Wall) && Boolean(ownerA):
                 contactA = { bodyId: bodyB.id, isAbove: isAbove(ownerA.props.x, ownerA.props.y, ownerA.props.height, ownerB.props.x, ownerB.props.y, ownerB.props.width) };
                 break;
 
-            case ownerA instanceof Wall:
+            case Boolean(ownerA instanceof Wall) && Boolean(ownerB):
                 contactB = { bodyId: bodyA.id, isAbove: isAbove(ownerB.props.x, ownerB.props.y, ownerB.props.height, ownerA.props.x, ownerA.props.y, ownerA.props.width) };
                 break;
 
