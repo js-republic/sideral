@@ -1,14 +1,14 @@
-import { Module } from "./../Module";
+import { Graphics } from "./../Graphics";
 
 import { IShapeProps } from "./../Interface";
 
-import { Util, Enum } from "./../Tool/";
+import { Util, Enum, Color } from "./../Tool/";
 
 
 /**
  * The module to display shapes
  */
-export class Shape extends Module {
+export class Shape extends Graphics {
 
     /* ATTRIBUTES */
 
@@ -33,21 +33,13 @@ export class Shape extends Module {
         super();
 
         this.setProps({
-            stroke  : "#FF0000",
-            fill    : "#FFFFFF",
+            stroke  : Color.black,
+            strokeThickness: 1,
+            fill    : Color.white,
             box     : Enum.BOX.RECTANGLE
         });
 
-        this.signals.propChange.bind(["box", "fill", "stroke", "width", "height"], this._updateShape.bind(this));
-    }
-
-    /**
-     * @initialize
-     */
-    initialize (props): void {
-        super.initialize(props);
-
-        this._updateShape();
+        this.signals.propChange.bind(["box", "fill", "stroke", "strokeThickness", "width", "height", "radius"], this._updateShape.bind(this));
     }
 
 
@@ -64,7 +56,7 @@ export class Shape extends Module {
         this.container.clear();
 
         if (this.props.stroke !== "transparent" && !isNaN(stroke)) {
-            this.container.lineStyle(1, stroke, 1);
+            this.container.lineStyle(this.props.strokeThickness, stroke, 1);
         }
 
         this.container.beginFill(fill, this.props.fill === "transparent" ? 0 : 1);
@@ -77,7 +69,7 @@ export class Shape extends Module {
      * @private
      */
     _drawShape (): void {
-        const { x, y, width, height, box } = this.props;
+        const { x, y, width, height, radius, box } = this.props;
 
         switch (box) {
             case Enum.BOX.CIRCLE:
@@ -88,7 +80,12 @@ export class Shape extends Module {
                 }
                 break;
 
-            default: this.container.drawRect(x, y, width, height);
+            default: 
+                if (this.props.radius) {
+                    this.container.drawRoundedRect(x, y, width, height, radius);
+                } else {
+                    this.container.drawRect(x, y, width, height);
+                }
                 break;
         }
     }

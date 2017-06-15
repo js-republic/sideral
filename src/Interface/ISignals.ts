@@ -59,6 +59,31 @@ export interface IModuleSignals extends ISignals {
      * Signal emitted on click on the module
      */
     click: SignalEvent;
+
+    /**
+     * Signal emitted on doubleclick on the module
+     */
+    doubleClick: SignalEvent;
+
+    /**
+     * Signal emitted on right click on the module
+     */
+    rightClick: SignalEvent;
+
+    /**
+     * When mouse is hover
+     */
+    hover: SignalEvent;
+
+    /**
+     * When mouse enter in hover
+     */
+    hoverStart: SignalEvent;
+
+    /**
+     * When mouse is not hover anymore
+     */
+    hoverEnd: SignalEvent;
 }
 
 /**

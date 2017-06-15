@@ -1,6 +1,7 @@
 import { Scene, Text } from "sideral/Module";
-import { Enum, Assets } from "sideral/Tool";
+import { Enum, Assets, Color } from "sideral/Tool";
 import { Particles } from "sideral/Entity";
+import { Button } from "sideral/Graphics";
 
 import { Ball } from "./Ball";
 import { Goal } from "./Goal";
@@ -97,17 +98,36 @@ export class Arena extends Scene {
         this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true });
         this.score          = <Text> this.spawn(new Text(), this.props.width / 2, 10, {
             text: "0 - 0",
-            defaultStyle: {
-                fill: "white",
-                stroke: "black",
-                strokeThickness: 4
-            }
+            fill: "white",
+            stroke: "black",
+            strokeThickness: 4
         });
 
-        this.flameParticles = <Particles>this.add(new Particles(), {
+        this.flameParticles = <Particles> this.add(new Particles(), {
             images  : ["bolt", "fire"],
             config  : fireConfig,
             autoRun : false
+        });
+
+        (<any>this).button = <Button> this.spawn(new Button(), 1, 1, {
+            paddingHorizontal: 10,
+            paddingVertical: 10,
+            label: {
+                text: "Ceci est un bouton"
+            },
+            shape: {
+                stroke: Color.blue500,
+                strokeThickness: 2,
+                radius: 10
+            },
+            hover: {
+                label: {
+                    text: "Bouton on hover"
+                },
+                shape: {
+                    stroke: Color.red500
+                }
+            }
         });
 
         (<any>window).scene = this;

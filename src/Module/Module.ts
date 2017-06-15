@@ -31,6 +31,18 @@ export class Module extends SideralObject {
      */
     container: PIXI.Container = new PIXI.Container();
 
+    /**
+     * Know if the module is clickable
+     * @private
+     */
+    _clickable: boolean = false;
+
+    /**
+     * Know if it is the first mouse hover event fired
+     * @private
+     */
+    _mouseHover: boolean = false;
+
 
     /* LIFECYCLE */
 
@@ -52,7 +64,11 @@ export class Module extends SideralObject {
 
         this.timers = <TimerManager> this.add(new TimerManager());
 
-        this.signals.click = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.click          = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.doubleClick    = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.hover          = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.hoverStart     = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.hoverEnd       = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
 
         this.signals.propChange.bind("visible", this.onVisibleChange.bind(this));
         this.signals.propChange.bind(["x", "y", "width", "height", "angle"], this.updateContainerPosition.bind(this));
@@ -75,6 +91,14 @@ export class Module extends SideralObject {
         super.initialize(props);
 
         this.updateContainerPosition();
+    }
+
+    update (tick) {
+        super.update(tick);
+
+        if (this._mouseHover) {
+            this.signals.hover.dispatch();
+        }
     }
 
     /**
@@ -291,11 +315,16 @@ export class Module extends SideralObject {
      * Fired when a listener is added to the signal click
      */
     onBindClick (): void {
-        if (this.container && this.signals.click.listenerLength === 1) {
+        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength + this.signals.hover.listenerLength + this.signals.hoverStart.listenerLength + this.signals.hoverEnd.listenerLength;
+
+        if (!this._clickable && this.container && listeners >= 1) {
             this.container.interactive  = true;
             this.container.buttonMode   = true;
+            this._clickable             = true;
 
             this.container.on("click", this.signals.click.dispatch.bind(this));
+            this.container.on("mouseout", this._onMouseOutFired.bind(this));
+            this.container.on("mouseover", this._onMouseOverFired.bind(this));
         }
     }
 
@@ -303,11 +332,34 @@ export class Module extends SideralObject {
      * Fired when a listener is removed from the signal click
      */
     onRemoveClick (): void {
-        if (this.container && !this.signals.click.listenerLength) {
+        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength + this.signals.hover.listenerLength + this.signals.hoverStart.listenerLength + this.signals.hoverEnd.listenerLength;
+
+        if (this._clickable && this.container && !listeners) {
             this.container.interactive  = false;
             this.container.buttonMode   = false;
+            this._clickable             = false;
 
             this.container.off("click", this.signals.click.dispatch.bind(this));
+            this.container.off("mouseout", this._onMouseOutFired.bind(this));
+            this.container.off("mouseover", this._onMouseOverFired.bind(this));
         }
+    }
+
+    /**
+     * When mousehover event from pixi is fired
+     * @private
+     */
+    _onMouseOverFired (): void {
+        this._mouseHover = true;
+        this.signals.hoverStart.dispatch();
+    }
+
+    /**
+     * When mouseout event from pixi is fired
+     * @private
+     */
+    _onMouseOutFired (): void {
+        this._mouseHover = false;
+        this.signals.hoverEnd.dispatch();
     }
 }
