@@ -91,6 +91,21 @@ export interface ISceneProps extends IModuleProps {
     scale: number;
 
     /**
+     * If true, the size of the scene will be relative to the size of the game
+     */
+    sizeAuto: boolean;
+
+    /**
+     * The color of background of the scene
+     */
+    backgroundColor: string;
+
+    /**
+     * The alpha of the background color
+     */
+    backgroundAlpha: number;
+
+    /**
      * The power of gravity (only in y axis)
      */
     gravity: number;
@@ -223,6 +238,11 @@ export interface ISpriteProps extends IModuleProps {
      * If true, the sprite will be killed after the animation has finished
      */
     autoKill: boolean;
+
+    /**
+     * Set to true if the image used is a spritesheet. Set to false consider the sprite to display the image
+     */
+    spritesheet: boolean;
 }
 
 /**

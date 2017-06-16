@@ -1,9 +1,22 @@
 import { Howl, Howler } from "howler";
+import { Assets } from "./index";
 
 
 export class SoundLoader {
 
     /* ATTRIBUTES */
+
+    /**
+     * The percetange of progression
+     * @readonly
+     */
+    progress: number = 0;
+
+    /**
+     * Event to fired during the loading
+     * @readonly
+     */
+    onProgressEvent: Array<Function> = [];
 
     /**
      * Sound Manager provided by the loader
@@ -54,9 +67,12 @@ export class SoundLoader {
      * Load all sounds
      */
     load (onLoad?: Function): void {
-        this.onLoad = onLoad;
+        const sounds    = this.getAll(),
+            onProgress  = this._onProgress.bind(this);
 
-        this.getAll().forEach(sound => sound.load());
+        this.onLoad = onLoad;
+        sounds.forEach(sound => sound.once("load", onProgress));
+        sounds.forEach(sound => sound.load());
     }
 
     /**
@@ -64,6 +80,14 @@ export class SoundLoader {
      */
     getAll (): Array<Howl> {
         return Object.keys(this.sounds).map(key => this.sounds[key]);
+    }
+
+    /**
+     * Add an event with a callback fired during the loading
+     * @param callback - Function to load during the loading
+     */
+    onProgress (callback: Function): void {
+        this.onProgressEvent.push(callback);
     }
 
 
@@ -78,6 +102,17 @@ export class SoundLoader {
             this.manager.sounds = this.sounds;
             this.onLoad();
         }
+    }
+
+    /**
+     * Fired when the loading is in progress
+     */
+    _onProgress (): void {
+        const soundsKeys = Object.keys(this.sounds);
+
+        this.progress = (soundsKeys.filter(key => this.sounds[key].seek() >= 0).length / soundsKeys.length) * 100;
+
+        this.onProgressEvent.forEach(func => func(this.progress));
     }
 }
 

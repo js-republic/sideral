@@ -42,10 +42,11 @@ export class Assets {
 
     /**
      * Load all assets from an environment
-     * @param afterCallback - Callback to be launched after the full load
      * @param env - Environnement to load
+     * @param afterCallback - Callback to be launched after the full load
+     * @param onStepFunction - Function to be called to know the step of loading
      */
-    static load (afterCallback?: Function, env?: string): void {
+    static load (env?: string, afterCallback?: Function, onStepFunction?: Function): void {
         env = env || "global";
 
         let pixiLoaded      = false,
@@ -66,9 +67,17 @@ export class Assets {
             onPixiLoaded    = () => {
                 pixiLoaded = true;
                 onLoad();
+            },
+            stepFunction    = () => {
+                if (onStepFunction) {
+                    onStepFunction(Assets.getLoadProgress(env));
+                }
             };
 
         Assets.env = env;
+
+        loader.pixi.onProgress.add(stepFunction);
+        loader.sound.onProgress(stepFunction);
 
         loader.pixi.load(onPixiLoaded);
         loader.sound.load(onSoundLoaded);
@@ -210,5 +219,18 @@ export class Assets {
      */
     static getSound (env?: string): SoundManager {
         return this.getLoader(env).sound.manager;
+    }
+
+    /**
+     * Get the total progression of loading
+     * @param env - The environment target
+     * @returns The total progression of loading
+     */
+    static getLoadProgress (env?: string): number {
+        const loader        = Assets.getLoader(env),
+            pixiProgress    = loader.pixi.progress,
+            howlerProgress  = loader.sound.progress;
+
+        return Math.floor((pixiProgress + howlerProgress) / 2);
     }
 }

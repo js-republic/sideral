@@ -2,7 +2,6 @@ import { IModuleProps, ITextProps } from "./index";
 
 
 export interface IGraphicsProps extends IModuleProps {
-
 }
 
 /**
@@ -16,6 +15,11 @@ export interface IShapeProps extends IModuleProps {
     stroke: string;
 
     /**
+     * The alpha for the stroke
+     */
+    strokeAlpha: number;
+
+    /**
      * The sickness of the stroke
      */
     strokeThickness: number;
@@ -24,6 +28,11 @@ export interface IShapeProps extends IModuleProps {
      * The color of the fill
      */
     fill: string;
+
+    /**
+     * The alpha for the fill
+     */
+    fillAlpha: number;
 
     /**
      * The radius of the shape
@@ -42,11 +51,6 @@ export interface IButtonProps extends IGraphicsProps {
      * The label to be displayed within the button
      */
     label: ITextProps;
-
-    /**
-     * Shape Container of the button
-     */
-    shape: IShapeProps;
 
     /**
      * Properties when button is hover
@@ -82,4 +86,60 @@ export interface IButtonProps extends IGraphicsProps {
      * Automatic size the button related to the shape and text
      */
     sizeAuto: boolean;
+
+    /**
+     * Properties of the shape
+     */
+    shape: IShapeProps;
+}
+
+/**
+ * Properties of a Progress Object
+ */
+export interface IProgressProps extends IGraphicsProps {
+
+    /**
+     * The minimum value
+     */
+    min: number;
+
+    /**
+     * The maximum value
+     */
+    max: number;
+
+    /**
+     * The value of the progress
+     */
+    value: number;
+
+    /**
+     * Type of box (see Enum.BOX)
+     */
+    box: string;
+
+    /**
+     * The color of the stroke
+     */
+    strokeColor: string;
+
+    /**
+     * The alpha of the stroke color
+     */
+    strokeAlpha: number;
+
+    /**
+     * The thickness of the stroke
+     */
+    strokeThickness: number;
+
+    /**
+     * The color of the background
+     */
+    backgroundColor: string;
+
+    /**
+     * The alpha of the background color
+     */
+    backgroundAlpha: number;
 }

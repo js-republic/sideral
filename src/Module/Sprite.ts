@@ -55,6 +55,12 @@ export class Sprite extends Module {
     constructor () {
         super();
 
+        this.setProps({
+            spritesheet : true,
+            centered    : true
+        });
+
+        // TODO: add centered props 
         this.container.anchor.set(0.5, 0.5);
 
         this.signals.propChange.bind("imageId", this.onImageIdChange.bind(this));
@@ -207,9 +213,18 @@ export class Sprite extends Module {
         Assets.get(this.props.imageId, resource => {
             const texture = resource.texture;
 
-            texture.frame           = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
             this.container.texture  = texture;
             this.image              = resource.data;
+
+            if (!this.props.spritesheet) {
+                this.addAnimation("idle", 1, [0]);
+                this.setProps({
+                    width: this.image.width,
+                    height: this.image.height
+                });
+            }
+
+            texture.frame = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
 
             this.animations.forEach(animation => animation.textureFrames = this._framesToRectangles(animation.frames));
 

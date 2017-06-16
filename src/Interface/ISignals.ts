@@ -87,6 +87,16 @@ export interface IModuleSignals extends ISignals {
 }
 
 /**
+ * Signals emitted by the Scene object
+ */
+export interface ISceneSignals extends IModuleSignals {
+    /**
+     * Signal emitted during the loading of assets (used only if the scene is considered has the loader of the game)
+     */
+    progress: SignalEvent;
+}
+
+/**
  * Signals emitted by a Skill
  */
 export interface ISkillSignals extends ISignals {

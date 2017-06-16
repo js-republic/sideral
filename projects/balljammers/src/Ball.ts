@@ -4,7 +4,7 @@ import { Enum, Assets } from "sideral/Tool";
 
 import { Goal } from "./Goal";
 import { Player } from "./Player/Player";
-import { Arena } from "./Arena";
+import { Arena } from "./Scenes/Arena";
 
 import * as trailConfig from "./Particles/trail.json";
 

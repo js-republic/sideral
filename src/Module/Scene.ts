@@ -1,9 +1,10 @@
 import { Material, World, ContactMaterial, Body } from "p2";
 
-import { Enum, Util, Assets } from "./../Tool";
+import { Enum, Util, Assets, Color, SignalEvent } from "./../Tool";
 import { Entity, Wall, Physic } from "./../Entity";
 import { Module, Tilemap } from "./index";
-import { ISceneProps, IContact } from "./../Interface";
+import { Shape } from "./../Graphics";
+import { ISceneProps, ISceneSignals, IContact } from "./../Interface";
 
 
 /**
@@ -12,6 +13,11 @@ import { ISceneProps, IContact } from "./../Interface";
 export class Scene extends Module {
 
     /* ATTRIBUTES */
+
+    /**
+     * Signals of the scene
+     */
+    signals: ISceneSignals;
 
     /**
      * Properties of the scene
@@ -23,6 +29,12 @@ export class Scene extends Module {
      * @private
      */
     _entities: Array<Entity> = null;
+
+    /**
+     * Background graphics
+     * @private
+     */
+    _background: Shape;
 
     /**
      * The tilemap of the scene
@@ -70,12 +82,15 @@ export class Scene extends Module {
         this.setProps({
             scale       : 1,
             motionFactor: 1,
-            gravity     : 0
+            gravity     : 0,
+            sizeAuto    : true
         });
 
-        this.context.scene  = this;
+        this.signals.progress   = new SignalEvent();
+        this.context.scene      = this;
 
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
+        this.signals.propChange.bind(["backgroundColor", "backgroundAlpha"], this.onBackgroundChange.bind(this));
     }
 
     /**
@@ -340,6 +355,32 @@ export class Scene extends Module {
     onGravityChange (): void {
         if (this.world) {
             this.world.gravity = [0, Util.pixelToMeter(this.props.gravity)];
+        }
+    }
+
+    /**
+     * When backgrounds attributes has changed
+     */
+    onBackgroundChange (): void {
+        const { backgroundColor, backgroundAlpha } = this.props;
+
+        if (!this._background && backgroundColor) {
+            this._background = <Shape> this.add(new Shape(), {
+                stroke      : Color.transparent,
+                width       : this.props.width,
+                height      : this.props.height,
+                fill        : backgroundColor,
+                fillAlpha   : backgroundAlpha
+            }, 0);
+
+        } else if (this._background && !backgroundColor) {
+            this._background.kill();
+            this._background = null;
+
+        } else {
+            this._background.props.fill = backgroundColor;
+            this._background.props.fillAlpha = backgroundAlpha;
+
         }
     }
 

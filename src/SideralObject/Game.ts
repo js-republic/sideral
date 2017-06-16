@@ -69,6 +69,12 @@ export class Game extends SideralObject {
     stopped: boolean = true;
 
     /**
+     * The scene used for loading
+     * @private
+     */
+    _loadingScene: Scene;
+
+    /**
      * The keyboard event manager (you must enable it before use it)
      * @readonly
      */
@@ -135,7 +141,7 @@ export class Game extends SideralObject {
     /**
      * @override 
      */
-    add(item: SideralObject, props: any = {}): SideralObject {
+    add (item: SideralObject, props: any = {}): SideralObject {
         if (!this.loaded) {
             this._addQueue.push({ item: item, props: props });
 
@@ -143,6 +149,31 @@ export class Game extends SideralObject {
         }
 
         return super.add(item, props);
+    }
+
+    /**
+     * 
+     * @param loadingScene - Scene to run when the game is loading
+     */
+    addLoadingScene (loadingScene: Scene): Scene {
+        this._loadingScene = <Scene> super.add(loadingScene);
+
+        return this._loadingScene;
+    }
+
+    /**
+     * Load assets
+     * @param env - The environment to load
+     * @param loadingScene - Scene to use for loading
+     */
+    loadAssets (env?: string, loadingScene?: Scene): void {
+        Assets.load(env, () => {
+            this.loaded = true;
+            this._addQueue.forEach(queue => this.add(queue.item, queue.props));
+
+            this._addQueue = [];
+
+        }, progress => this._loadingScene && this._loadingScene.signals.progress.dispatch(progress));
     }
 
     /**
@@ -166,15 +197,8 @@ export class Game extends SideralObject {
         this.stopped = false;
         this.attach(container);
         this._resizeGame();
-
-        // Load the global assets
-        Assets.load(() => {
-            this.loaded = true;
-            this._addQueue.forEach(queue => this.add(queue.item, queue.props));
-
-            this._addQueue = [];
-            this.update();
-        });
+        this.loadAssets();
+        this.update();
 
         return this;
     }
@@ -249,6 +273,11 @@ export class Game extends SideralObject {
         if (!this.renderer) {
             return null;
         }
+
+        this.getScenes().filter(scene => scene.props.sizeAuto).forEach(scene => {
+            scene.props.width = this.props.width;
+            scene.props.height= this.props.height;
+        });
 
         this.renderer.resize(this.props.width, this.props.height);
     }

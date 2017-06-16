@@ -3,13 +3,13 @@ import { Enum, Assets, Color } from "sideral/Tool";
 import { Particles } from "sideral/Entity";
 import { Button } from "sideral/Graphics";
 
-import { Ball } from "./Ball";
-import { Goal } from "./Goal";
+import { Ball } from "./../Ball";
+import { Goal } from "./../Goal";
 
-import { PlayerCat } from "./Player/Cat/Cat";
+import { PlayerCat } from "./../Player/Cat/Cat";
 
-import * as tilemapGrass from "./../tilemaps/grass.json";
-import * as fireConfig from "./Particles/flame.json";
+import * as tilemapGrass from "./../../tilemaps/grass.json";
+import * as fireConfig from "./../Particles/flame.json";
 
 
 // Preload
@@ -107,27 +107,6 @@ export class Arena extends Scene {
             images  : ["bolt", "fire"],
             config  : fireConfig,
             autoRun : false
-        });
-
-        (<any>this).button = <Button> this.spawn(new Button(), 1, 1, {
-            paddingHorizontal: 10,
-            paddingVertical: 10,
-            label: {
-                text: "Ceci est un bouton"
-            },
-            shape: {
-                stroke: Color.blue500,
-                strokeThickness: 2,
-                radius: 10
-            },
-            hover: {
-                label: {
-                    text: "Bouton on hover"
-                },
-                shape: {
-                    stroke: Color.red500
-                }
-            }
         });
 
         (<any>window).scene = this;

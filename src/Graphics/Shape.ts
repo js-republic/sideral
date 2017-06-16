@@ -33,13 +33,15 @@ export class Shape extends Graphics {
         super();
 
         this.setProps({
-            stroke  : Color.black,
+            stroke  : Color.transparent,
+            strokeAlpha: 1,
             strokeThickness: 1,
             fill    : Color.white,
+            fillAlpha: 1,
             box     : Enum.BOX.RECTANGLE
         });
 
-        this.signals.propChange.bind(["box", "fill", "stroke", "strokeThickness", "width", "height", "radius"], this._updateShape.bind(this));
+        this.signals.propChange.bind(["box", "fill", "stroke", "strokeThickness", "strokeAlpha", "fillAlpha", "width", "height", "radius"], this._updateShape.bind(this));
     }
 
 
@@ -55,11 +57,11 @@ export class Shape extends Graphics {
 
         this.container.clear();
 
-        if (this.props.stroke !== "transparent" && !isNaN(stroke)) {
-            this.container.lineStyle(this.props.strokeThickness, stroke, 1);
+        if (this.props.stroke !== Color.transparent && !isNaN(stroke)) {
+            this.container.lineStyle(this.props.strokeThickness, stroke, this.props.strokeAlpha);
         }
 
-        this.container.beginFill(fill, this.props.fill === "transparent" ? 0 : 1);
+        this.container.beginFill(fill, this.props.fill === Color.transparent ? 0 : this.props.fillAlpha);
         this._drawShape();
         this.container.endFill();
     }
