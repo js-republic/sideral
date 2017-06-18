@@ -15,6 +15,21 @@ export interface ILoader {
      * Sound manager
      */
     sound: SoundLoader;
+
+    /**
+     * Know if the loaders are running
+     */
+    loading: boolean;
+
+    /**
+     * When Loader is loaded
+     */
+    onLoaded: Function;
+
+    /**
+     * Object in queue (asynchronous loading)
+     */
+    queue: Array<any>;
 }
 
 
@@ -74,7 +89,13 @@ export class Assets {
                 }
             };
 
-        Assets.env = env;
+        Assets.env      = env;
+        loader.loading  = true;
+        loader.onLoaded = afterCallback;
+
+        if (loader.queue.length) {
+            return null;
+        }
 
         loader.pixi.onProgress.add(stepFunction);
         loader.sound.onProgress(stepFunction);
@@ -95,6 +116,27 @@ export class Assets {
         if (!loader.pixi.resources[id]) {
             loader.pixi.add(id, url);
         }
+
+        if (loader.queue.find(x => x === id)) {
+            loader.queue = loader.queue.filter(x => x !== id);
+
+            if (!loader.queue.length && loader.loading) {
+                Assets.load(env)
+            }
+        }
+
+        return Assets;
+    }
+
+    static preloadBase64 (id: string, base64: string, env?: string): typeof Assets {
+        const loader = Assets.getLoader(env);
+
+        loader.queue.push(id);
+
+        fetch(base64)
+            .then(res => res.blob())
+            .then(blob => URL.createObjectURL(blob))
+            .then(url => Assets.preload(id, url, env));
 
         return Assets;
     }
@@ -151,8 +193,11 @@ export class Assets {
 
         if (!loader) {
             loader = Assets.Loaders[env] = {
-                pixi: new PIXI.loaders.Loader(),
-                sound: new SoundLoader()
+                pixi    : new PIXI.loaders.Loader(),
+                sound   : new SoundLoader(),
+                queue   : [],
+                onLoaded: null,
+                loading : false
             };
         }
 

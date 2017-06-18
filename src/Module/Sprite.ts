@@ -60,10 +60,8 @@ export class Sprite extends Module {
             centered    : true
         });
 
-        // TODO: add centered props 
-        this.container.anchor.set(0.5, 0.5);
-
         this.signals.propChange.bind("imageId", this.onImageIdChange.bind(this));
+        this.signals.propChange.bind("centered", this.onCenteredChange.bind(this));
     }
 
     /**
@@ -72,11 +70,14 @@ export class Sprite extends Module {
      * @override
      */
     initialize (props: any = {}) {
-        const width = props.width || this.props.width,
-            height  = props.height || this.props.height;
+        const width     = props.width || this.props.width,
+            height      = props.height || this.props.height,
+            centered    = typeof props.centered !== "undefined" ? props.centered : this.props.centered;
 
-        props.x     = (props.x || 0) + (width / 2);
-        props.y     = (props.y || 0) + (height / 2);
+        if (centered) {
+            props.x     = (props.x || 0) + (width / 2);
+            props.y     = (props.y || 0) + (height / 2);
+        }
 
         super.initialize(props);
     }
@@ -183,6 +184,18 @@ export class Sprite extends Module {
 
 
     /* EVENTS */
+
+    /**
+     * When "centered" attributes has changed
+     */
+    onCenteredChange (): void {
+        if (this.props.centered) {
+            this.container.anchor.set(0.5, 0.5);
+
+        } else {
+            this.container.anchor.set(0, 0);
+        }
+    }
 
     /**
      * When timer of a frame is finished

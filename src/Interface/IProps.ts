@@ -243,6 +243,11 @@ export interface ISpriteProps extends IModuleProps {
      * Set to true if the image used is a spritesheet. Set to false consider the sprite to display the image
      */
     spritesheet: boolean;
+
+    /**
+     * If true, the position of the sprite will be centered when initialized
+     */
+    centered: boolean;
 }
 
 /**
