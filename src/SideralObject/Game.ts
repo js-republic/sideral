@@ -1,5 +1,6 @@
-import { SideralObject, Keyboard } from "./index";
-import { Scene } from "./../Module";
+import { SideralObject, Keyboard } from "./../SideralObject";
+import { Scene, SceneLoading } from "./../Module";
+import { Shape } from "./../Graphics";
 import { Util, Assets } from "./../Tool";
 import { IGameProps } from "./../Interface";
 
@@ -101,8 +102,9 @@ export class Game extends SideralObject {
     constructor () {
         super();
 
-        this.renderer       = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
+        this.renderer       = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false, antialias: true });
         this.context.game   = this;
+        this.setLoadingScene(new SceneLoading());
 
         this.signals.propChange.bind(["width", "height"], this._resizeGame.bind(this));
         this.signals.propChange.bind("background", this._backgroundChange.bind(this));
@@ -152,10 +154,11 @@ export class Game extends SideralObject {
     }
 
     /**
-     * 
+     * Set a scene used for loading screen
      * @param loadingScene - Scene to run when the game is loading
+     * @return The LoadingScene
      */
-    addLoadingScene (loadingScene: Scene): Scene {
+    setLoadingScene (loadingScene: Scene): Scene {
         this._loadingScene = <Scene> super.add(loadingScene);
 
         return this._loadingScene;
@@ -168,10 +171,20 @@ export class Game extends SideralObject {
      */
     loadAssets (env?: string, loadingScene?: Scene): void {
         Assets.load(env, () => {
-            this.loaded = true;
-            this._addQueue.forEach(queue => this.add(queue.item, queue.props));
+            const done = () => {
+                this.loaded = true;
+                this._addQueue.forEach(queue => this.add(queue.item, queue.props));
 
-            this._addQueue = [];
+                this._addQueue = [];
+            };
+
+            if (this._loadingScene) {
+                this._loadingScene.onAssetsLoaded(done);
+
+            } else {
+                done();
+
+            }
 
         }, progress => this._loadingScene && this._loadingScene.signals.progress.dispatch(progress));
     }

@@ -1,5 +1,4 @@
-import { Graphics, Shape } from "./index";
-import { Text } from "./../Module";
+import { Graphics, Shape, Text } from "./index";
 import { IButtonProps, ITextProps, IShapeProps } from "./../Interface";
 
 

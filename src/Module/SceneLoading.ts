@@ -1,9 +1,10 @@
-import { Scene, Sprite } from "sideral/Module";
-import { Assets, Color } from "sideral/Tool";
-import { Progress } from "sideral/Graphics";
+import { Scene, Sprite, Transition } from "./../Module";
+import { Assets, Color } from "./../Tool";
+import { Progress, Text, Spinner } from "./../Graphics";
 
 
-Assets.preload("jsRepublic", "images/js-republic.png")
+Assets.preloadBase64("jsRepublic", "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKUAAAA8CAMAAAAwnIpjAAAC/VBMVEX///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////9SksSbAAAAAXRSTlMAQObYZgAAAAFiS0dEAIgFHUgAAAAJcEhZcwAACxMAAAsTAQCanBgAAAAHdElNRQfhBhITHDnDjsBPAAACvklEQVRo3u3Z30vcMBwA8PztG2xw+HC+bKhTpg/DIQNxIFPkcBtz+jAFN7w59rAfuLEqDq7jnHe3L+abtL0kJmlyG/Sb4Rf0mmubfsw3SdPKmCs2nzD6ATxSMFJ35gi8ew9/n1E1PkbdZ9zKcGuObrKtBTrx3mRRdCJpVv9queoAFJNtDibaRlJp30PIziR/Ao2GLG6YeMA72kaMYbPNOQi9fINp34hJJR67ksDap5nmjL7ofBLK1o3yP1Yu4SR1drsp5e4IvjqUT8WsOFIeK3isOpSvQH32UE5QS3dEQWkXdaeoed/cXS7GMU69SgD9qn4luJXQ8yhFyaLEPcNH98/lEU7l0I68plRSApBpfUl+9uQuUykL3xxKXt+BL" +
+        "He8SohSMreSb3SdSr6xa1F2DZVfeSiXwZd/qQSf8tiiBMgjlIOamShQ+cuntGT8gYmqy/iXMOVvr9LdL+2jB2KVPI5qlevVqB4UUUGmykHqGOOnzKo8ClQ+tA+eCeZL8M2XP+3KhUClNhVNuZVZ1h+n72JRxpIoZTy+r+npD8z4WqiSzQXN6qKOH0Vd1n7pU+JbHptyEKzk8adUvvT2y+p+Ea9kNuVe8OgxXhLWKKFWOR+hZNFKFqDkxyz6lSOdVae8qLv3vBWoHPesj5Uf/cq8uLRTyaoqwJzVwXEfr5tAeWwFr4m01YZ6gl7xgaxku+oc3U6n82a8JqrOU9ZE5cgwlcpFNqKUy3VK9lyrSq/ZomSXxtxrQYKzKY1oT5cb7Tb+lDGN3xjHHis1yaNaTCu2ZSVq88P59X6pqjZDkI0895SqsoFe9GBE4gWr3lK30PiJ3ov0BP75lJKykbdokziH9JliXnqWRnOm0j0TcLbGtyPScYLOmZu0/0vna/rMlQRHe07c2ZcbfcLMD+LmfkI++cVqeCaF7pnAKJpdpWO5AlQ8kQSijBntAAAAAElFTkSuQmCC")
     .preloadBase64("sideral", "data:image/png;base64,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" +
@@ -19,7 +20,7 @@ Assets.preload("jsRepublic", "images/js-republic.png")
         "JkUFWUp0+27Lj7+VcfN4U4QkSnbWDGgFVYVmMKMcnH+bQdH//A54Z1gyQkkyWceC0l4a7nXt73ybkz6pfWVCV14T3XikDUl8lm79ny+rGNExvL7pg5bQLlDweS7n4pdnsggiTbrpGjsTW7RagDPEopJYEgAorKfnnwyKt/9eK2JwIKPw7glI0qpwDo/XffKSh23/2TYFXc1fdnMuXIGREQAtYBNiQ1RdN9CssR0RBZPxywTbR++2+nSC7r0jrC0TbFJm+f/O0cnZIAUE1AbV86Ww5hxkEUAKCO6Y9bDHyQMCHlMAj98VCoR0rZahNSdwH6524aEcRIDbzDUBEAESFlUEr4c0JoOcNgkJIBspT8fmdMaRAGQn5/j2I1JWxzaWjTZUk4PSkCsHpSRO07bn9GhJQhQ4hAWjc4TJPZpKFDysFwONinELXJEdDGsJ9VSYTa4ZxenUtno2DMOe6SjcNAEpA5SDHENa0v4vd32Ka5Eww37fEmANRwotqegcEEGI+D4AeNpIeNu3cAYoEA78/mBEzTOSPUCwrgwK4ypGk8Y5gwszmJwnw1uhCOfGHEcsSPlDqETPGAry+iqh32+nZgJCHadEy4AfvFuXjA30MBCkq7bNXStFK3mSODkfrwtOt2yrONC2mdCwzatJ87YMNIuXjQ10egoBxJG/cEGtmMOySl7HecdIwu2pMF9ruDiqVsonYYys+IAiBoAca1oNW6haP04hjTXo9he0x9GEmkNYtkDQh7DhnXmEI2IwQZkV/j3O/jXHUdK2cAyEgpB6Q1Z8dMFPb/g5TIBVS1P6RpYXtNFQ9zsUAlICulHJRS9tlrOmivqSMgGQCYUmbi0UjMXj/NIwOM6AEpEfdpDvRMpfzW+X1EYwSfxjww7rjPK1iDjJRyUFpr2+toHvf3KXbf/c5xgEF7w1QX8UoXcxR2KHGXtuYJwgPzuE05p5WWoxV8GGGeUjbCyPtT1u34F6N8sCI98BxNqNpjcP52yjz4JW6KdDFqxgUg6AAM93gKzmPiLk3pjMl9eLBbujuCI+vyrQwXcfvtO4CRQ4e9nX84wtC5gjV1hKRzcof7+T4UpPpfAuHSJRI+FcyNLuHdXtdAByCcPaTYffdzF8G4iQYXkN6iEM7zyjQXYSJnQ9xHtHsOA7mkvulGi5zOKRd4b+HR8O7bWQP2NjZWurSB4Vq/outVwNxUsBYcxdPphYuR3JrN3edMcT0DHhnIBYfnx19Ygs9c73DXybyDJy8VHSsVMCBdpudK1/oaBXQ1SgO5N6zYAGRhsLNUbeOBiehtEmzhpGWJmpDehiQbT8JJl08oLvOYJArag7k0WrF1fTvjL9TkKKAbvMvM48nBuQx7h4spCyrYtItel4NhPBDO27re7hgvxxgu95qNN6aLvePdWNPLvWb/jQwk/zvo/sp15bpyXbmuXFeu0q//H7+cBxJi3gYIAAAAAElFTkSuQmCC");
 
 
-export class Loading extends Scene {
+export class SceneLoading extends Scene {
 
     /* ATTRIBUTES */
 
@@ -37,6 +38,16 @@ export class Loading extends Scene {
      * The sprite to display Sideral logo
      */
     spriteSideral: Sprite;
+
+    /**
+     * Text used for loading
+     */
+    textLoading: Text;
+
+    /**
+     * The spinner
+     */
+    spinner: Spinner;
 
 
     /* LIFECYCLE */
@@ -56,7 +67,7 @@ export class Loading extends Scene {
         this.progress = <Progress> this.add(new Progress(), {
             width: 300,
             height: 50,
-            strokeColor: Color.red500,
+            strokeColor: Color.cyan400,
             backgroundColor: Color.white
         });
 
@@ -66,12 +77,20 @@ export class Loading extends Scene {
             centered: false
         });
 
-        this.spriteSideral = <Sprite> this.spawn(new Sprite(), this.props.width - 300, 0, {
+        this.spriteSideral = <Sprite> this.spawn(new Sprite(), 0, 0, {
             spritesheet: false,
             centered: false,
             imageId: "sideral"
         });
 
+        this.textLoading = <Text> this.spawn(new Text(), 0, 0, {
+            text: "Now loading...",
+            fill: Color.white
+        });
+
+        this.spinner = <Spinner> this.spawn(new Spinner(), 0, 0);
+
+        this.textLoading.signals.propChange.bind(["width", "height"], this.onTextLoadingChange.bind(this));
         this.onSizeChange();
     }
 
@@ -90,6 +109,30 @@ export class Loading extends Scene {
         if (this.spriteJSR) {
             this.spriteJSR.props.y = this.props.height - 70;
         }
+
+        if (this.spriteSideral) {
+            this.spriteSideral.props.x = (this.props.width / 2) - 100;
+            this.spriteSideral.props.y = (this.props.height / 2) - 110;
+        }
+
+        this.onTextLoadingChange();
+    }
+
+    /**
+     * When size attributes of the text has changed
+     */
+    onTextLoadingChange (): void {
+        if (this.textLoading) {
+            const offsetX = (this.spinner ? this.spinner.props.width + 30 : 0) + 20;
+
+            this.textLoading.props.x = this.props.width - this.textLoading.props.width - offsetX;
+            this.textLoading.props.y = this.props.height - this.textLoading.props.height - 20;
+        }
+
+        if (this.spinner) {
+            this.spinner.props.x = this.props.width - this.spinner.props.width - 30;
+            this.spinner.props.y = this.props.height - this.spinner.props.height - 22;
+        }
     }
 
     /**
@@ -99,5 +142,15 @@ export class Loading extends Scene {
         if (this.progress) {
             this.progress.props.value = progress;
         }
+
+        if (progress === 100) {
+            this.spinner.kill();
+            this.textLoading.props.text = "Loaded !";
+            this.textLoading.props.fill = Color.green400;
+        }
+    }
+
+    onAssetsLoaded (done: Function): void {
+        this.fade("out", Color.black, 1500, done);
     }
 }

@@ -80,6 +80,7 @@ export class Sprite extends Module {
         }
 
         super.initialize(props);
+        this.onCenteredChange();
     }
 
 

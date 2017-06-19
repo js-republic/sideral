@@ -27,6 +27,11 @@ export interface ILoader {
     onLoaded: Function;
 
     /**
+     * When Loader is loading
+     */
+    onStep: Function;
+
+    /**
      * Object in queue (asynchronous loading)
      */
     queue: Array<any>;
@@ -70,9 +75,9 @@ export class Assets {
 
         const loader        = Assets.getLoader(env),
             onLoad          = () => {
-                if (afterCallback && soundLoaded && pixiLoaded && !callbackCalled) {
+                if (loader.onLoaded && soundLoaded && pixiLoaded && !callbackCalled) {
                     callbackCalled = true;
-                    afterCallback();
+                    loader.onLoaded();
                 }
             },
             onSoundLoaded   = () => {
@@ -84,16 +89,17 @@ export class Assets {
                 onLoad();
             },
             stepFunction    = () => {
-                if (onStepFunction) {
-                    onStepFunction(Assets.getLoadProgress(env));
+                if (loader.onStep) {
+                    loader.onStep(Assets.getLoadProgress(env));
                 }
             };
 
         Assets.env      = env;
         loader.loading  = true;
-        loader.onLoaded = afterCallback;
+        loader.onLoaded = afterCallback || loader.onLoaded;
+        loader.onStep   = onStepFunction || loader.onStep;
 
-        if (loader.queue.length) {
+        if (loader.queue.filter(queue => !queue.loaded).length) {
             return null;
         }
 
@@ -109,18 +115,20 @@ export class Assets {
      * @param id - Id of the image
      * @param url - Url of the image to preload
      * @param env - Choose an environment to preload the assets
+     * @param options - Options to pass to the pixi Resource-Loader
      */
-    static preload (id: string, url: string, env?: string): typeof Assets {
-        const loader = Assets.getLoader(env);
+    static preload (id: string, url: string, env?: string, options?: any): typeof Assets {
+        const loader    = Assets.getLoader(env),
+            queue       = loader.queue.find(x => x.id === id);
 
         if (!loader.pixi.resources[id]) {
-            loader.pixi.add(id, url);
+            loader.pixi.add(id, url, options);
         }
 
-        if (loader.queue.find(x => x === id)) {
-            loader.queue = loader.queue.filter(x => x !== id);
+        if (queue) {
+            queue.loaded = true;
 
-            if (!loader.queue.length && loader.loading) {
+            if (!loader.queue.filter(queue => !queue.loaded).length && loader.loading) {
                 Assets.load(env)
             }
         }
@@ -129,14 +137,15 @@ export class Assets {
     }
 
     static preloadBase64 (id: string, base64: string, env?: string): typeof Assets {
-        const loader = Assets.getLoader(env);
+        const loader    = Assets.getLoader(env),
+            queue       = { id: id, loaded: false };
 
-        loader.queue.push(id);
+        loader.queue.push(queue);
 
         fetch(base64)
             .then(res => res.blob())
             .then(blob => URL.createObjectURL(blob))
-            .then(url => Assets.preload(id, url, env));
+            .then(url => Assets.preload(id, base64, env, { loadType: PIXI.loaders.Resource.LOAD_TYPE.IMAGE }));
 
         return Assets;
     }
@@ -197,6 +206,7 @@ export class Assets {
                 sound   : new SoundLoader(),
                 queue   : [],
                 onLoaded: null,
+                onStep  : null,
                 loading : false
             };
         }
@@ -211,8 +221,11 @@ export class Assets {
      * @param env - The environment to get the resource
      */
     static get (id: Array<string> | string, onLoad: Function, env?: string): void {
-        const loader = Assets.getLoader(env);
-        let resources = Array.isArray(id) ? id.map(x => loader.pixi.resources[x]) : loader.pixi.resources[id],
+        const loader        = Assets.getLoader(env),
+            findResource    = id => loader.pixi.resources[id],
+            resourceExists  = id => loader.pixi.resources[id] || loader.queue.find(queue => queue.id === id);
+
+        let resources = Array.isArray(id) ? id.map(resourceExists) : resourceExists(id),
             validated = false;
 
         if (Array.isArray(resources)) {
@@ -233,7 +246,7 @@ export class Assets {
             onLoad(resources);
 
         } else {
-            loader.pixi.onComplete.add(() => onLoad(resources));
+            loader.pixi.onComplete.add(() => onLoad(Array.isArray(id) ? id.map(findResource) : findResource(id)));
         }
     }
 

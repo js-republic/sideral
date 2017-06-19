@@ -143,3 +143,160 @@ export interface IProgressProps extends IGraphicsProps {
      */
     backgroundAlpha: number;
 }
+
+/**
+ * Properties of a Spinner
+ */
+export interface ISpinnerProps extends IGraphicsProps {
+
+    /**
+     * Color of the spinner
+     */
+    color: string;
+
+    /**
+     * Number of lines of the spinner
+     */
+    lines: number;
+
+    /**
+     * Speed of rotation
+     */
+    speed: number;
+
+    /**
+     * The width of a line
+     */
+    lineWidth: number;
+
+    /**
+     * The height of a line
+     */
+    lineHeight: number;
+
+    /**
+     * Center spacing between all lines
+     */
+    centerSpacing: number;
+}
+
+/**
+ * Properties of a Text
+ */
+export interface ITextProps extends IGraphicsProps {
+
+    /**
+     * The text to be drawn
+     */
+    text: string;
+
+    /**
+     * Alignment for multiline text ("left", "center" or "right"), does not affect single line text
+     */
+    align: string;
+
+    /**
+     * Indicates if lines can be wrapped within words, it needs wordWrap to be set to true
+     */
+    breakWords: boolean;
+
+    /**
+     * Set a drop shadow for the text
+     */
+    dropShadow: boolean;
+
+    /**
+     * Alpha of the drop shadow
+     */
+    dropShadowAlpha: number;
+
+    /**
+     * Angle of the drop shadow (in degree)
+     */
+    dropShadowAngle: number;
+
+    /**
+     * Blur radius of the drop shadow
+     */
+    dropShadowBlur: number;
+
+    /**
+     * Color of the drop shadow
+     */
+    dropShadowColor: string | number;
+
+    /**
+     * Distance of the drop shadow
+     */
+    dropShadowDistance: number;
+
+    /**
+     * The fill color of the text
+     */
+    fill: string | number;
+
+    /**
+     * The font family used to display the text (can be a array of font families)
+     */
+    fontFamily: string | Array<string>;
+
+    /**
+     * The size of the font
+     */
+    fontSize: number | string;
+
+    /**
+     * The style of the font ("normal", "italic" or "oblique")
+     */
+    fontStyle: string;
+
+    /**
+     * The variant of the font ("normal" or "smalcaps");
+     */
+    fontVariant: string;
+
+    /**
+     * The weight of the font ("normal", "bold", "bolder", "thin" or "lighter")
+     */
+    fontWeight: string;
+
+    /**
+     * The amount of spacing between letters
+     */
+    letterSpacing: number;
+
+    /**
+     * The vertical spaces between letters
+     */
+    lineHeight: number;
+
+    /**
+     * Padding of the text if its cropped
+     */
+    padding: number;
+
+    /**
+     * The stroke color of the text
+     */
+    stroke: number | string;
+
+    /**
+     * The thickness of the stroke style of the text
+     */
+    strokeThickness: number;
+
+    /**
+     * The baseline of the text
+     */
+    textBaseline: string;
+
+    /**
+     * Indicates if word wrap should be used
+     */
+    wordWrap: boolean;
+
+    /**
+     * The width at which text will wrap, it needs wordWrap to be set to true
+     */
+    wordWrapWidth: number;
+}

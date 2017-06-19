@@ -2,7 +2,7 @@ import { Material, World, ContactMaterial, Body } from "p2";
 
 import { Enum, Util, Assets, Color, SignalEvent } from "./../Tool";
 import { Entity, Wall, Physic } from "./../Entity";
-import { Module, Tilemap } from "./index";
+import { Module, Tilemap } from "./../Module";
 import { Shape } from "./../Graphics";
 import { ISceneProps, ISceneSignals, IContact } from "./../Interface";
 
@@ -67,8 +67,15 @@ export class Scene extends Module {
 
     /**
      * All physic in queue
+     * @private
      */
     _physicQueue: Array<Physic> = [];
+
+    /**
+     * Fade Shape
+     * @private
+     */
+    _fade: Shape;
 
 
     /* LIFECYCLE */
@@ -133,6 +140,39 @@ export class Scene extends Module {
 
 
     /* METHODS */
+
+    /**
+     * Create a fade effect
+     * @param fadeType - Type of fade ("in" or "out")
+     * @param color - The color of the fade effect
+     * @param duration - Duration of the effect
+     * @param onComplete - Function to be called on effect complete
+     * @returns The fade object
+     */
+    fade (fadeType: string, color: string, duration: number, onComplete?: Function): Shape {
+        if (!this._fade) {
+            this._fade = <Shape> this.add(new Shape(), {
+                width   : this.props.width,
+                height  : this.props.height,
+                fill    : color,
+                fillAlpha: fadeType === "in" ? 1 : 0
+            });
+
+        }
+
+        this.timers.addTimer("fade", duration, () => {
+                this._fade.props.fillAlpha = fadeType === "in" ? 0 : 1;
+                if (onComplete) {
+                    onComplete();
+                }
+
+            }, {
+                update: (tick, value, ratio) => this._fade.props.fillAlpha = fadeType === "in" ? 1 - ratio : ratio
+            }
+        );
+
+        return this._fade;
+    }
 
     /**
      * Enable world physics
@@ -382,6 +422,14 @@ export class Scene extends Module {
             this._background.props.fillAlpha = backgroundAlpha;
 
         }
+    }
+
+    /**
+     * Event trigger by the game when all assets are loaded
+     * @param done - Function to call to end the loading
+     */
+    onAssetsLoaded (done: Function): void {
+        done();
     }
 
 

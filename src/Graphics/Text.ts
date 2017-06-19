@@ -1,9 +1,9 @@
-import { Module } from "./index";
+import { Graphics } from "./index";
 import { Util, Color } from "./../Tool";
 import { ITextProps } from "./../interface";
 
 
-export class Text extends Module {
+export class Text extends Graphics {
 
     /* ATTRIBUTES */
 
@@ -15,7 +15,7 @@ export class Text extends Module {
     /**
      * Special container for Text
      */
-    container: PIXI.Text;
+    textContainer: PIXI.Text;
 
 
     /* CONSTRUCTOR */
@@ -48,7 +48,8 @@ export class Text extends Module {
             wordWrapWidth: 100
         });
 
-        this.container = new PIXI.Text(this.props.text);
+        this.textContainer = new PIXI.Text(this.props.text);
+        this.container.addChild(this.textContainer);
         this.signals.propChange.bind("text", this._onTextChange.bind(this));
         this.signals.propChange.bind(["align", "breakWords", "dropShadow", "dropShadowAlpha", "dropShadowAngle", "dropShadowColor", "dropShadowDistance", "fill", "fontFamily", "fontSize", "fontStyle", "fontVariant",
             "fontWeight", "letterSpacing", "lineHeight", "padding", "stroke", "strokeThickness", "textBaseline", "wordWrap", "wordWrapWidth"], this._onStyleChange.bind(this));
@@ -70,7 +71,7 @@ export class Text extends Module {
      * When "text" property has changed
      */
     _onTextChange (): void {
-        this.container.text = this.props.text;
+        this.textContainer.text = this.props.text;
     }
 
     /**
@@ -80,26 +81,26 @@ export class Text extends Module {
         const { align, breakWords, dropShadow, dropShadowAlpha, dropShadowAngle, dropShadowColor, dropShadowDistance, fill, fontFamily, fontSize, fontStyle, fontVariant, fontWeight,
             letterSpacing, lineHeight, padding, stroke, strokeThickness, textBaseline, wordWrap, wordWrapWidth } = this.props;
 
-        this.container.style.align = align;
-        this.container.style.breakWords = breakWords;
-        this.container.style.dropShadow = dropShadow;
-        this.container.style.dropShadowAlpha = Util.toRadians(dropShadowAlpha);
-        this.container.style.dropShadowAngle = dropShadowAngle;
-        this.container.style.dropShadowColor = dropShadowColor;
-        this.container.style.dropShadowDistance = dropShadowDistance;
-        this.container.style.fill = fill;
-        this.container.style.fontFamily = fontFamily;
-        this.container.style.fontSize = fontSize;
-        this.container.style.fontStyle = fontStyle;
-        this.container.style.fontVariant = fontVariant;
-        this.container.style.fontWeight = fontWeight;
-        this.container.style.letterSpacing = letterSpacing;
-        this.container.style.lineHeight = lineHeight;
-        this.container.style.padding = padding;
-        this.container.style.stroke = stroke;
-        this.container.style.strokeThickness = strokeThickness;
-        this.container.style.textBaseline = textBaseline;
-        this.container.style.wordWrap = wordWrap;
-        this.container.style.wordWrapWidth = wordWrapWidth;
+        this.textContainer.style.align = align;
+        this.textContainer.style.breakWords = breakWords;
+        this.textContainer.style.dropShadow = dropShadow;
+        this.textContainer.style.dropShadowAlpha = Util.toRadians(dropShadowAlpha);
+        this.textContainer.style.dropShadowAngle = dropShadowAngle;
+        this.textContainer.style.dropShadowColor = dropShadowColor;
+        this.textContainer.style.dropShadowDistance = dropShadowDistance;
+        this.textContainer.style.fill = fill;
+        this.textContainer.style.fontFamily = fontFamily;
+        this.textContainer.style.fontSize = fontSize;
+        this.textContainer.style.fontStyle = fontStyle;
+        this.textContainer.style.fontVariant = fontVariant;
+        this.textContainer.style.fontWeight = fontWeight;
+        this.textContainer.style.letterSpacing = letterSpacing;
+        this.textContainer.style.lineHeight = lineHeight;
+        this.textContainer.style.padding = padding;
+        this.textContainer.style.stroke = stroke;
+        this.textContainer.style.strokeThickness = strokeThickness;
+        this.textContainer.style.textBaseline = textBaseline;
+        this.textContainer.style.wordWrap = wordWrap;
+        this.textContainer.style.wordWrapWidth = wordWrapWidth;
     }
 }

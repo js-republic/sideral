@@ -2,4 +2,5 @@ export * from "./Module";
 export * from "./Sprite";
 export * from "./Tilemap";
 export * from "./Scene";
-export * from "./Text";
+export * from "./SceneLoading";
+export * from "./Transition";

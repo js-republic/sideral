@@ -152,7 +152,7 @@ export class Skill extends SideralObject {
             Object.assign(this, params);
             this.signals.preparationComplete.dispatch();
 
-            this.timers.addTimer("skill", this.getTimerDuration(this.duration, this.durationType), this._onSkillComplete.bind(this), {
+            this.timers.addTimer("skill", this.timers.getDuration(this.duration, this.durationType, this.animation && this.owner.sprite.getAnimation(this.animation)), this._onSkillComplete.bind(this), {
                 init: this.signals.skillStart.dispatch.bind(this),
                 update: this.updateSkill.bind(this)
             });
@@ -176,7 +176,7 @@ export class Skill extends SideralObject {
         this.ready  = !this.unstoppable;
 
         if (this.preparation) {
-            this.timers.addTimer("preparation", this.getTimerDuration(this.preparation, this.preparationType), startSkill.bind(this), {
+            this.timers.addTimer("preparation", this.timers.getDuration(this.preparation, this.preparationType), startSkill.bind(this), {
                 init: this.signals.preparationStart.dispatch.bind(this),
                 update: this.signals.preparationUpdate.dispatch.bind(this)
             });
@@ -192,29 +192,6 @@ export class Skill extends SideralObject {
     stop (): void {
         this.active = false;
         this.timers.removeAll();
-    }
-
-    /**
-     * Get correct timer in ms
-     * @param duration: initial duration of the timer
-     * @param durationType: the type of duration
-     * @returns The duration in ms
-     */
-    getTimerDuration (duration, durationType): number {
-        let ms = duration;
-
-        switch (durationType) {
-            case Enum.DURATION_TYPE.ANIMATION_LOOP:
-                const animation = this.owner.sprite.getAnimation(this.animation);
-
-                ms = animation.duration * duration * animation.frames.length;
-                break;
-
-            case Enum.DURATION_TYPE.FRAME: ms = Timer.frameToMs(duration, this.owner.context.game.fps);
-                break;
-        }
-
-        return ms;
     }
 
 
@@ -244,7 +221,7 @@ export class Skill extends SideralObject {
         this.signals.skillComplete.dispatch(this);
 
         if (this.reload) {
-            this.timers.addTimer("reload", this.getTimerDuration(this.reload, this.reloadType), () => {
+            this.timers.addTimer("reload", this.timers.getDuration(this.reload, this.reloadType), () => {
                 this.ready = true;
                 this.signals.reloadComplete.dispatch;
             }, {

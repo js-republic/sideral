@@ -43,6 +43,12 @@ export class Module extends SideralObject {
      */
     _mouseHover: boolean = false;
 
+    /**
+     * Know if children must be sorted or not
+     * @private
+     */
+    _sortRequested: boolean = false;
+
 
     /* LIFECYCLE */
 
@@ -80,7 +86,7 @@ export class Module extends SideralObject {
     /**
      * @initialize
      */
-    initialize (props) {
+    initialize (props: any): void {
         // We call the updateFollow to update the position of the module before create the Physic
         if (props.follow) {
             this.updateFollow(null, props.follow);
@@ -93,7 +99,7 @@ export class Module extends SideralObject {
         this.updateContainerPosition();
     }
 
-    update (tick) {
+    update (tick: number): void {
         super.update(tick);
 
         if (this._mouseHover) {
@@ -104,7 +110,7 @@ export class Module extends SideralObject {
     /**
      * @override
      */
-    kill () {
+    kill (): void {
         super.kill();
 
         this.container.destroy();

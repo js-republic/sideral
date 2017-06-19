@@ -51,6 +51,14 @@ export const Enum = {
     },
 
     /**
+     * The different type of transition
+     */
+    TRANSITION: {
+        FADE_OUT        : "fadeOut",
+        FADE_IN         : "fadeIn"
+    },
+
+    /**
      * List of all key inputs
      */
     KEY: {

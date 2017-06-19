@@ -73,6 +73,7 @@ export class SoundLoader {
         this.onLoad = onLoad;
         sounds.forEach(sound => sound.once("load", onProgress));
         sounds.forEach(sound => sound.load());
+        this._onProgress();
     }
 
     /**
@@ -110,7 +111,7 @@ export class SoundLoader {
     _onProgress (): void {
         const soundsKeys = Object.keys(this.sounds);
 
-        this.progress = (soundsKeys.filter(key => this.sounds[key].seek() >= 0).length / soundsKeys.length) * 100;
+        this.progress = soundsKeys.length ? (soundsKeys.filter(key => this.sounds[key].seek() >= 0).length / soundsKeys.length) * 100 : 100;
 
         this.onProgressEvent.forEach(func => func(this.progress));
     }

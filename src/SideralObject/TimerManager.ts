@@ -1,5 +1,5 @@
 import { SideralObject } from "./../SideralObject";
-
+import { Enum } from "./../Tool";
 import { Timer } from "./Timer";
 
 
@@ -45,6 +45,32 @@ export class TimerManager extends SideralObject {
      */
     get (name: string): Timer {
         return this.timers[name];
+    }
+
+    /**
+     * Get a duration by its type
+     * @param duration - The duration
+     * @param type - The type of duration
+     * @param animation - The sprite animation used when you use Enum.DURATION_TYPE.ANIMATION_LOOP
+     * @returns The duration converted by its type
+     */
+    getDuration (duration: number, type: string, animation?: any): number {
+        let ms = duration;
+
+        switch (type) {
+            case Enum.DURATION_TYPE.ANIMATION_LOOP: 
+                if (!animation) {
+                    throw new Error("Timers.getDuration: You must provide an 'animation' object when you use Enum.DURATION_TYPE.ANIMATION_LOOP");
+                }
+
+                ms = animation.duration * duration * animation.frames.length;
+                break;
+
+            case Enum.DURATION_TYPE.FRAME: ms = Timer.frameToMs(duration, this.context.game.fps);
+                break;
+        }
+
+        return ms;
     }
 
     /**

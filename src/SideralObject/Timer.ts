@@ -1,5 +1,5 @@
 import { SideralObject } from "./../SideralObject";
-
+import { Util } from "./../Tool";
 import { ITimerProps } from "./../Interface";
 
 
@@ -44,6 +44,10 @@ export class Timer extends SideralObject {
     constructor () {
         super();
 
+        this.setProps({
+            value: 0
+        });
+
         this.signals.propChange.bind("duration", this.onDurationChange.bind(this));
         this.signals.update.add(this.updateTimers.bind(this));
     }
@@ -57,7 +61,7 @@ export class Timer extends SideralObject {
      * @returns The value rationed
      */
     getValueRationed (reversed: boolean): number {
-        return reversed ? (this.props.duration - this.value) / this.props.duration : this.value / this.props.duration;
+        return Util.limit(reversed ? (this.props.duration - this.value) / this.props.duration : this.value / this.props.duration, 0, 1);
     }
 
     /**
@@ -76,7 +80,7 @@ export class Timer extends SideralObject {
      * Restart the timer with it default value
      */
     restart (): void {
-        this.value    = this.props.duration * 0.001;
+        this.value    = this.props.duration;
         this.tendance = this.props.duration < 0 ? 1 : -1;
         this.pause    = false;
         this.finished = false;
@@ -90,11 +94,11 @@ export class Timer extends SideralObject {
      * @returns -
      */
     updateTimers (tick): void {
-        if (this.pause || this.finished) {
+        if (this.pause || this.finished || isNaN(this.value)) {
             return null;
         }
 
-        this.value      = this.value + (tick * this.tendance);
+        this.value      = this.value + (tick * this.tendance * 1000);
         const finished  = this.value <= 0 || (Math.abs(this.value) >= Math.abs(this.props.duration));
 
         if (this.props.update) {
@@ -110,6 +114,10 @@ export class Timer extends SideralObject {
             } else {
                 this.value = this.props.duration;
 
+            }
+
+            if (this.props.complete) {
+                this.props.complete();
             }
 
         } else if (finished && !this.props.recurrence) {
