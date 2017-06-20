@@ -1,9 +1,9 @@
-import { Graphics, Shape } from "./index";
+import { Graphic, Shape } from "./../Graphic";
 import { Color, Util } from "./../Tool";
 import { IProgressProps, IShapeProps } from "./../Interface";
 
 
-export class Progress extends Graphics {
+export class Progress extends Graphic {
 
     /* ATTRIBUTES */
 

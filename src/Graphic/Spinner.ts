@@ -1,9 +1,9 @@
-import { Graphics, Shape } from "./../Graphics";
+import { Graphic, Shape } from "./../Graphic";
 import { Color } from "./../Tool";
 import { ISpinnerProps } from "./../Interface";
 
 
-export class Spinner extends Graphics {
+export class Spinner extends Graphic {
 
     /* ATTRIBUTES */
 

@@ -2,7 +2,7 @@ import { Body } from "p2";
 
 import { SkillManager, Physic } from "./index";
 import { Module, Sprite } from "./../Module";
-import { Shape } from "./../Graphics";
+import { Shape } from "./../Graphic";
 import { IEntityProps, IPauseState, IPoint, IEntitySignal, IBodyContact } from "./../Interface/";
 import { Enum, SignalEvent } from "./../Tool/";
 

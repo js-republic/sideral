@@ -19,47 +19,47 @@ export interface IModuleProps extends IProps {
     /**
      * Position in x axis
      */
-    x: number;
+    x?: number;
 
     /**
      * Position in y axis
      */
-    y: number;
+    y?: number;
 
     /**
      * The z Index of the Module
      */
-    z: number;
+    z?: number;
 
     /**
      * Width of the module
      */
-    width: number;
+    width?: number;
 
     /**
      * Height of the module
      */
-    height: number;
+    height?: number;
 
     /**
      * Know if the module is flipped or not (only in x axis)
      */
-    flip: boolean;
+    flip?: boolean;
 
     /**
      * The angle of the module (in degree)
      */
-    angle: number;
+    angle?: number;
 
     /**
      * Know if the module is visible or hidden
      */
-    visible: boolean;
+    visible?: boolean;
 
     /**
      * This property allows the module to follow an other module
      */
-    follow: IFollow;
+    follow?: IFollow;
 }
 
 
@@ -71,17 +71,17 @@ export interface IGameProps extends IProps {
     /**
      * Width of the game
      */
-    width: number;
+    width?: number;
 
     /**
      * Height of the game
      */
-    height: number;
+    height?: number;
 
     /**
      * Background color of the game
      */
-    background: string;
+    background?: string;
 }
 
 /**
@@ -92,32 +92,32 @@ export interface ISceneProps extends IModuleProps {
     /**
      * Scale of the scene
      */
-    scale: number;
+    scale?: number;
 
     /**
      * If true, the size of the scene will be relative to the size of the game
      */
-    sizeAuto: boolean;
+    sizeAuto?: boolean;
 
     /**
      * The color of background of the scene
      */
-    backgroundColor: string;
+    backgroundColor?: string;
 
     /**
      * The alpha of the background color
      */
-    backgroundAlpha: number;
+    backgroundAlpha?: number;
 
     /**
      * The power of gravity (only in y axis)
      */
-    gravity: number;
+    gravity?: number;
 
     /**
      * The speed of all motion ("1" represents the normal speed, set to "0" to freeze all motions)
      */
-    motionFactor: number;
+    motionFactor?: number;
 }
 
 /**
@@ -128,17 +128,17 @@ export interface ITimerProps extends IProps {
     /**
      * Duration of the timer
      */
-    duration: number;
+    duration?: number;
 
     /**
      * Number of recurrence
      */
-    recurrence: number;
+    recurrence?: number;
 
     /**
      * Know if the timer is reversible or not
      */
-    reversible: boolean;
+    reversible?: boolean;
 
     /**
      * Function called when timer has launched
@@ -164,57 +164,57 @@ export interface IEntityProps extends IModuleProps {
     /**
      * The velocity in x axis
      */
-    vx: number;
+    vx?: number;
 
     /**
      * The velocity in y axis
      */
-    vy: number;
+    vy?: number;
 
     /**
      * The acceleration speed in x axis
      */
-    accelX: number;
+    accelX?: number;
 
     /**
      * The acceleration speed in y axis
      */
-    accelY: number;
+    accelY?: number;
 
     /**
      * The factor of gravity
      */
-    gravityFactor: number;
+    gravityFactor?: number;
 
     /**
      * Factor of bounce
      */
-    bounce: number;
+    bounce?: number;
 
     /**
      * The box shape of the entity (see Enum.BOX)
      */
-    box: string;
+    box?: string;
 
     /**
      * The group linked to the entity (see Enum.GROUP)
      */
-    group: number;
+    group?: number;
 
     /**
      * The type of the entity (see Enum.TYPE)
      */
-    type: number;
+    type?: number;
 
     /**
      * Set or unset the fraction mode when moving
      */
-    friction: boolean;
+    friction?: boolean;
 
     /**
      * If true, the entity will enter in debug mode and display it's size on screen
      */
-    debug: boolean;
+    debug?: boolean;
 }
 
 /**
@@ -225,7 +225,7 @@ export interface IWallProps extends IEntityProps {
     /**
      * The direction constraint of the wall
      */
-    directionConstraint: string;
+    directionConstraint?: string;
 }
 
 /**
@@ -236,22 +236,22 @@ export interface ISpriteProps extends IModuleProps {
     /**
      * The Assets id of the spritesheet image
      */
-    imageId: string;
+    imageId?: string;
 
     /**
      * If true, the sprite will be killed after the animation has finished
      */
-    autoKill: boolean;
+    autoKill?: boolean;
 
     /**
      * Set to true if the image used is a spritesheet. Set to false consider the sprite to display the image
      */
-    spritesheet: boolean;
+    spritesheet?: boolean;
 
     /**
      * If true, the position of the sprite will be centered when initialized
      */
-    centered: boolean;
+    centered?: boolean;
 }
 
 /**
@@ -262,22 +262,22 @@ export interface IParticlesProps extends IEntityProps {
     /**
      * Data algorithm for particles
      */
-    config: any;
+    config?: any;
 
     /**
      * List of all images to use to generate particles
      */
-    images: Array<string>;
+    images?: Array<string>;
 
     /**
      * Duration of particles (in ms)
      */
-    duration: number;
+    duration?: number;
 
     /**
      * If true, Particles will emit when initialized
      */
-    autoRun: boolean;
+    autoRun?: boolean;
 }
 
 /**
@@ -285,27 +285,27 @@ export interface IParticlesProps extends IEntityProps {
  */
 export interface IHitboxProps extends IEntityProps {
 
-    offsetX: number;
+    offsetX?: number;
 
     /**
      * If true, the hitbox will hits multiple targets
      */
-    multipleHit: boolean;
+    multipleHit?: boolean;
 
     /**
      * If true, the hitbox will hit a target only once
      */
-    oncePerHit: boolean;
+    oncePerHit?: boolean;
 
     /**
      * The max number of hits before the destruction of the hitbox
      */
-    maxHit: number;
+    maxHit?: number;
 
     /**
      * The entity owner of the hitbox
      */
-    owner: Entity;
+    owner?: Entity;
 }
 
 export interface ITransitionProps extends IModuleProps {
@@ -313,10 +313,10 @@ export interface ITransitionProps extends IModuleProps {
     /**
      * Type of transition (see Enum.TRANSITION)
      */
-    transition: string;
+    transition?: string;
 
     /**
      * Duration of the transition
      */
-    duration: number;
+    duration?: number;
 }

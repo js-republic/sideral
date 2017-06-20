@@ -1,4 +1,4 @@
-import { Graphics } from "./../Graphics";
+import { Graphic } from "./../Graphic";
 
 import { IShapeProps } from "./../Interface";
 
@@ -8,7 +8,7 @@ import { Util, Enum, Color } from "./../Tool/";
 /**
  * The module to display shapes
  */
-export class Shape extends Graphics {
+export class Shape extends Graphic {
 
     /* ATTRIBUTES */
 

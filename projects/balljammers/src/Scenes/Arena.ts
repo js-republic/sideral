@@ -1,7 +1,7 @@
 import { Scene } from "sideral/Module";
 import { Enum, Assets, Color } from "sideral/Tool";
 import { Particles } from "sideral/Entity";
-import { Button, Text } from "sideral/Graphics";
+import { Button, Text } from "sideral/Graphic";
 
 import { Ball } from "./../Ball";
 import { Goal } from "./../Goal";

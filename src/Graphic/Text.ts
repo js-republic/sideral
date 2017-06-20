@@ -1,9 +1,9 @@
-import { Graphics } from "./index";
+import { Graphic } from "./../Graphic";
 import { Util, Color } from "./../Tool";
 import { ITextProps } from "./../interface";
 
 
-export class Text extends Graphics {
+export class Text extends Graphic {
 
     /* ATTRIBUTES */
 
@@ -24,7 +24,7 @@ export class Text extends Graphics {
         super();
 
         this.setProps({
-            text        : "Hello world",
+            text        : "",
             align       : "left",
             breakWords  : false,
             dropShadow  : false,
@@ -84,8 +84,8 @@ export class Text extends Graphics {
         this.textContainer.style.align = align;
         this.textContainer.style.breakWords = breakWords;
         this.textContainer.style.dropShadow = dropShadow;
-        this.textContainer.style.dropShadowAlpha = Util.toRadians(dropShadowAlpha);
-        this.textContainer.style.dropShadowAngle = dropShadowAngle;
+        this.textContainer.style.dropShadowAlpha = dropShadowAlpha;
+        this.textContainer.style.dropShadowAngle = Util.toRadians(dropShadowAngle);
         this.textContainer.style.dropShadowColor = dropShadowColor;
         this.textContainer.style.dropShadowDistance = dropShadowDistance;
         this.textContainer.style.fill = fill;
