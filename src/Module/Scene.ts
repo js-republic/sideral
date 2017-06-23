@@ -2,8 +2,7 @@ import { Material, World, ContactMaterial, Body } from "p2";
 
 import { Enum, Util, Assets, Color, SignalEvent } from "./../Tool";
 import { Entity, Wall, Physic } from "./../Entity";
-import { Module, Tilemap } from "./../Module";
-import { Shape } from "./../Graphic";
+import { Module, Tilemap, Shape } from "./../Module";
 import { ISceneProps, ISceneSignals, IContact } from "./../Interface";
 
 

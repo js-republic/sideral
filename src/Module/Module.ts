@@ -1,6 +1,6 @@
 import { SideralObject, TimerManager } from "./../SideralObject";
-import { SignalEvent, Util } from "./../Tool";
-import { IModuleProps, IModuleSignals, ISpawnMultiple, IFollow } from "./../Interface";
+import { SignalEvent, Util, Enum } from "./../Tool";
+import { IModuleProps, IModuleSignals, ISpawnMultiple, IFollow, ITransition, IPoint } from "./../Interface";
 
 
 /**
@@ -65,6 +65,7 @@ export class Module extends SideralObject {
             height  : 0,
             flip    : false,
             angle   : 0,
+            opacity : 1,
             visible : true
         });
 
@@ -76,7 +77,7 @@ export class Module extends SideralObject {
         this.signals.hoverStart     = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
         this.signals.hoverEnd       = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
 
-        this.signals.propChange.bind("visible", this.onVisibleChange.bind(this));
+        this.signals.propChange.bind(["visible", "opacity"], this.onVisibilityChange.bind(this));
         this.signals.propChange.bind(["x", "y", "width", "height", "angle"], this.updateContainerPosition.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
 
@@ -96,6 +97,7 @@ export class Module extends SideralObject {
 
         super.initialize(props);
 
+        this.onVisibilityChange();
         this.updateContainerPosition();
     }
 
@@ -224,6 +226,26 @@ export class Module extends SideralObject {
     }
 
     /**
+     * Create a new transition for the module
+     * @param type - Type of transition (it could be the name of a property to change or an Enum.TRANSITION)
+     * @param duration - The duration of transtion
+     * @param options - Options of transition (see ITransition)
+     */
+    addTransition (type: string, duration: number, options: ITransition = {}): void {
+        const from  = typeof options.from === "undefined" ? this.props[type] : options.from,
+            to      = typeof options.to === "undefined" ? this.props[type] : options.to;
+
+        this.timers.addTimer(type, duration, options.complete, {
+            update: (tick, value, ratio) => {
+                this.props[type] = from + ((to - from) * ratio);
+                if (options.update) {
+                    options.update(tick, value, ratio);
+                }
+            }
+        })
+    }
+
+    /**
      * Swap the current PIXI container to another PIXI container. This is usefull if you want to change
      * the PIXI Object without destroy children and parent relationship.
      * @access protected
@@ -269,6 +291,22 @@ export class Module extends SideralObject {
         };
     }
 
+    /**
+     * Get its position relative to the position of the scene
+     * @return The relative position
+     */
+    getRelativePosition (): IPoint {
+        const scene = this.context.scene;
+
+        if (scene && this.container) {
+            const point = this.container.toLocal(new PIXI.Point(scene.props.x, scene.props.y));
+
+            return {x: point.x, y: point.y};
+        }
+
+        return {x: 0, y: 0};
+    }
+
 
     /* EVENTS */
 
@@ -298,10 +336,18 @@ export class Module extends SideralObject {
     }
 
     /**
-     * When "visible" property has change
+     * When "visible" or opacity property has changed
      */
-    onVisibleChange (): void {
-        this.container.visible = this.props.visible;
+    onVisibilityChange (): void {
+        const { visible, opacity }  = this.props;
+
+        if (!visible || opacity <= 0) {
+            this.container.visible  = false;
+
+        } else {
+            this.container.visible  = true;
+            this.container.alpha    = opacity;
+        }
     }
 
     /**

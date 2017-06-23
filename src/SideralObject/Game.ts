@@ -1,6 +1,5 @@
 import { SideralObject, Keyboard } from "./../SideralObject";
-import { Scene, SceneLoading } from "./../Module";
-import { Shape } from "./../Graphic";
+import { Scene, SceneLoading, Shape } from "./../Module";
 import { Util, Assets } from "./../Tool";
 import { IGameProps } from "./../Interface";
 

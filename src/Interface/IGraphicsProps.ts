@@ -1,76 +1,45 @@
-import { IModuleProps, ITextProps } from "./index";
+import { IModuleProps, ITextProps, IShapeProps } from "./index";
 
 
 export interface IGraphicsProps extends IModuleProps {
-}
-
-/**
- * Properties of a Shape
- */
-export interface IShapeProps extends IModuleProps {
 
     /**
-     * The color of the stroke
+     * If true, the graphic will have the state Activated on click
      */
-    stroke?: string;
+    activable?: boolean;
 
     /**
-     * The alpha for the stroke
+     * Know if the graphic is enabled or not
      */
-    strokeAlpha?: number;
+    isDisabled?: boolean;
 
     /**
-     * The sickness of the stroke
+     * Know if the graphic is activated or not
      */
-    strokeThickness?: number;
+    isActivated?: boolean;
 
     /**
-     * The color of the fill
+     * Properties on hover
      */
-    fill?: string;
+    hover?: any;
 
     /**
-     * The alpha for the fill
+     * Properties when activated
      */
-    fillAlpha?: number;
+    active?: any;
 
     /**
-     * The radius of the shape
+     * Properties when disabled
      */
-    radius?: number;
-
-    /**
-     * The type of box (see Enum for more informations)
-     */
-    box?: string;
+    disabed?: any;
 }
 
 export interface IButtonProps extends IGraphicsProps {
 
     /**
-     * The label to be displayed within the button
+     * If true, the label will be centered 
      */
-    label?: ITextProps;
-
-    /**
-     * Properties when button is hover
-     */
-    hover?: IButtonProps;
-
-    /**
-     * Know if the button is enabled or not
-     */
-    disabled?: boolean;
-
-    /**
-     * The padding horizontal of the button
-     */
-    paddingHorizontal?: number;
-
-    /**
-     * The padding vertical of the button
-     */
-    paddingVertical?: number;
+    labelCentered?: boolean;
 
     /**
      * The id of the icon to display
@@ -86,11 +55,6 @@ export interface IButtonProps extends IGraphicsProps {
      * Automatic size the button related to the shape and text
      */
     sizeAuto?: boolean;
-
-    /**
-     * Properties of the shape
-     */
-    shape?: IShapeProps;
 }
 
 /**
@@ -99,49 +63,24 @@ export interface IButtonProps extends IGraphicsProps {
 export interface IDialogProps extends IGraphicsProps {
 
     /**
-     * Properties of the title label
+     * If true, the dialog will be centered relative to the scene size
      */
-    label?: ITextProps;
+    centerScreen?: boolean;
 
     /**
-     * Properties of a shape
+     * If true, the dialog will have the size of the scene
      */
-    shape?: IShapeProps;
+    fullScreen?: boolean;
 
     /**
-     * Padding horizontal of the shape
-     */
-    paddingHorizontal?: number;
-
-    /**
-     * Padding vertical of the shape
-     */
-    paddingVertical?: number;
-
-    /**
-     * The offset in x axis of the shape relative to its position
+     * Use an offset in x position (used with "centerScreen" or "fullScreen" properties)
      */
     offsetX?: number;
 
     /**
-     * The offset in y axis of the shape relative to its position
+     * Use an offset in y position (used with "centerScreen" or "fullScreen" properties)
      */
     offsetY?: number;
-
-    /**
-     * If true, a cross close will appear
-     */
-    closable?: boolean;
-
-    /**
-     * Properties of the modal shape (background global)
-     */
-    modal?: IShapeProps;
-
-    /**
-     * List of all button actions for the dialog
-     */
-    actions?: Array<IButtonProps>;
 }
 
 /**
@@ -163,36 +102,6 @@ export interface IProgressProps extends IGraphicsProps {
      * The value of the progress
      */
     value?: number;
-
-    /**
-     * Type of box (see Enum.BOX)
-     */
-    box?: string;
-
-    /**
-     * The color of the stroke
-     */
-    strokeColor?: string;
-
-    /**
-     * The alpha of the stroke color
-     */
-    strokeAlpha?: number;
-
-    /**
-     * The thickness of the stroke
-     */
-    strokeThickness?: number;
-
-    /**
-     * The color of the background
-     */
-    backgroundColor?: string;
-
-    /**
-     * The alpha of the background color
-     */
-    backgroundAlpha?: number;
 }
 
 /**
@@ -229,125 +138,4 @@ export interface ISpinnerProps extends IGraphicsProps {
      * Center spacing between all lines
      */
     centerSpacing?: number;
-}
-
-/**
- * Properties of a Text
- */
-export interface ITextProps extends IGraphicsProps {
-
-    /**
-     * The text to be drawn
-     */
-    text?: string;
-
-    /**
-     * Alignment for multiline text ("left", "center" or "right"), does not affect single line text
-     */
-    align?: string;
-
-    /**
-     * Indicates if lines can be wrapped within words, it needs wordWrap to be set to true
-     */
-    breakWords?: boolean;
-
-    /**
-     * Set a drop shadow for the text
-     */
-    dropShadow?: boolean;
-
-    /**
-     * Alpha of the drop shadow
-     */
-    dropShadowAlpha?: number;
-
-    /**
-     * Angle of the drop shadow (in degree)
-     */
-    dropShadowAngle?: number;
-
-    /**
-     * Blur radius of the drop shadow
-     */
-    dropShadowBlur?: number;
-
-    /**
-     * Color of the drop shadow
-     */
-    dropShadowColor?: string | number;
-
-    /**
-     * Distance of the drop shadow
-     */
-    dropShadowDistance?: number;
-
-    /**
-     * The fill color of the text
-     */
-    fill?: string | number;
-
-    /**
-     * The font family used to display the text (can be a array of font families)
-     */
-    fontFamily?: string | Array<string>;
-
-    /**
-     * The size of the font
-     */
-    fontSize?: number | string;
-
-    /**
-     * The style of the font ("normal", "italic" or "oblique")
-     */
-    fontStyle?: string;
-
-    /**
-     * The variant of the font ("normal" or "smalcaps");
-     */
-    fontVariant?: string;
-
-    /**
-     * The weight of the font ("normal", "bold", "bolder", "thin" or "lighter")
-     */
-    fontWeight?: string;
-
-    /**
-     * The amount of spacing between letters
-     */
-    letterSpacing?: number;
-
-    /**
-     * The vertical spaces between letters
-     */
-    lineHeight?: number;
-
-    /**
-     * Padding of the text if its cropped
-     */
-    padding?: number;
-
-    /**
-     * The stroke color of the text
-     */
-    stroke?: number | string;
-
-    /**
-     * The thickness of the stroke style of the text
-     */
-    strokeThickness?: number;
-
-    /**
-     * The baseline of the text
-     */
-    textBaseline?: string;
-
-    /**
-     * Indicates if word wrap should be used
-     */
-    wordWrap?: boolean;
-
-    /**
-     * The width at which text will wrap, it needs wordWrap to be set to true
-     */
-    wordWrapWidth?: number;
 }

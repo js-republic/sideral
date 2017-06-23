@@ -1,9 +1,9 @@
-import { Graphic } from "./../Graphic";
+import { Module } from "./../Module";
 import { Util, Color } from "./../Tool";
 import { ITextProps } from "./../interface";
 
 
-export class Text extends Graphic {
+export class Text extends Module {
 
     /* ATTRIBUTES */
 
@@ -33,8 +33,8 @@ export class Text extends Graphic {
             dropShadowColor: Color.black,
             dropShadowDistance: 5,
             fill: Color.black,
-            fontFamily: "Arial",
-            fontSize: 26,
+            fontFamily: "Verdana",
+            fontSize: 20,
             fontStyle: "normal",
             fontVariant: "normal",
             fontWeight: "normal",

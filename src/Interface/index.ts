@@ -8,3 +8,4 @@ export * from "./IAnimation";
 export * from "./IPoint";
 export * from "./IPauseState";
 export * from "./IContext";
+export * from "./ITransition";

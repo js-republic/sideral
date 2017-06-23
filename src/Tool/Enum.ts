@@ -50,12 +50,11 @@ export const Enum = {
         RELEASED        : "released"
     },
 
-    /**
-     * The different type of transition
-     */
-    TRANSITION: {
-        FADE_OUT        : "fadeOut",
-        FADE_IN         : "fadeIn"
+    STATE: {
+        DEFAULT     : "default",
+        HOVER       : "hover",
+        ACTIVE      : "active",
+        DISABLED    : "disabled"
     },
 
     /**

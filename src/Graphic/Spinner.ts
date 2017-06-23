@@ -1,4 +1,5 @@
-import { Graphic, Shape } from "./../Graphic";
+import { Graphic } from "./../Graphic";
+import { Shape } from "./../Module";
 import { Color } from "./../Tool";
 import { ISpinnerProps } from "./../Interface";
 

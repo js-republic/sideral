@@ -1,4 +1,6 @@
-import { Graphic, Shape, Text } from "./../Graphic";
+import { Graphic } from "./../Graphic";
+import { Text } from "./../Module";
+import { Color } from "./../Tool";
 import { IDialogProps } from "./../Interface";
 
 
@@ -18,58 +20,77 @@ export class Dialog extends Graphic {
         super();
 
         this.setProps({
-            paddingHorizontal: 0,
-            paddingVertical: 0
+            offsetX: 0,
+            offsetY: 0
         });
 
-        this.signals.propChange.bind(["width", "height", "paddingHorizontal", "paddingVertical"], this.onSizeChange.bind(this));
+        this.signals.propChange.bind(["width", "height"], this.onLabelSizeChange.bind(this));
     }
 
     initialize (props) {
         super.initialize(props);
 
-        this.addGraphic("modal", new Shape(), {
-            width: this.context.scene.props.width,
-            height: this.context.scene.props.height
-        });
-
-        this.addGraphic("shape", new Shape(), {
+        this.shape("shape", {
             width: this.props.width,
-            height: this.props.height
-        });
+            height: this.props.height,
+            stroke: Color.cyan400,
+            strokeThickness: 2,
+            fill: Color.black,
+            fillAlpha: 0.7
 
-        const label = this.addGraphic("label", new Text(), {
-            y: 10
-        });
-
-        if (label) {
+        }).text("label", (label: Text) => {
             label.signals.propChange.bind("width", this.onLabelSizeChange.bind(this));
-        }
+
+            return {
+                fill: Color.white,
+                y: 10
+            }
+        });
+
+        this.context.scene.signals.propChange.bind(["width", "height"], this.onScreenSizeChange.bind(this));
+        this.onScreenSizeChange();
     }
 
 
     /* EVENTS */
 
     /**
-     * When size attributes has changed
-     */
-    onSizeChange (): void {
-        this.updateGraphic("shape", {
-            width: this.props.width,
-            height: this.props.height
-        });
-
-        this.onLabelSizeChange();
-    }
-
-    /**
      * When the label width attributes has changed
      */
     onLabelSizeChange (): void {
-        const label = this.getGraphic("label");
+        this.text("label", (label: Text) => {
+            return {
+                x: (this.props.width / 2) - (label.props.width / 2)
+            };
+        });
+    }
 
-        if (label) {
-            label.props.x = (this.props.width / 2) + (this.props.paddingHorizontal / 2) - (label.props.width / 2);
+    onScreenSizeChange (): void {
+        const scene                         = this.context.scene,
+            { width, height }               = scene.props,
+            { centerScreen, fullScreen, offsetX, offsetY }    = this.props;
+
+        if (!fullScreen && !centerScreen) {
+            return null;
+        }
+
+        const pos = this.getRelativePosition();
+
+        if (fullScreen) {
+            this.props.x        = pos.x + offsetX;
+            this.props.y        = pos.y + offsetY;
+            this.props.width    = width;
+            this.props.height   = height;
+
+            this.shape("shape", {
+                width: width,
+                height: height
+            });
+
+        } else if (centerScreen) {
+            this.props.x        = pos.x + offsetX + (width / 2) - (this.props.width / 2);
+            this.props.y        = pos.y + offsetY + (height / 2) - (this.props.height / 2);
+
         }
     }
 }

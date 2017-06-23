@@ -1,10 +1,11 @@
-import { Module } from "./../Module";
+import { Module, Text, Shape } from "./../Module";
+import { Enum } from "./../Tool";
 import { IGraphicsProps, IShapeProps } from "./../Interface";
 
 
 export class Graphic extends Module {
 
-    /* LIFECYCLE */
+    /* ATTRIBUTES */
 
     /**
      * Properties of a graphics
@@ -12,14 +13,14 @@ export class Graphic extends Module {
     props: IGraphicsProps;
 
     /**
-     * List of graphics used by the props
+     * Graphics object
      */
     graphics: any = {};
 
     /**
      * State of the graphic
      */
-    state: string;
+    state: string = Enum.STATE.DEFAULT;
 
     /**
      * The PIXI Container of a Graphics
@@ -27,74 +28,123 @@ export class Graphic extends Module {
     container: PIXI.Graphics = new PIXI.Graphics();
 
 
+    /* LIFECYCLE */
+
+    constructor () {
+        super();
+
+        this.signals.propChange.bind("disabled", this.onDisabledChange.bind(this));
+        this.signals.propChange.bind("activable", this.onActivableChange.bind(this));
+    }
+
+    initialize (props) {
+        super.initialize(props);
+
+        this.onDisabledChange();
+        this.onActivableChange();
+    }
+
+
     /* METHODS */
 
     /**
-     * Add a new graphic element
-     * @param name - Name of the property linked to the graphic
-     * @param graphic - The graphic element
-     * @param props - Add some extra properties to the graphic
-     */
-    addGraphic (name: string, graphic: Graphic, props?: any): Graphic {
-        const prop = this.props[name];
-
-        if (prop) {
-            this.graphics[name] = <Graphic> this.add(graphic, Object.assign({}, prop, props));
-        }
-
-        return prop && graphic;
-    }
-
-    /**
-     * Update a graphic element by its name
-     * @param name - Name of the graphic element
-     * @param props - Other props to pass to the graphic element
-     * @param saveProps - If true, the props passed by parameters will be saved into the current props of this graphic
-     */
-    updateGraphic (name: string, props?: any, saveProps: boolean = true): void {
-        const graphic   = this.getGraphic(name),
-            propsExists = props && typeof props === "object";
-
-        let prop        = this.props[name];
-
-        if (graphic && prop) {
-            if (saveProps && propsExists) {
-                if (typeof prop !== "object") {
-                    prop = this.props[name] = {};
-                }
-
-                Object.keys(props).forEach(key => prop[key] = props[key]);
-            }
-
-            Object.keys(prop).forEach(key => graphic.props[key] = prop[key]);
-
-            if (!saveProps && propsExists) {
-                Object.keys(props).forEach(key => graphic.props[key] = props[key]);
-            }
-        }
-    }
-
-    /**
-     * Get a graphic element by its name
+     * Add a new graphic chaine
      * @param name - Name of the graphic
-     * @returns The graphic element
+     * @param Item - Class of the item to be instanciated if the graphic doesnot exists
+     * @param props - Properties to pass to the graphic
+     * @param stateProps - Properties to pass to the graphic relative to the state of the current object
+     * @return Current instance
      */
-    getGraphic (name: string): Graphic {
-        return this.graphics[name];
+    graphic (name: string, Item: typeof Module, props?: any | Function, stateProps: any = {}): this {
+        const item = this.graphics[name] ? this.graphics[name].item : new Item();
+
+        if (typeof props === "function") {
+            props = props(item);
+        }
+
+        if (!this.graphics[name]) {
+            this.graphics[name] = {
+                item    : <Module> this.add(item),
+                default : Object.assign({}, props)
+            };
+        }
+
+        const graphic = this.graphics[name];
+
+        if (props) {
+            graphic.default = Object.assign({}, graphic.default, props);
+        }
+
+        if (stateProps) {
+            Object.keys(stateProps).forEach(state => graphic[state] = Object.assign({}, graphic[state] || {}, stateProps[state]));
+        }
+
+        return this.updateGraphic(name);
     }
 
     /**
-     * Get all graphics
+     * Helper to create a shape as a graphic
+     * @param name - Name of the shape
+     * @param props - Properties to pass to the shape
+     * @param stateProps - Properties to pass to the shape relative to the state of the current object
+     * @return Current instace
      */
-    getGraphics (): Array<Graphic> {
-        return this.getGraphicsName().map(key => this.graphics[key]);
+    shape (name: string, props?: any | Function, stateProps: any = {}): this {
+        return this.graphic(name, Shape, props, stateProps);
     }
 
     /**
-     * Get all names of graphics element
+     * Helper to create a Text as a graphic
+     * @param name - Name of the text
+     * @param props - Properties to pass to the text
+     * @param stateProps - Properties to pass to the text relative to the state of the current object
+     * @return Current instance
      */
-    getGraphicsName (): Array<string> {
-        return Object.keys(this.graphics);
+    text (name: string, props?: any | Function, stateProps: any = {}): this {
+        return this.graphic(name, Text, props, stateProps);
+    }
+
+    /**
+     * Remove a graphic object by its name
+     * @param name - Name of the graphic to remove
+     * @returns Current instance
+     */
+    removeGraphic (name: string): this {
+        const item = this.graphics[name];
+
+        if (item) {
+            item.kill();
+            delete this.graphics[item];
+        }
+
+        return this;
+    }
+
+    /**
+     * Update the properties of a graphic object
+     * @param name - Name of the graphic to update
+     * @returns Current instance
+     */
+    updateGraphic (name: string): this {
+        const graphic   = this.graphics[name],
+            props       = graphic && graphic[this.state];
+
+        if (props) {
+            Object.keys(props).forEach(key => graphic.item.props[key] = props[key]);
+        }
+
+        return this;
+    }
+
+    /**
+     * Get the graphic item by its name
+     * @param name - Name of the graphic to get
+     * @return The graphic item
+     */
+    getGraphicItem (name: string): Module {
+        const graphic = this.graphics[name];
+
+        return graphic && graphic.item;
     }
 
     /**
@@ -102,13 +152,102 @@ export class Graphic extends Module {
      * @param state - The next state of the graphic
      */
     setState (state?: string): void {
-        this.state = state;
+        this.state = state || Enum.STATE.DEFAULT;
 
-        if (state && this.props[state]) {
-            this.getGraphicsName().forEach(name => this.updateGraphic(name, this.props[state][name], false));
+        Object.keys(this.graphics).forEach(this.updateGraphic.bind(this));
+    }
 
-        } else if (!state) {
-            this.getGraphicsName().forEach(name => this.updateGraphic(name, this.props[name]));
+    /**
+     * Show the graphic
+     */
+    show (duration: number = 250): void {
+        this.addTransition("opacity", duration, {
+            to: 1
+        });
+    }
+
+    /**
+     * Hide the graphic
+     */
+    hide (duration: number = 250): void {
+        this.addTransition("opacity", duration, {
+            to: 0
+        });
+    }
+
+    /**
+     * Toggle the graphic
+     */
+    toggle (): void {
+        if (this.props.opacity > 0.5) {
+            this.hide();
+
+        } else {
+            this.show();
+
+        }
+    }
+
+
+    /* EVENTS */
+
+    /**
+     * When "disabled" property has changed
+     */
+    onDisabledChange (): void {
+        if (this.props.isDisabled) {
+            this.signals.hoverStart.remove(this._onHoverStartEvent.bind(this));
+            this.signals.hoverEnd.remove(this._onHoverEndEvent.bind(this));
+            this.setState(Enum.STATE.DISABLED);
+
+        } else {
+            this.signals.hoverStart.add(this._onHoverStartEvent.bind(this));
+            this.signals.hoverEnd.add(this._onHoverEndEvent.bind(this));
+
+            if (this.state === Enum.STATE.DISABLED) {
+                this.setState(Enum.STATE.DEFAULT);
+            }    
+        }
+    }
+
+    /**
+     * When "activable" property has changed
+     */
+    onActivableChange (): void {
+        if (this.props.activable) {
+            this.signals.click.add(this._onClickEvent.bind(this));
+
+        } else {
+            this.signals.click.remove(this._onClickEvent.bind(this));
+
+        }
+    }
+
+    /**
+     * Event fired on hover
+     */
+    _onHoverStartEvent (): void {
+        if (!this.props.isDisabled) {
+            this.setState(Enum.STATE.HOVER);
+        }
+    }
+
+    /**
+     * Event fired after hover
+     */
+    _onHoverEndEvent (): void {
+        if (!this.props.isDisabled) {
+            this.setState(this.props.isActivated ? Enum.STATE.ACTIVE : Enum.STATE.DEFAULT);
+        }
+    }
+
+    /**
+     * Event fired on click
+     */
+    _onClickEvent (): void {
+        if (!this.props.isDisabled) {
+            this.props.isActivated = this.props.activable ? !this.props.isActivated : false;
+            this._onHoverEndEvent();
         }
     }
 }

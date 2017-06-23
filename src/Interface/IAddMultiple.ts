@@ -9,6 +9,11 @@ export interface IAddMultiple {
     item: SideralObject;
 
     /**
+     * Z-index of the object
+     */
+    z?: number;
+
+    /**
      * Props to merge to the item
      */
     props?: any;

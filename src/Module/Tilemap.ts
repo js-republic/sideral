@@ -1,8 +1,7 @@
 import { Body } from "p2";
 
-import { Module, Scene } from "./../Module";
+import { Module, Scene, Shape } from "./../Module";
 
-import { Shape } from "./../Graphic";
 import { Enum, Assets } from "./../Tool";
 import { Wall } from "./../Entity";
 
