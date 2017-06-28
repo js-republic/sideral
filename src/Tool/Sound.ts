@@ -137,6 +137,18 @@ export class SoundManager {
      */
     sounds: any = {};
 
+    /**
+     * Know if the sound is muted
+     * @readonly
+     */
+    soundMuted: boolean = false;
+
+    /**
+     * Know if the music is muted
+     * @readonly
+     */
+    musicMuted: boolean = false;
+
 
     /* METHODS */
 
@@ -145,6 +157,10 @@ export class SoundManager {
      * @param id - id of the sound to play
      */
     play (id: string): any {
+        if (this.soundMuted) {
+            return null;
+        }
+
         const sound = this.sounds[id];
 
         if (sound) {
@@ -158,7 +174,11 @@ export class SoundManager {
      * Play a music background
      * @param id - id of the sound to play
      */
-    playMusic (id: string, loop: boolean = false): void {
+    playMusic (id?: string, loop: boolean = false): any {
+        if (this.musicMuted) {
+            return null;
+        }
+
         if (this.music) {
             this.music.stop();
         }
@@ -174,28 +194,60 @@ export class SoundManager {
         if (loop) {
             this.music.loop(loop);
         }
+
+        return this.music;
     }
 
     /**
      * Stop the current music
+     * @param stopAndRemove - If true, the current will be removed from the buffer
      */
-    stop (): void {
+    stop (stopAndRemove: boolean = false): void {
         if (this.music) {
             this.music.stop();
+
+            if (stopAndRemove) {
+                this.music = null;
+            }
         }
+
     }
 
     /**
      * Mute all sounds
      */
-    mute (): void {
-        Howler.mute(true);
+    mute (music?: boolean, sound?: boolean): void {
+        if (typeof music === "undefined" && typeof sound === "undefined") {
+            Howler.mute(true);
+            return null;
+        }
+
+        if (music) {
+            this.musicMuted = true;
+            this.stop();
+        }
+
+        if (sound) {
+            this.soundMuted = true;
+        }
     }
 
     /**
      * Unmute sounds
      */
-    unmute (): void {
-        Howler.mute(false);
+    unmute (music?: boolean, sound?: boolean): void {
+        if (typeof music === "undefined" && typeof sound === "undefined") {
+            Howler.mute(false);
+            return null;
+        }
+
+        if (music) {
+            this.musicMuted = false;
+            this.playMusic();
+        }
+
+        if (sound) {
+            this.soundMuted = false;
+        }
     }
 }

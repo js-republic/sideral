@@ -88,6 +88,8 @@ export class Scene extends Module {
         this.setProps({
             scale       : 1,
             motionFactor: 1,
+            backgroundColor: Color.black,
+            backgroundAlpha: 1,
             gravity     : 0,
             sizeAuto    : true
         });
@@ -96,6 +98,7 @@ export class Scene extends Module {
         this.context.scene      = this;
 
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
+        this.signals.propChange.bind(["width", "height"], this._onSizeChange.bind(this));
         this.signals.propChange.bind(["backgroundColor", "backgroundAlpha"], this.onBackgroundChange.bind(this));
     }
 
@@ -111,6 +114,8 @@ export class Scene extends Module {
             width   : this.context.game.props.width,
             height  : this.context.game.props.height
         });
+
+        this.onBackgroundChange();
     }
 
     /**
@@ -429,6 +434,17 @@ export class Scene extends Module {
      */
     onAssetsLoaded (done: Function): void {
         done();
+    }
+
+    /**
+     * When "height" or "width" attributes has changed
+     * @private
+     */
+    _onSizeChange (): void {
+        if (this._background) {
+            this._background.props.width = this.props.width;
+            this._background.props.height = this.props.height;
+        }
     }
 
 

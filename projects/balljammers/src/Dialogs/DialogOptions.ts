@@ -1,5 +1,5 @@
 import { Switch, Button } from "sideral/Graphic";
-import { Color } from "sideral/Tool";
+import { Color, Assets, Enum } from "sideral/Tool";
 
 import { Dialogs } from "./../Dialogs";
 
@@ -39,21 +39,13 @@ export class DialogOptions extends Dialogs {
             text: "OPTIONS"
         });
 
-        this.switchMusic = (<Switch> this.spawn(new Switch(), 20, 80, {
-            isActive: true
-
-        })).text("label", {
+        this.switchMusic = (<Switch> this.spawn(new Switch(), 20, 80)).text("label", {
             text: "Music"
+        }).active();
 
-        });
-
-        this.switchSound = (<Switch> this.spawn(new Switch(), 20, 110, {
-            isActive: true
-
-        })).text("label", {
+        this.switchSound = (<Switch> this.spawn(new Switch(), 20, 110)).text("label", {
             text: "Sounds"
-
-        });
+        }).active();
 
         this.buttonValid = (<Button> this.spawn(new Button(), (this.props.width / 2) - 50, this.props.height - 60, {
             width: 100,
@@ -61,9 +53,43 @@ export class DialogOptions extends Dialogs {
 
         })).text("label", {
             text: "Done"
-
         });
 
-        this.buttonValid.signals.click.add(() => (<any>this.context.scene).hideOptions());
+        this.switchMusic.signals.click.add(this.onStateMusicChange.bind(this));
+        this.switchSound.signals.click.add(this.onStateSoundChange.bind(this));
+        this.buttonValid.signals.click.add(this.onButtonValidClick.bind(this));
+    }
+
+
+    /* EVENTS */
+
+    /**
+     * On click on button valid
+     */
+    onButtonValidClick (): void {
+        Assets.getSound().play("click");
+        (<any> this.context.scene).hideOptions();
+    }
+
+    /**
+     * On click on switch Music
+     */
+    onStateMusicChange (): void {
+        if (this.switchMusic.state === Enum.STATE.ACTIVE) {
+            Assets.getSound().unmute(true);
+        } else {
+            Assets.getSound().mute(true);
+        }
+    }
+
+    /**
+     * On click on switch sound
+     */
+    onStateSoundChange (): void {
+        if (this.switchSound.state === Enum.STATE.ACTIVE) {
+            Assets.getSound().unmute(false, true);
+        } else {
+            Assets.getSound().mute(false, true);
+        }
     }
 }

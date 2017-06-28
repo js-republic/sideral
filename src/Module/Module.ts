@@ -115,7 +115,10 @@ export class Module extends SideralObject {
     kill (): void {
         super.kill();
 
-        this.container.destroy();
+        if (this.container) {
+            this.container.destroy();
+        }
+        this.container = null;
     }
 
 

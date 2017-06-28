@@ -16,7 +16,7 @@ export interface IGraphicsProps extends IModuleProps {
     /**
      * Know if the graphic is activated or not
      */
-    isActivated?: boolean;
+    isActive?: boolean;
 
     /**
      * Properties on hover

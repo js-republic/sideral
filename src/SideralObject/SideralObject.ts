@@ -107,7 +107,7 @@ export class SideralObject {
      * @returns {void}
      */
     update (tick: number): void {
-        this.children.forEach(child => child.update(tick));
+        this.children.forEach(child => !child.killed && child.update(tick));
         this.signals.update.dispatch(tick);
     }
 

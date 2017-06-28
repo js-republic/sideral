@@ -172,3 +172,14 @@ export interface IEntitySignal extends IModuleSignals {
      */
     endCollision: SignalEvent;
 }
+
+/**
+ * Signal for graphic
+ */
+export interface IGraphicSignal extends IModuleSignals {
+
+    /**
+     * When the state of the graphic has changed
+     */
+    stateChange: SignalEvent;
+}

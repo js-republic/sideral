@@ -25,7 +25,7 @@ export class Game extends SideralObject {
     props: IGameProps = {
         width       : 10,
         height      : 10,
-        background  : "#DDDDDD"
+        background  : "#000000"
     };
 
     /**
@@ -92,6 +92,8 @@ export class Game extends SideralObject {
      */
     _addQueue: Array<any> = [];
 
+    _swapScenes: Array<any> = [];
+
 
     /* LIFECYCLE */
 
@@ -136,6 +138,22 @@ export class Game extends SideralObject {
         this.lastUpdate     = window.performance.now();
     }
 
+    nextCycle (): void {
+        super.nextCycle();
+
+        if (this.loaded) {
+            this._addQueue.forEach(queue => super.add(queue.item, queue.props));
+            this._swapScenes.forEach(swap => this._swapScene(swap));
+
+            this._addQueue      = [];
+            this._swapScenes    = [];
+
+            if (this._loadingScene) {
+                this._loadingScene.kill();
+            }
+        }
+    }
+
 
     /* METHODS */
 
@@ -143,13 +161,9 @@ export class Game extends SideralObject {
      * @override 
      */
     add (item: SideralObject, props: any = {}): SideralObject {
-        if (!this.loaded) {
-            this._addQueue.push({ item: item, props: props });
+        this._addQueue.push({ item: item, props: props });
 
-            return item;
-        }
-
-        return super.add(item, props);
+        return item;
     }
 
     /**
@@ -172,9 +186,6 @@ export class Game extends SideralObject {
         Assets.load(env, () => {
             const done = () => {
                 this.loaded = true;
-                this._addQueue.forEach(queue => this.add(queue.item, queue.props));
-
-                this._addQueue = [];
             };
 
             if (this._loadingScene) {
@@ -274,8 +285,46 @@ export class Game extends SideralObject {
         this.container.appendChild(this.renderer.view);
     }
 
+    /**
+     * Swap a scene to the next Scene
+     * @param currentScene - The current scene to swap
+     * @param nextScene - The next Scene to swap
+     * @returns The next scene
+     */
+    swapScene (currentScene: Scene, nextScene: Scene, color?: string, duration: number = 500, onComplete?: Function): Scene {
+        if (currentScene && nextScene) {
+            this._swapScenes.push({ currentScene, nextScene, color, duration, onComplete });
+        }
+
+        return nextScene;
+    }
+
 
     /* PRIVATE */
+
+    _swapScene ({ currentScene, nextScene, color, duration, onComplete }): void {
+        if (!color) {
+            currentScene.kill();
+            super.add(nextScene);
+
+            if (onComplete) {
+                onComplete(nextScene);
+            }
+
+        } else {
+
+            currentScene.fade("out", color, duration, () => {
+                currentScene.kill();
+                super.add(nextScene);
+
+                nextScene.fade("in", color, duration, () => {
+                    if (onComplete) {
+                        onComplete(nextScene);
+                    }
+                });
+            });
+        }
+    }
 
     /**
      * When width or height attributes change

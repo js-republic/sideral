@@ -62,8 +62,6 @@ export class SceneLoading extends Scene {
     initialize (props) {
         super.initialize(props);
 
-        this.props.backgroundColor = Color.black;
-
         this.progress = <Progress> this.add(new Progress(), {
             width: 300,
             height: 50,

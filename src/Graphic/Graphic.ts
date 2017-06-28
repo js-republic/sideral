@@ -1,6 +1,6 @@
 import { Module, Text, Shape } from "./../Module";
-import { Enum } from "./../Tool";
-import { IGraphicsProps, IShapeProps } from "./../Interface";
+import { Enum, SignalEvent } from "./../Tool";
+import { IGraphicsProps, IShapeProps, IGraphicSignal } from "./../Interface";
 
 
 export class Graphic extends Module {
@@ -11,6 +11,11 @@ export class Graphic extends Module {
      * Properties of a graphics
      */
     props: IGraphicsProps;
+
+    /**
+     * Signals of a graphic
+     */
+    signals: IGraphicSignal;
 
     /**
      * Graphics object
@@ -32,6 +37,8 @@ export class Graphic extends Module {
 
     constructor () {
         super();
+
+        this.signals.stateChange = new SignalEvent();
 
         this.signals.propChange.bind("disabled", this.onDisabledChange.bind(this));
         this.signals.propChange.bind("activable", this.onActivableChange.bind(this));
@@ -155,6 +162,8 @@ export class Graphic extends Module {
         this.state = state || Enum.STATE.DEFAULT;
 
         Object.keys(this.graphics).forEach(this.updateGraphic.bind(this));
+
+        this.signals.stateChange.dispatch(this.state);
     }
 
     /**
@@ -186,6 +195,34 @@ export class Graphic extends Module {
             this.show();
 
         }
+    }
+
+    /**
+     * Disable the graphic
+     * @returns Current instance
+     */
+    disable (): this {
+        this.props.isActive     = false;
+        this.props.isDisabled   = true;
+
+        this.setState(Enum.STATE.DISABLED);
+
+        return this;
+    }
+
+    /**
+     * Active the graphic
+     * @returns Current instance
+     */
+    active (): this {
+        this.props.isDisabled   = false;
+        this.props.isActive     = this.props.activable;
+
+        if (this.props.activable) {
+            this.setState(Enum.STATE.ACTIVE);
+        }
+
+        return this;
     }
 
 
@@ -237,7 +274,7 @@ export class Graphic extends Module {
      */
     _onHoverEndEvent (): void {
         if (!this.props.isDisabled) {
-            this.setState(this.props.isActivated ? Enum.STATE.ACTIVE : Enum.STATE.DEFAULT);
+            this.setState(this.props.isActive ? Enum.STATE.ACTIVE : Enum.STATE.DEFAULT);
         }
     }
 
@@ -246,7 +283,7 @@ export class Graphic extends Module {
      */
     _onClickEvent (): void {
         if (!this.props.isDisabled) {
-            this.props.isActivated = this.props.activable ? !this.props.isActivated : false;
+            this.props.isActive = this.props.activable ? !this.props.isActive : false;
             this._onHoverEndEvent();
         }
     }

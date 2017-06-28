@@ -2,11 +2,15 @@ import { Scene, Sprite, Text } from "sideral/Module";
 import { Button } from "sideral/Graphic";
 import { Color, Assets } from "sideral/Tool";
 
-import { Arena } from "./../Scenes";
+import { SelectCharater } from "./../Scenes";
 import { DialogOptions } from "./../Dialogs";
 
 
-Assets.preload("title", "images/titlescreen.png");
+Assets.preload("title-full", "images/titlescreen-full.png")
+    .preload("title-ball", "images/titlescreen-ball.png")
+    .preload("title-balljammers", "images/titlescreen-balljammers.png")
+    .preloadSound("mainTheme", "sounds/mainTheme.mp3")
+    .preloadSound("click", "sounds/click.wav");
 
 
 export class Title extends Scene {
@@ -42,6 +46,8 @@ export class Title extends Scene {
     initialize (props) {
         super.initialize(props);
 
+        Assets.getSound().playMusic("mainTheme", true);
+
         const midWidth  = this.props.width / 2,
             midHeight   = this.props.height / 2;
 
@@ -50,7 +56,7 @@ export class Title extends Scene {
         this.background = <Sprite> this.add(new Sprite(), {
             width: this.props.width,
             height: this.props.height,
-            imageId: "title"
+            imageId: "title-full"
         });
 
         this.buttonPlay = <Button> this.spawn(new Button(), midWidth - 75, this.props.height - 150, {
@@ -76,7 +82,7 @@ export class Title extends Scene {
         this.dialogOptions = <DialogOptions> this.add(new DialogOptions());
 
         this.buttonPlay.signals.click.add(this.onClickPlay.bind(this));
-        this.buttonOptions.signals.click.add(this.showOptions.bind(this));
+        this.buttonOptions.signals.click.add(() => Assets.getSound().play("click") && this.showOptions());
     }
 
 
@@ -98,11 +104,7 @@ export class Title extends Scene {
      * On click on button play
      */
     onClickPlay (): void {
-        const game = this.context.game;
-
-        this.fade("out", Color.black, 1000, () => {
-            this.kill();
-            game.add(new Arena());
-        });
+        Assets.getSound().play("click");
+        this.context.game.swapScene(this, new SelectCharater());
     }
 }

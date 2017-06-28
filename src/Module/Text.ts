@@ -31,7 +31,8 @@ export class Text extends Module {
             dropShadowAlpha: 1,
             dropShadowAngle: 80,
             dropShadowColor: Color.black,
-            dropShadowDistance: 5,
+            dropShadowDistance: 0,
+            dropShadowBlur: 2,
             fill: Color.black,
             fontFamily: "Verdana",
             fontSize: 20,
@@ -49,6 +50,7 @@ export class Text extends Module {
         });
 
         this.textContainer = new PIXI.Text(this.props.text);
+
         this.container.addChild(this.textContainer);
         this.signals.propChange.bind("text", this._onTextChange.bind(this));
         this.signals.propChange.bind(["align", "breakWords", "dropShadow", "dropShadowAlpha", "dropShadowAngle", "dropShadowColor", "dropShadowDistance", "fill", "fontFamily", "fontSize", "fontStyle", "fontVariant",
@@ -72,13 +74,20 @@ export class Text extends Module {
      */
     _onTextChange (): void {
         this.textContainer.text = this.props.text;
+        this.props.width        = this.container.width;
+        this.props.height       = this.container.height;
+
+        if (this.props.centered) {
+            this.props.x -= (this.props.width - this.last.width) / 2;
+            this.props.y -= (this.props.height - this.last.height) / 2;
+        }
     }
 
     /**
      * When a font style property has changed
      */
     _onStyleChange (): void {
-        const { align, breakWords, dropShadow, dropShadowAlpha, dropShadowAngle, dropShadowColor, dropShadowDistance, fill, fontFamily, fontSize, fontStyle, fontVariant, fontWeight,
+        const { align, breakWords, dropShadow, dropShadowAlpha, dropShadowAngle, dropShadowBlur, dropShadowColor, dropShadowDistance, fill, fontFamily, fontSize, fontStyle, fontVariant, fontWeight,
             letterSpacing, lineHeight, padding, stroke, strokeThickness, textBaseline, wordWrap, wordWrapWidth } = this.props;
 
         this.textContainer.style.align = align;
@@ -87,6 +96,7 @@ export class Text extends Module {
         this.textContainer.style.dropShadowAlpha = dropShadowAlpha;
         this.textContainer.style.dropShadowAngle = Util.toRadians(dropShadowAngle);
         this.textContainer.style.dropShadowColor = dropShadowColor;
+        this.textContainer.style.dropShadowBlur = dropShadowBlur;
         this.textContainer.style.dropShadowDistance = dropShadowDistance;
         this.textContainer.style.fill = fill;
         this.textContainer.style.fontFamily = fontFamily;

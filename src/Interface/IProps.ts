@@ -379,6 +379,11 @@ export interface ITextProps extends IModuleProps {
     text?: string;
 
     /**
+     * If true, the text will be centered to its position
+     */
+    centered?: boolean;
+
+    /**
      * Alignment for multiline text ("left", "center" or "right"), does not affect single line text
      */
     align?: string;
