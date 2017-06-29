@@ -17,6 +17,18 @@ export class Text extends Module {
      */
     textContainer: PIXI.Text;
 
+    /**
+     * The last offset in x axis provided by the centering property
+     * @private
+     */
+    _centerOffsetX: number = 0;
+
+    /**
+     * The last offset in y axis provided by the centering property
+     * @private
+     */
+    _centerOffsetY: number = 0;
+
 
     /* CONSTRUCTOR */
 
@@ -52,7 +64,8 @@ export class Text extends Module {
         this.textContainer = new PIXI.Text(this.props.text);
 
         this.container.addChild(this.textContainer);
-        this.signals.propChange.bind("text", this._onTextChange.bind(this));
+        this.signals.propChange.bind("text", () => this.textContainer && (this.textContainer.text = this.props.text));
+        this.signals.propChange.bind(["width", "height"], this._onSizeChange.bind(this));
         this.signals.propChange.bind(["align", "breakWords", "dropShadow", "dropShadowAlpha", "dropShadowAngle", "dropShadowColor", "dropShadowDistance", "fill", "fontFamily", "fontSize", "fontStyle", "fontVariant",
             "fontWeight", "letterSpacing", "lineHeight", "padding", "stroke", "strokeThickness", "textBaseline", "wordWrap", "wordWrapWidth"], this._onStyleChange.bind(this));
     }
@@ -70,16 +83,17 @@ export class Text extends Module {
     /* EVENTS */
 
     /**
-     * When "text" property has changed
+     * When "width" or "height" properties has changed
      */
-    _onTextChange (): void {
-        this.textContainer.text = this.props.text;
-        this.props.width        = this.container.width;
-        this.props.height       = this.container.height;
-
+    _onSizeChange (): void {
         if (this.props.centered) {
-            this.props.x -= (this.props.width - this.last.width) / 2;
-            this.props.y -= (this.props.height - this.last.height) / 2;
+            const midWidth  = this.props.width / 2,
+                midHeight   = this.props.height / 2;
+
+            this.props.x = this.props.x - midWidth + this._centerOffsetX;
+            this.props.y = this.props.y - midHeight + this._centerOffsetY;
+            this._centerOffsetX = midWidth;
+            this._centerOffsetY = midHeight;
         }
     }
 

@@ -1,6 +1,6 @@
 import { Module, Text, Shape } from "./../Module";
 import { Enum, SignalEvent } from "./../Tool";
-import { IGraphicsProps, IShapeProps, IGraphicSignal } from "./../Interface";
+import { IGraphicProps, IShapeProps, IGraphicSignal } from "./../Interface";
 
 
 export class Graphic extends Module {
@@ -10,7 +10,7 @@ export class Graphic extends Module {
     /**
      * Properties of a graphics
      */
-    props: IGraphicsProps;
+    props: IGraphicProps;
 
     /**
      * Signals of a graphic
@@ -120,8 +120,8 @@ export class Graphic extends Module {
         const item = this.graphics[name];
 
         if (item) {
-            item.kill();
-            delete this.graphics[item];
+            item.item.kill();
+            delete this.graphics[name];
         }
 
         return this;

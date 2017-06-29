@@ -324,6 +324,16 @@ export interface IShapeProps extends IModuleProps {
      * The type of box (see Enum for more informations)
      */
     box?: string;
+
+    /**
+     * Offset position of the shape in x axis
+     */
+    offsetX: number;
+
+    /**
+     * Offset position of the shape in y axis
+     */
+    offsetY: number;
 }
 
 /**

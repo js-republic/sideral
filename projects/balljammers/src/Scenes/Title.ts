@@ -82,7 +82,10 @@ export class Title extends Scene {
         this.dialogOptions = <DialogOptions> this.add(new DialogOptions());
 
         this.buttonPlay.signals.click.add(this.onClickPlay.bind(this));
-        this.buttonOptions.signals.click.add(() => Assets.getSound().play("click") && this.showOptions());
+        this.buttonOptions.signals.click.add(() => {
+            Assets.getSound().play("click");
+            this.showOptions()
+        });
     }
 
 

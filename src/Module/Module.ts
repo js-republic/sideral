@@ -359,9 +359,11 @@ export class Module extends SideralObject {
     onFlipChange (): void {
         this.container.scale.x = Math.abs(this.container.scale.x) * (this.props.flip ? -1 : 1);
 
+        /*
         if (this.container instanceof PIXI.Sprite) {
             this.container.anchor.x = this.props.flip ? -0.5 : 0.5;
         }
+        */
 
         this.updateContainerPosition();
     }
@@ -370,7 +372,7 @@ export class Module extends SideralObject {
      * Fired when a listener is added to the signal click
      */
     onBindClick (): void {
-        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength + this.signals.hover.listenerLength + this.signals.hoverStart.listenerLength + this.signals.hoverEnd.listenerLength;
+        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength;
 
         if (!this._clickable && this.container && listeners >= 1) {
             this.container.interactive  = true;
@@ -387,7 +389,7 @@ export class Module extends SideralObject {
      * Fired when a listener is removed from the signal click
      */
     onRemoveClick (): void {
-        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength + this.signals.hover.listenerLength + this.signals.hoverStart.listenerLength + this.signals.hoverEnd.listenerLength;
+        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength;
 
         if (this._clickable && this.container && !listeners) {
             this.container.interactive  = false;

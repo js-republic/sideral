@@ -70,6 +70,8 @@ export class Spinner extends Graphic {
 
         for (let i = 0; i < this.props.lines; i++) {
             this.lines.push(<Shape> this.spawn(new Shape(), this.props.centerSpacing, 0, {
+                offsetX     : this.props.centerSpacing,
+                offsetY     : 0,
                 fill        : this.props.color,
                 fillAlpha   : (i / this.props.lines) % 1,
                 width       : this.props.lineWidth,

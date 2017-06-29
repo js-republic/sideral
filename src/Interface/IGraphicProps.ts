@@ -1,7 +1,7 @@
 import { IModuleProps, ITextProps, IShapeProps } from "./index";
 
 
-export interface IGraphicsProps extends IModuleProps {
+export interface IGraphicProps extends IModuleProps {
 
     /**
      * If true, the graphic will have the state Activated on click
@@ -34,7 +34,7 @@ export interface IGraphicsProps extends IModuleProps {
     disabed?: any;
 }
 
-export interface IButtonProps extends IGraphicsProps {
+export interface IButtonProps extends IGraphicProps {
 
     /**
      * If true, the label will be centered 
@@ -60,7 +60,7 @@ export interface IButtonProps extends IGraphicsProps {
 /**
  * Properties of a Dialog object
  */
-export interface IDialogProps extends IGraphicsProps {
+export interface IDialogProps extends IGraphicProps {
 
     /**
      * If true, the dialog will be centered relative to the scene size
@@ -86,7 +86,7 @@ export interface IDialogProps extends IGraphicsProps {
 /**
  * Properties of a Progress Object
  */
-export interface IProgressProps extends IGraphicsProps {
+export interface IProgressProps extends IGraphicProps {
 
     /**
      * The minimum value
@@ -107,7 +107,7 @@ export interface IProgressProps extends IGraphicsProps {
 /**
  * Properties of a Spinner
  */
-export interface ISpinnerProps extends IGraphicsProps {
+export interface ISpinnerProps extends IGraphicProps {
 
     /**
      * Color of the spinner

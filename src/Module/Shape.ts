@@ -71,7 +71,7 @@ export class Shape extends Module {
      * @private
      */
     _drawShape (): void {
-        const { width, height, radius, box } = this.props;
+        const { offsetX, offsetY, width, height, radius, box } = this.props;
 
         switch (box) {
             case Enum.BOX.CIRCLE:
@@ -84,9 +84,9 @@ export class Shape extends Module {
 
             default: 
                 if (this.props.radius) {
-                    this.container.drawRoundedRect(0, 0, width, height, radius);
+                    this.container.drawRoundedRect(offsetX, offsetY, width, height, radius);
                 } else {
-                    this.container.drawRect(0, 0, width, height);
+                    this.container.drawRect(offsetX, offsetY, width, height);
                 }
                 break;
         }
