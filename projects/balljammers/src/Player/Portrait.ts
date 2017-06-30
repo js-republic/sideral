@@ -111,7 +111,7 @@ export class Portrait extends Graphic {
             }).text("player2-text", {
                 x: this.props.width,
                 centered: true,
-                text: "P2",
+                text: this.context.twoPlayers ? "P2" : "PC",
                 fill: Color.white,
                 fontSize: 11
             });

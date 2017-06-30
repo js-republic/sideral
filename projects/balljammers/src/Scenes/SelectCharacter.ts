@@ -1,9 +1,9 @@
 import { Scene, Sprite, Shape, Text } from "sideral/Module";
-import { Graphic } from "sideral/Graphic";
+import { Graphic, Button } from "sideral/Graphic";
 import { Assets, Color, Enum } from "sideral/Tool";
 
-import { Arena } from "./../Scenes";
-import { Helper } from "./../Graphics";
+import { Arena, Title } from "./../Scenes";
+import { Helper, CharacterInfo } from "./../Graphics";
 import { Portrait } from "./../Player/Portrait";
 
 
@@ -42,8 +42,25 @@ export class SelectCharater extends Scene {
      */
     player2: number = 0;
 
-    player1Sprite: Sprite;
-    player2Sprite: Sprite;
+    /**
+     * The characterInfo of the player 1
+     */
+    characterInfo1: CharacterInfo;
+
+    /**
+     * The CharacterInfo of the player 2
+     */
+    characterInfo2: CharacterInfo;
+
+    /**
+     * Button to return to the title screen
+     */
+    buttonBack: Button;
+
+    /**
+     * Button to go the battle arena
+     */
+    buttonPlay: Button;
 
     /**
      * Player enumeration
@@ -59,17 +76,16 @@ export class SelectCharater extends Scene {
     initialize (props) {
         super.initialize(props);
 
-        this.add(new Sprite(), {
-            width: this.props.width,
-            height: this.props.height,
-            imageId: "title"
-        });
+        const x = (this.props.width / 2) - 170,
+            y   = this.props.height - 132;
 
-        this.spawn(new Sprite(), this.props.width / 2, 50, {
-            spritesheet: false,
-            imageId: "selectCharacter"
-        });
+        this.spawnMultiple([
+            { item: new Sprite(), props: { width: this.props.width, height: this.props.height, imageId: "title" } },
+            { item: new Sprite(), x: this.props.width / 2, y: 50, props: { spritesheet: false, imageId: "selectCharacter" } },
+            { item: new Sprite(), x: this.props.width / 2, y: (this.props.height / 2) - 50, props: { spritesheet: false, imageId: "vs" } }
 
+        ]);
+        
         this.addGraphic(10, 125, 250, 250, "Player 1")
             .text("text", {
                 fill: Color.green400
@@ -81,30 +97,40 @@ export class SelectCharater extends Scene {
                 fill: Color.red400
             });
 
-
-        this.player1Sprite = <Sprite> this.spawn(new Sprite(), 135, 270, { spritesheet: false });
-        this.player2Sprite = <Sprite> this.spawn(new Sprite(), this.props.width - 135, 270, { spritesheet: false, flip: true });
-
-        this.spawn(new Helper(), 0, this.props.height - 30, {
-            title: "help",
-            text: "Use 'q' or 'd' (P1) or arrow keys (P2) to select a character. Press 'space' (P1) or 'enter' (P2) to validate your character."
-        });
-
-        this.spawn(new Sprite(), this.props.width / 2, (this.props.height / 2) - 50, {
-            spritesheet: false,
-            imageId: "vs"
-        });
+        this.spawnMultiple([
+            { item: new CharacterInfo(), x: 10, y: 170, assign: "characterInfo1" },
+            { item: new CharacterInfo(), x: this.props.width - 260, y: 170, props: { spriteFlip: true }, assign: "characterInfo2" },
+            { item: new Helper(), x: 0, y: this.props.height - 30, props: {
+                title: "help",
+                text: this.context.twoPlayers
+                    ? "Use 'q' or 'd' (P1) or arrow keys (P2) to select a character. Press 'space' (P1) or 'enter' (P2) to validate your character."
+                    : "Use 'q' or 'd' to select a character. Press 'space' to validate your character."
+            } }
+        ]);
 
         this.addGraphic((this.props.width / 2) - 190, this.props.height - 152, 380, 92);
 
-        const x = (this.props.width / 2) - 170,
-            y   = this.props.height - 132;
+        this.buttonBack = (<Button> this.spawn(new Button(), 10, y + 1, {
+            width: 115,
+            height: 50
+        })).text("label", {
+            text: "Back"
+        });
+
+        this.buttonPlay = (<Button> this.spawn(new Button(), this.props.width - 125, y + 1, {
+            width: 115,
+            height: 50,
+            isDisabled: true
+
+        })).text("label", {
+            text: "FIGHT !"
+        });
 
         this.portraits.push(<Portrait> this.spawn(new Portrait(), x, y, {
             imageId: "cat-portrait",
             imageIdleId: "cat-idle",
             player1: true,
-            player2: true,
+            player2: this.context.twoPlayers,
             name: "Chat"
         }));
 
@@ -132,13 +158,23 @@ export class SelectCharater extends Scene {
 
         const keyboard = this.context.game.keyboard;
 
+        this.buttonBack.signals.click.add(this.onButtonBackClick.bind(this));
+        this.buttonPlay.signals.click.add(this.onButtonPlayClick.bind(this));
         keyboard.signals.keyPress.bind(Enum.KEY.Q, () => this.movePlayerPortrait(this.PLAYER.PLAYER_1, true));
         keyboard.signals.keyPress.bind(Enum.KEY.D, () => this.movePlayerPortrait(this.PLAYER.PLAYER_1, false));
-        keyboard.signals.keyPress.bind(Enum.KEY.ARROW_LEFT, () => this.movePlayerPortrait(this.PLAYER.PLAYER_2, true));
-        keyboard.signals.keyPress.bind(Enum.KEY.ARROW_RIGHT, () => this.movePlayerPortrait(this.PLAYER.PLAYER_2, false));
+
+        if (this.context.twoPlayers) {
+            keyboard.signals.keyPress.bind(Enum.KEY.ARROW_LEFT, () => this.movePlayerPortrait(this.PLAYER.PLAYER_2, true));
+            keyboard.signals.keyPress.bind(Enum.KEY.ARROW_RIGHT, () => this.movePlayerPortrait(this.PLAYER.PLAYER_2, false));
+
+            this.showCharacterInfo(this.PLAYER.PLAYER_2, this.portraits[0]);
+
+        } else {
+            this.showCharacterInfo(this.PLAYER.PLAYER_2, this.portraits[Math.floor(Math.random() * (this.portraits.length - 1))]);
+
+        }
 
         this.showCharacterInfo(this.PLAYER.PLAYER_1, this.portraits[0]);
-        this.showCharacterInfo(this.PLAYER.PLAYER_2, this.portraits[0]);
     }
 
 
@@ -170,10 +206,15 @@ export class SelectCharater extends Scene {
         this.showCharacterInfo(player, this.portraits[nextIndex]);
     }
 
+    /**
+     * Show the info a character by its portrait
+     * @param player - Player side to show the info
+     * @param portrait - Portrait corresponding to the character
+     */
     showCharacterInfo (player: string, portrait: Portrait): void {
-        const sprite = this[player + "Sprite"];
+        const characterInfo = player.indexOf("1") != -1 ? this.characterInfo1 : this.characterInfo2;
 
-        sprite.props.imageId = portrait.props.imageIdleId;
+        characterInfo.props.imageId = portrait.props.imageIdleId;
     }
 
     /**
@@ -211,5 +252,27 @@ export class SelectCharater extends Scene {
         }
 
         return graphic;
+    }
+
+
+    /* EVENTS */
+
+    /**
+     * On click on button back
+     */
+    onButtonBackClick (): void {
+        Assets.getSound().play("click");
+        this.context.game.swapScene(this, new Title());
+    }
+
+    /**
+     * On click on button play
+     */
+    onButtonPlayClick (): void {
+        if (!this.buttonPlay.props.isDisabled) {
+            console.log("kecli");
+            Assets.getSound().play("click");
+            // this.context.game.swapScene(this, new Arena());
+        }
     }
 }

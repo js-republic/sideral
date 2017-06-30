@@ -34,12 +34,12 @@ export interface ISpawnMultiple extends IAddMultiple {
     /**
      * The position in x axis
      */
-    x: number;
+    x?: number;
 
     /**
      * The position in y axis
      */
-    y: number;
+    y?: number;
 
     /**
      * The z index of the item

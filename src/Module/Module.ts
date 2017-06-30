@@ -214,7 +214,7 @@ export class Module extends SideralObject {
      * Spawn multiple modules
      * @param params - Parameters of the multiple spawn
      */
-    spawnMultiple (params: ISpawnMultiple[]): void {
+    spawnMultiple (params: Array<ISpawnMultiple>): this {
         params.forEach(param => {
             if (!param.props) {
                 param.props = {};
@@ -225,7 +225,7 @@ export class Module extends SideralObject {
             param.props.z = param.z;
         });
 
-        super.addMultiple(params);
+        return super.addMultiple(params);
     }
 
     /**

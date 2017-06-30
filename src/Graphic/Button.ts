@@ -49,6 +49,12 @@ export class Button extends Graphic {
             hover: {
                 fill: Color.cyan900,
                 fillAlpha: 1
+            },
+
+            disabled: {
+                fill: Color.grey900,
+                fillAlpha: 0.7,
+                stroke: Color.grey400
             }
 
         }).text("label", {
@@ -59,6 +65,10 @@ export class Button extends Graphic {
             dropShadowBlur: 30,
             dropShadowDistance: 1
 
+        }, {
+            disabled: {
+                fill: Color.grey400
+            }
         });
 
         this.graphics.label.item.signals.propChange.bind(["width", "height"], this.updateLabelPosition.bind(this));

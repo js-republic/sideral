@@ -70,6 +70,7 @@ export class Graphic extends Module {
         }
 
         if (!this.graphics[name]) {
+
             this.graphics[name] = {
                 item    : <Module> this.add(item),
                 default : Object.assign({}, props)
@@ -130,11 +131,12 @@ export class Graphic extends Module {
     /**
      * Update the properties of a graphic object
      * @param name - Name of the graphic to update
+     * @param drawDefaultBefore - If true, it will draw the default theme if the state is different
      * @returns Current instance
      */
     updateGraphic (name: string): this {
         const graphic   = this.graphics[name],
-            props       = graphic && graphic[this.state];
+            props       = graphic && (this.state === Enum.STATE.DEFAULT ? graphic[this.state] : Object.assign({}, graphic.default, graphic[this.state]));
 
         if (props) {
             Object.keys(props).forEach(key => graphic.item.props[key] = props[key]);
@@ -235,7 +237,7 @@ export class Graphic extends Module {
         if (this.props.isDisabled) {
             this.signals.hoverStart.remove(this._onHoverStartEvent.bind(this));
             this.signals.hoverEnd.remove(this._onHoverEndEvent.bind(this));
-            this.setState(Enum.STATE.DISABLED);
+            this.disable();
 
         } else {
             this.signals.hoverStart.add(this._onHoverStartEvent.bind(this));

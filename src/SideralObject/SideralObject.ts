@@ -195,7 +195,7 @@ export class SideralObject {
      * Add multiple items
      * @param params - Parameters of the multiple add
      */
-    addMultiple (params: IAddMultiple[]): void {
+    addMultiple (params: Array<IAddMultiple>): this {
         params.forEach(param => {
             this.add(param.item, param.props);
 
@@ -207,6 +207,8 @@ export class SideralObject {
                 param.callback(param.item);
             }
         });
+
+        return this;
     }
 
     /**
