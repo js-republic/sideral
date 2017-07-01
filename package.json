@@ -59,7 +59,7 @@
     "eslint": "^4.0.0",
     "eslint-plugin-react": "latest",
     "ify-loader": "^1.0.3",
-    "istanbul-instrumenter-loader": "0.2.0",
+    "istanbul-instrumenter-loader": "2.0.0",
     "jasmine-core": "^2.5.2",
     "jest": "^20.0.4",
     "jsdoc": "^3.4.3",
