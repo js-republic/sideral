@@ -1,6 +1,6 @@
-import { Skill } from "src/Entity";
-import { Sprite } from "src/Module";
-import { Enum } from "src/Tool";
+import { Skill } from "sideral/Entity";
+import { Sprite } from "sideral/Module";
+import { Enum } from "sideral/Tool";
 
 import { Player } from "./Player";
 
@@ -34,7 +34,7 @@ export class PlayerDoubleJumpSkill extends Skill {
      */
     onSkillStart (): void {
         (<Sprite> this.owner.context.scene.add(new Sprite(), {
-            imagePath   : "images/effects/smoke.png",
+            imageId     : "smoke",
             width       : 128,
             height      : 128,
             x           : this.owner.props.x + (this.owner.props.width / 2) - 64,

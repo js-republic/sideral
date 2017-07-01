@@ -1,6 +1,6 @@
 import { SideralObject, TimerManager } from "./../SideralObject";
-import { SignalEvent, Util } from "./../Tool";
-import { IModuleProps, IModuleSignals, ISpawnMultiple, IFollow } from "./../Interface";
+import { SignalEvent, Util, Enum } from "./../Tool";
+import { IModuleProps, IModuleSignals, ISpawnMultiple, IFollow, ITransition, IPoint } from "./../Interface";
 
 
 /**
@@ -31,6 +31,24 @@ export class Module extends SideralObject {
      */
     container: PIXI.Container = new PIXI.Container();
 
+    /**
+     * Know if the module is clickable
+     * @private
+     */
+    _clickable: boolean = false;
+
+    /**
+     * Know if it is the first mouse hover event fired
+     * @private
+     */
+    _mouseHover: boolean = false;
+
+    /**
+     * Know if children must be sorted or not
+     * @private
+     */
+    _sortRequested: boolean = false;
+
 
     /* LIFECYCLE */
 
@@ -47,14 +65,19 @@ export class Module extends SideralObject {
             height  : 0,
             flip    : false,
             angle   : 0,
+            opacity : 1,
             visible : true
         });
 
         this.timers = <TimerManager> this.add(new TimerManager());
 
-        this.signals.click = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.click          = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.doubleClick    = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.hover          = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.hoverStart     = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
+        this.signals.hoverEnd       = new SignalEvent(this.onBindClick.bind(this), this.onRemoveClick.bind(this));
 
-        this.signals.propChange.bind("visible", this.onVisibleChange.bind(this));
+        this.signals.propChange.bind(["visible", "opacity"], this.onVisibilityChange.bind(this));
         this.signals.propChange.bind(["x", "y", "width", "height", "angle"], this.updateContainerPosition.bind(this));
         this.signals.propChange.bind("flip", this.onFlipChange.bind(this));
 
@@ -64,7 +87,7 @@ export class Module extends SideralObject {
     /**
      * @initialize
      */
-    initialize (props) {
+    initialize (props: any): void {
         // We call the updateFollow to update the position of the module before create the Physic
         if (props.follow) {
             this.updateFollow(null, props.follow);
@@ -74,16 +97,28 @@ export class Module extends SideralObject {
 
         super.initialize(props);
 
+        this.onVisibilityChange();
         this.updateContainerPosition();
+    }
+
+    update (tick: number): void {
+        super.update(tick);
+
+        if (this._mouseHover) {
+            this.signals.hover.dispatch();
+        }
     }
 
     /**
      * @override
      */
-    kill () {
+    kill (): void {
         super.kill();
 
-        this.container.destroy();
+        if (this.container) {
+            this.container.destroy();
+        }
+        this.container = null;
     }
 
 
@@ -179,7 +214,7 @@ export class Module extends SideralObject {
      * Spawn multiple modules
      * @param params - Parameters of the multiple spawn
      */
-    spawnMultiple (params: ISpawnMultiple[]): void {
+    spawnMultiple (params: Array<ISpawnMultiple>): this {
         params.forEach(param => {
             if (!param.props) {
                 param.props = {};
@@ -190,7 +225,27 @@ export class Module extends SideralObject {
             param.props.z = param.z;
         });
 
-        super.addMultiple(params);
+        return super.addMultiple(params);
+    }
+
+    /**
+     * Create a new transition for the module
+     * @param type - Type of transition (it could be the name of a property to change or an Enum.TRANSITION)
+     * @param duration - The duration of transtion
+     * @param options - Options of transition (see ITransition)
+     */
+    addTransition (type: string, duration: number, options: ITransition = {}): void {
+        const from  = typeof options.from === "undefined" ? this.props[type] : options.from,
+            to      = typeof options.to === "undefined" ? this.props[type] : options.to;
+
+        this.timers.addTimer(type, duration, options.complete, {
+            update: (tick, value, ratio) => {
+                this.props[type] = from + ((to - from) * ratio);
+                if (options.update) {
+                    options.update(tick, value, ratio);
+                }
+            }
+        })
     }
 
     /**
@@ -239,6 +294,22 @@ export class Module extends SideralObject {
         };
     }
 
+    /**
+     * Get its position relative to the position of the scene
+     * @return The relative position
+     */
+    getRelativePosition (): IPoint {
+        const scene = this.context.scene;
+
+        if (scene && this.container) {
+            const point = this.container.toLocal(new PIXI.Point(scene.props.x, scene.props.y));
+
+            return {x: point.x, y: point.y};
+        }
+
+        return {x: 0, y: 0};
+    }
+
 
     /* EVENTS */
 
@@ -268,10 +339,18 @@ export class Module extends SideralObject {
     }
 
     /**
-     * When "visible" property has change
+     * When "visible" or opacity property has changed
      */
-    onVisibleChange (): void {
-        this.container.visible = this.props.visible;
+    onVisibilityChange (): void {
+        const { visible, opacity }  = this.props;
+
+        if (!visible || opacity <= 0) {
+            this.container.visible  = false;
+
+        } else {
+            this.container.visible  = true;
+            this.container.alpha    = opacity;
+        }
     }
 
     /**
@@ -280,9 +359,11 @@ export class Module extends SideralObject {
     onFlipChange (): void {
         this.container.scale.x = Math.abs(this.container.scale.x) * (this.props.flip ? -1 : 1);
 
+        /*
         if (this.container instanceof PIXI.Sprite) {
             this.container.anchor.x = this.props.flip ? -0.5 : 0.5;
         }
+        */
 
         this.updateContainerPosition();
     }
@@ -291,11 +372,16 @@ export class Module extends SideralObject {
      * Fired when a listener is added to the signal click
      */
     onBindClick (): void {
-        if (this.container && this.signals.click.listenerLength === 1) {
+        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength;
+
+        if (!this._clickable && this.container && listeners >= 1) {
             this.container.interactive  = true;
             this.container.buttonMode   = true;
+            this._clickable             = true;
 
             this.container.on("click", this.signals.click.dispatch.bind(this));
+            this.container.on("mouseout", this._onMouseOutFired.bind(this));
+            this.container.on("mouseover", this._onMouseOverFired.bind(this));
         }
     }
 
@@ -303,11 +389,34 @@ export class Module extends SideralObject {
      * Fired when a listener is removed from the signal click
      */
     onRemoveClick (): void {
-        if (this.container && !this.signals.click.listenerLength) {
+        const listeners = this.signals.click.listenerLength + this.signals.doubleClick.listenerLength;
+
+        if (this._clickable && this.container && !listeners) {
             this.container.interactive  = false;
             this.container.buttonMode   = false;
+            this._clickable             = false;
 
             this.container.off("click", this.signals.click.dispatch.bind(this));
+            this.container.off("mouseout", this._onMouseOutFired.bind(this));
+            this.container.off("mouseover", this._onMouseOverFired.bind(this));
         }
+    }
+
+    /**
+     * When mousehover event from pixi is fired
+     * @private
+     */
+    _onMouseOverFired (): void {
+        this._mouseHover = true;
+        this.signals.hoverStart.dispatch();
+    }
+
+    /**
+     * When mouseout event from pixi is fired
+     * @private
+     */
+    _onMouseOutFired (): void {
+        this._mouseHover = false;
+        this.signals.hoverEnd.dispatch();
     }
 }

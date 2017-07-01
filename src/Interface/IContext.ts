@@ -16,4 +16,9 @@ export interface IContext {
      * The scene linked to the current SideralObject
      */
     scene?: Scene;
+
+    /**
+     * Add your own context (useful for global data)
+     */
+    [key: string]: any;
 }

@@ -1,16 +1,17 @@
-import { Entity } from "src/Entity";
-import { Particles } from "src/Entity/Particles";
-import { Enum, Assets } from "src/Tool";
+import { Entity } from "sideral/Entity";
+import { Particles } from "sideral/Entity/Particles";
+import { Enum, Assets } from "sideral/Tool";
 
 import { Goal } from "./Goal";
 import { Player } from "./Player/Player";
-import { Arena } from "./Arena";
+import { Arena } from "./Scenes/Arena";
 
 import * as trailConfig from "./Particles/trail.json";
 
 
-Assets.preload("images/ball.png")
-    .preload("images/particles/bolt.png");
+Assets.preload("ball", "images/ball.png")
+    .preload("bolt", "images/particles/bolt.png")
+    .preloadSound("ball", "sounds/ball.wav");
 
 /**
  * The ball class
@@ -45,6 +46,7 @@ export class Ball extends Entity {
 
         this.signals.beginCollision.bind("goal", this.onCollisionWithGoal.bind(this));
         this.signals.beginCollision.bind("player", this.onCollisionWithPlayer.bind(this));
+        this.signals.wallCollision.add(this.onCollision.bind(this));
         this.signals.update.add(this.updateVelocity.bind(this));
     }
 
@@ -54,11 +56,11 @@ export class Ball extends Entity {
     initialize (props) {
         super.initialize(props);
 
-        this.addSprite("images/ball.png", 32, 32, { x: -3, y: -3 });
+        this.addSprite("ball", 32, 32, { x: -3, y: -3 });
 
         this.trail = <Particles> this.context.scene.add(new Particles(), {
             follow  : this.beFollowed(true),
-            images  : "images/particles/bolt.png",
+            images  : "bolt",
             config  : trailConfig,
             autoRun : false
         });
@@ -80,6 +82,10 @@ export class Ball extends Entity {
 
 
     /* EVENTS */
+
+    onCollision () {
+         Assets.getSound().play("ball");
+    }
 
     /**
      * Update the velocity of the ball

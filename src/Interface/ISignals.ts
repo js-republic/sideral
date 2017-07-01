@@ -59,6 +59,41 @@ export interface IModuleSignals extends ISignals {
      * Signal emitted on click on the module
      */
     click: SignalEvent;
+
+    /**
+     * Signal emitted on doubleclick on the module
+     */
+    doubleClick: SignalEvent;
+
+    /**
+     * Signal emitted on right click on the module
+     */
+    rightClick: SignalEvent;
+
+    /**
+     * When mouse is hover
+     */
+    hover: SignalEvent;
+
+    /**
+     * When mouse enter in hover
+     */
+    hoverStart: SignalEvent;
+
+    /**
+     * When mouse is not hover anymore
+     */
+    hoverEnd: SignalEvent;
+}
+
+/**
+ * Signals emitted by the Scene object
+ */
+export interface ISceneSignals extends IModuleSignals {
+    /**
+     * Signal emitted during the loading of assets (used only if the scene is considered has the loader of the game)
+     */
+    progress: SignalEvent;
 }
 
 /**
@@ -128,7 +163,23 @@ export interface IEntitySignal extends IModuleSignals {
     collision: SignalEvent;
 
     /**
+     * Signal emitted every time the entity hit a wall
+     */
+    wallCollision: SignalEvent;
+
+    /**
      * When entity is not in collision anymore
      */
     endCollision: SignalEvent;
+}
+
+/**
+ * Signal for graphic
+ */
+export interface IGraphicSignal extends IModuleSignals {
+
+    /**
+     * When the state of the graphic has changed
+     */
+    stateChange: SignalEvent;
 }

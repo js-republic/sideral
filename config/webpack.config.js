@@ -14,7 +14,10 @@ module.exports = {
 
     resolve: {
         extensions: [".js", ".json", ".jsx", ".ts", ".tsx"],
-        modules: [path.resolve("./"), "node_modules"]
+        modules: ["node_modules"],
+        alias: {
+            sideral: path.resolve(__dirname, "../src/")
+        }
     },
 
     devtool: "source-map",
@@ -22,11 +25,11 @@ module.exports = {
     module: {
         loaders: [
             {
-                test: /\.tsx?$/,
+                test: /\.ts$/,
                 loader: "awesome-typescript-loader"
             },
             {
-                test: /\.jsx?$/,
+                test: /\.js$/,
                 loader: "babel-loader",
                 exclude: /node_modules/,
                 query: {

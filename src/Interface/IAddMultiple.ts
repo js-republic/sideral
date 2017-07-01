@@ -9,6 +9,11 @@ export interface IAddMultiple {
     item: SideralObject;
 
     /**
+     * Z-index of the object
+     */
+    z?: number;
+
+    /**
      * Props to merge to the item
      */
     props?: any;
@@ -29,12 +34,12 @@ export interface ISpawnMultiple extends IAddMultiple {
     /**
      * The position in x axis
      */
-    x: number;
+    x?: number;
 
     /**
      * The position in y axis
      */
-    y: number;
+    y?: number;
 
     /**
      * The z index of the item

@@ -1,4 +1,8 @@
 export const Enum = {
+    
+    /**
+     * The type of an entity
+     */
     TYPE: {
         NONE    : -2,
         GHOST   : -1,
@@ -7,11 +11,17 @@ export const Enum = {
         SOLID   : 2
     },
 
+    /**
+     * The different type of shape
+     */
     BOX: {
         RECTANGLE   : "rectangle",
         CIRCLE      : "circle"
     },
 
+    /**
+     * Group of collisions
+     */
     GROUP: {
         NONE    : 1,
         ALL     : 2,
@@ -22,18 +32,34 @@ export const Enum = {
         ENTITIES: 7
     },
 
+    /**
+     * Different measuration of the time
+     */
     DURATION_TYPE: {
         FRAME           : "frame",
         MS              : "ms",
         ANIMATION_LOOP  : "animationLoop"
     },
 
+    /**
+     * The state of an input key
+     */
     KEY_STATE: {
         PRESSED         : "pressed",
         HOLD            : "hold",
         RELEASED        : "released"
     },
 
+    STATE: {
+        DEFAULT     : "default",
+        HOVER       : "hover",
+        ACTIVE      : "active",
+        DISABLED    : "disabled"
+    },
+
+    /**
+     * List of all key inputs
+     */
     KEY: {
         "BACKSPACE": "8",
         "TAB": "9",

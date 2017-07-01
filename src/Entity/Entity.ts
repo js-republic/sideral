@@ -1,7 +1,7 @@
 import { Body } from "p2";
 
 import { SkillManager, Physic } from "./index";
-import { Module, Shape, Sprite } from "./../Module";
+import { Module, Sprite, Shape } from "./../Module";
 import { IEntityProps, IPauseState, IPoint, IEntitySignal, IBodyContact } from "./../Interface/";
 import { Enum, SignalEvent } from "./../Tool/";
 
@@ -98,6 +98,7 @@ export class Entity extends Module {
         this.signals.beginCollision = new SignalEvent();
         this.signals.collision      = new SignalEvent();
         this.signals.endCollision   = new SignalEvent();
+        this.signals.wallCollision  = new SignalEvent();
 
         this.skills = <SkillManager> this.add(new SkillManager());
 
@@ -236,15 +237,15 @@ export class Entity extends Module {
 
     /**
      * Add a new spritesheet to the current entity
-     * @param imagePath - path to the media
+     * @param imageId - id of the image
      * @param tilewidth - width of a tile
      * @param tileheight - height of a tile
      * @param props - props to pass to the spritesheet module
      * @param index - z index position of the entity
      * @returns The current spritesheet
      */
-    addSprite (imagePath: string, tilewidth: number, tileheight: number, props: any = {}, index?: number): Sprite {
-        props.imagePath  = imagePath;
+    addSprite (imageId: string, tilewidth: number, tileheight: number, props: any = {}, index?: number): Sprite {
+        props.imageId   = imageId;
         props.width      = tilewidth;
         props.height     = tileheight;
 
