@@ -75,6 +75,7 @@ export class DialogOptions extends Dialogs {
      * On click on switch Music
      */
     onStateMusicChange (): void {
+        Assets.getSound().play("click");
         if (this.switchMusic.state === Enum.STATE.ACTIVE) {
             Assets.getSound().unmute(true);
         } else {
@@ -86,6 +87,7 @@ export class DialogOptions extends Dialogs {
      * On click on switch sound
      */
     onStateSoundChange (): void {
+        Assets.getSound().play("click");
         if (this.switchSound.state === Enum.STATE.ACTIVE) {
             Assets.getSound().unmute(false, true);
         } else {

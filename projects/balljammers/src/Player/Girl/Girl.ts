@@ -2,27 +2,26 @@ import { Player } from "../Player";
 import { Assets } from "sideral/Tool";
 
 
-Assets.preload("redcat", "images/characters/redcat.png")
-    .preload("cat", "images/characters/cat.png")
-    .preload("cat-portrait", "images/characters/cat-portrait.png")
-    .preload("cat-idle", "images/characters/cat-idle.png");
+Assets.preload("girl", "images/characters/girl.png")
+    .preload("girl-portrait", "images/characters/girl-portrait.png")
+    .preload("girl-idle", "images/characters/girl-idle.png");
 
 
-export class Cat extends Player {
+export class Girl extends Player {
 
     /* ATTRIBUTES */
 
-    static CHARACTER_ID: string = "cat";
+    static CHARACTER_ID: string = "girl";
 
-    static SPEED: number = 250;
+    static SPEED: number = 375;
 
-    static POWER: number = 300;
+    static POWER: number = 150;
 
-    static SPELL: string = "Teleports behind the ball";
+    static SPELL: string = "Reduces the speed";
 
-    static IMAGE_IDLE: string = "cat-idle";
+    static IMAGE_IDLE: string = "girl-idle";
 
-    static IMAGE_PORTRAIT: string = "cat-portrait";
+    static IMAGE_PORTRAIT: string = "girl-portrait";
 
 
     /* LIFECYCLE */

@@ -323,7 +323,7 @@ export class Scene extends Module {
      * @returns Tilemap instance
      */
     setTilemap (data: any): Tilemap {
-        this.tilemap = <Tilemap> this.add(new Tilemap(), {}, 0);
+        this.tilemap = <Tilemap> this.add(new Tilemap(), {}, this._background ? 1 : 0);
 
         this.tilemap.setData(data);
 

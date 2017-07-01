@@ -266,7 +266,7 @@ export class Graphic extends Module {
      * Event fired on hover
      */
     _onHoverStartEvent (): void {
-        if (!this.props.isDisabled) {
+        if (!this.props.isDisabled && this.state !== Enum.STATE.ACTIVE) {
             this.setState(Enum.STATE.HOVER);
         }
     }
@@ -275,8 +275,8 @@ export class Graphic extends Module {
      * Event fired after hover
      */
     _onHoverEndEvent (): void {
-        if (!this.props.isDisabled) {
-            this.setState(this.props.isActive ? Enum.STATE.ACTIVE : Enum.STATE.DEFAULT);
+        if (!this.props.isDisabled && this.state !== Enum.STATE.ACTIVE) {
+            this.setState(Enum.STATE.DEFAULT);
         }
     }
 
@@ -286,7 +286,7 @@ export class Graphic extends Module {
     _onClickEvent (): void {
         if (!this.props.isDisabled) {
             this.props.isActive = this.props.activable ? !this.props.isActive : false;
-            this._onHoverEndEvent();
+            this.setState(this.props.isActive ? Enum.STATE.ACTIVE : Enum.STATE.DEFAULT);
         }
     }
 }

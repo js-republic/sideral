@@ -3,22 +3,12 @@ import { Graphic, Button } from "sideral/Graphic";
 import { Assets, Color, Enum } from "sideral/Tool";
 
 import { Arena, Title } from "./../Scenes";
-import { Helper, CharacterInfo } from "./../Graphics";
-import { Portrait } from "./../Player/Portrait";
+import { Player, Cat, Dog, Girl, Rogue, Robot, Stark } from "./../Player";
+import { Helper, CharacterInfo, Portrait } from "./../Graphics";
 
 
 Assets.preload("title", "images/titlescreen.png")
     .preload("selectCharacter", "images/selectCharacter.png")
-    .preload("cat-portrait", "images/characters/cat-portrait.png")
-    .preload("dog-portrait", "images/characters/dog-portrait.png")
-    .preload("rogue-portrait", "images/characters/rogue-portrait.png")
-    .preload("girl-portrait", "images/characters/girl-portrait.png")
-    .preload("robot-portrait", "images/characters/robot-portrait.png")
-    .preload("cat-idle", "images/characters/cat-idle.png")
-    .preload("dog-idle", "images/characters/dog-idle.png")
-    .preload("rogue-idle", "images/characters/rogue-idle.png")
-    .preload("girl-idle", "images/characters/girl-idle.png")
-    .preload("robot-idle", "images/characters/robot-idle.png")
     .preload("vs", "images/vs.png")
     .preloadSound("move", "sounds/move.wav")
     .preloadSound("selectCharacter", "sounds/selectCharacter.mp3");
@@ -70,20 +60,21 @@ export class SelectCharater extends Scene {
         PLAYER_2: "player2"
     };
 
+    Characters: Array<any> = [Cat, Dog, Rogue, Girl, Robot, Stark];
+
 
     /* LIFECYCLE */
 
     initialize (props) {
         super.initialize(props);
 
-        const x = (this.props.width / 2) - 170,
+        const x = (this.props.width / 2) - (((this.Characters.length * 72) + 20) / 2),
             y   = this.props.height - 132;
 
         this.spawnMultiple([
             { item: new Sprite(), props: { width: this.props.width, height: this.props.height, imageId: "title" } },
             { item: new Sprite(), x: this.props.width / 2, y: 50, props: { spritesheet: false, imageId: "selectCharacter" } },
             { item: new Sprite(), x: this.props.width / 2, y: (this.props.height / 2) - 50, props: { spritesheet: false, imageId: "vs" } }
-
         ]);
         
         this.addGraphic(10, 125, 250, 250, "Player 1")
@@ -92,14 +83,14 @@ export class SelectCharater extends Scene {
             });
 
 
-        this.addGraphic(this.props.width - 260, 125, 250, 250, "Player 2")
+        this.addGraphic(this.props.width - 260, 125, 250, 250, this.context.twoPlayers ? "Player 2" : "CPU")
             .text("text", {
                 fill: Color.red400
             });
 
         this.spawnMultiple([
-            { item: new CharacterInfo(), x: 10, y: 170, assign: "characterInfo1" },
-            { item: new CharacterInfo(), x: this.props.width - 260, y: 170, props: { spriteFlip: true }, assign: "characterInfo2" },
+            { item: new CharacterInfo(), x: 10, y: 125, assign: "characterInfo1" },
+            { item: new CharacterInfo(), x: this.props.width - 260, y: 125, props: { spriteFlip: true }, assign: "characterInfo2" },
             { item: new Helper(), x: 0, y: this.props.height - 30, props: {
                 title: "help",
                 text: this.context.twoPlayers
@@ -108,7 +99,7 @@ export class SelectCharater extends Scene {
             } }
         ]);
 
-        this.addGraphic((this.props.width / 2) - 190, this.props.height - 152, 380, 92);
+        this.addGraphic((this.props.width / 2) - 236, this.props.height - 152, 452, 92);
 
         this.buttonBack = (<Button> this.spawn(new Button(), 10, y + 1, {
             width: 115,
@@ -119,40 +110,21 @@ export class SelectCharater extends Scene {
 
         this.buttonPlay = (<Button> this.spawn(new Button(), this.props.width - 125, y + 1, {
             width: 115,
-            height: 50,
-            isDisabled: true
+            height: 50
 
         })).text("label", {
             text: "FIGHT !"
         });
 
-        this.portraits.push(<Portrait> this.spawn(new Portrait(), x, y, {
-            imageId: "cat-portrait",
-            imageIdleId: "cat-idle",
-            player1: true,
-            player2: this.context.twoPlayers,
-            name: "Chat"
-        }));
+        this.portraits = this.Characters.map((Character, index) => {
+            return <Portrait> this.spawn(new Portrait(), x + 10 + (72 * index), y, {
+                imageId: Character.IMAGE_PORTRAIT,
+                characterId: Character.CHARACTER_ID
+            });
+        });
 
-        this.portraits.push(<Portrait> this.spawn(new Portrait(), x + 72, y, {
-            imageId: "dog-portrait",
-            imageIdleId: "dog-idle"
-        }));
-
-        this.portraits.push(<Portrait> this.spawn(new Portrait(), x + 144, y, {
-            imageId: "rogue-portrait",
-            imageIdleId: "rogue-idle"
-        }));
-
-        this.portraits.push(<Portrait> this.spawn(new Portrait(), x + 216, y, {
-            imageId: "girl-portrait",
-            imageIdleId: "girl-idle"
-        }));
-
-        this.portraits.push(<Portrait> this.spawn(new Portrait(), x + 288, y, {
-            imageId: "robot-portrait",
-            imageIdleId: "robot-idle"
-        }));
+        this.portraits[0].props.player1 = true;
+        this.portraits[0].props.player2 = this.context.twoPlayers;
 
         Assets.getSound().playMusic("selectCharacter", true);
 
@@ -167,14 +139,14 @@ export class SelectCharater extends Scene {
             keyboard.signals.keyPress.bind(Enum.KEY.ARROW_LEFT, () => this.movePlayerPortrait(this.PLAYER.PLAYER_2, true));
             keyboard.signals.keyPress.bind(Enum.KEY.ARROW_RIGHT, () => this.movePlayerPortrait(this.PLAYER.PLAYER_2, false));
 
-            this.showCharacterInfo(this.PLAYER.PLAYER_2, this.portraits[0]);
+            this.showCharacterInfo(this.PLAYER.PLAYER_2, this.Characters[0]);
 
         } else {
-            this.showCharacterInfo(this.PLAYER.PLAYER_2, this.portraits[Math.floor(Math.random() * (this.portraits.length - 1))]);
+            this.showCharacterInfo(this.PLAYER.PLAYER_2, this.Characters[Math.floor(Math.random() * (this.Characters.length - 1))]);
 
         }
 
-        this.showCharacterInfo(this.PLAYER.PLAYER_1, this.portraits[0]);
+        this.showCharacterInfo(this.PLAYER.PLAYER_1, this.Characters[0]);
     }
 
 
@@ -203,7 +175,7 @@ export class SelectCharater extends Scene {
         this.portraits[nextIndex].props[player]     = true;
         this[player]                                = nextIndex;
 
-        this.showCharacterInfo(player, this.portraits[nextIndex]);
+        this.showCharacterInfo(player, this.Characters[nextIndex]);
     }
 
     /**
@@ -211,10 +183,13 @@ export class SelectCharater extends Scene {
      * @param player - Player side to show the info
      * @param portrait - Portrait corresponding to the character
      */
-    showCharacterInfo (player: string, portrait: Portrait): void {
+    showCharacterInfo (player: string, Character: any): void {
         const characterInfo = player.indexOf("1") != -1 ? this.characterInfo1 : this.characterInfo2;
 
-        characterInfo.props.imageId = portrait.props.imageIdleId;
+        characterInfo.props.imageId = Character.IMAGE_IDLE;
+        characterInfo.props.speed   = Character.SPEED;
+        characterInfo.props.power   = Character.POWER;
+        characterInfo.props.spell   = Character.SPELL;
     }
 
     /**
@@ -243,7 +218,7 @@ export class SelectCharater extends Scene {
         if (text) {
             graphic.text("text", {
                 x: width / 2,
-                y: 20,
+                y: -20,
                 centered: true,
                 text: text,
                 fill: Color.white
@@ -269,10 +244,7 @@ export class SelectCharater extends Scene {
      * On click on button play
      */
     onButtonPlayClick (): void {
-        if (!this.buttonPlay.props.isDisabled) {
-            console.log("kecli");
-            Assets.getSound().play("click");
-            // this.context.game.swapScene(this, new Arena());
-        }
+        Assets.getSound().play("click");
+        this.context.game.swapScene(this, new Arena());
     }
 }

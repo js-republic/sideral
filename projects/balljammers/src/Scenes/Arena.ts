@@ -6,7 +6,7 @@ import { Button } from "sideral/Graphic";
 import { Ball } from "./../Ball";
 import { Goal } from "./../Goal";
 
-import { PlayerCat } from "./../Player/Cat/Cat";
+import { Cat } from "./../Player/Cat/Cat";
 
 import * as tilemapGrass from "./../../tilemaps/grass.json";
 import * as fireConfig from "./../Particles/flame.json";
@@ -45,12 +45,12 @@ export class Arena extends Scene {
     /**
      * The player left
      */
-    playerLeft: PlayerCat;
+    playerLeft: Cat;
 
     /**
      * The player right
      */
-    playerRight: PlayerCat;
+    playerRight: Cat;
 
     /**
      * The score text
@@ -94,8 +94,8 @@ export class Arena extends Scene {
         this.ball           = <Ball> this.spawn(new Ball(), 100, 100);
         this.goalLeft       = <Goal> this.spawn(new Goal(), 0, 448 - 130);
         this.goalRight      = <Goal> this.spawn(new Goal(), this.props.width - 45, 448 - 130, { flip: true });
-        this.playerLeft     = <PlayerCat> this.spawn(new PlayerCat(), this.spawnX, 150, { playerLeft: true });
-        this.playerRight    = <PlayerCat> this.spawn(new PlayerCat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true });
+        this.playerLeft     = <Cat> this.spawn(new Cat(), this.spawnX, 150, { playerLeft: true });
+        this.playerRight    = <Cat> this.spawn(new Cat(true), this.props.width - this.spawnX - 150, 320, { playerRight: true });
         this.score          = <Text> this.spawn(new Text(), this.props.width / 2, 10, {
             text: "0 - 0",
             fill: "white",

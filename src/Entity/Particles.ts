@@ -48,8 +48,14 @@ export class Particles extends Entity {
 
         this.emitter = new (<any>PIXI.particles).Emitter(this.container, null, { emit: false });
 
-        this.signals.propChange.bind("config", this.onConfigurationChange.bind(this));
+        this.signals.propChange.bind("images", this.onConfigurationChange.bind(this));
         this.signals.update.add(this.updateFollow.bind(this));
+    }
+
+    initialize (props) {
+        super.initialize(props);
+
+        this.onConfigurationChange();
     }
 
     /**
@@ -79,6 +85,17 @@ export class Particles extends Entity {
 
 
     /* METHODS */
+
+    /**
+     * Update config property
+     * @param config - The next config property
+     */
+    updateConfig (config: any = {}): this {
+        this.setProps({ config: config });
+        this.onConfigurationChange();
+
+        return this;
+    }
 
     /**
      * Run the particles emitter
@@ -122,6 +139,7 @@ export class Particles extends Entity {
      */
     onConfigurationChange (): void {
         Assets.getTexture([].concat(this.props.images), textures => {
+            console.log(textures);
             this.emitter.cleanup();
             this.emitter.init(textures, this.props.config);
             this.loaded = true;
