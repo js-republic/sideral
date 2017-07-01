@@ -1,5 +1,5 @@
 import { Module } from "./../Module";
-import { Assets } from "src/Tool";
+import { Assets } from "./../Tool";
 
 import { IAnimation, ISpriteProps } from "./../Interface";
 
@@ -55,9 +55,13 @@ export class Sprite extends Module {
     constructor () {
         super();
 
-        this.container.anchor.set(0.5, 0.5);
+        this.setProps({
+            spritesheet : true,
+            centered    : true
+        });
 
-        this.signals.propChange.bind("imagePath", this.onImagePathChange.bind(this));
+        this.signals.propChange.bind("imageId", this.onImageIdChange.bind(this));
+        this.signals.propChange.bind("centered", this.onCenteredChange.bind(this));
     }
 
     /**
@@ -66,13 +70,17 @@ export class Sprite extends Module {
      * @override
      */
     initialize (props: any = {}) {
-        const width = props.width || this.props.width,
-            height  = props.height || this.props.height;
+        const width     = props.width || this.props.width,
+            height      = props.height || this.props.height,
+            centered    = typeof props.centered !== "undefined" ? props.centered : this.props.centered;
 
-        props.x     = (props.x || 0) + (width / 2);
-        props.y     = (props.y || 0) + (height / 2);
+        if (centered) {
+            props.x     = (props.x || 0) + (width / 2);
+            props.y     = (props.y || 0) + (height / 2);
+        }
 
         super.initialize(props);
+        this.onCenteredChange();
     }
 
 
@@ -179,6 +187,18 @@ export class Sprite extends Module {
     /* EVENTS */
 
     /**
+     * When "centered" attributes has changed
+     */
+    onCenteredChange (): void {
+        if (this.props.centered) {
+            this.container.anchor.set(0.5, 0.5);
+
+        } else {
+            this.container.anchor.set(0, 0);
+        }
+    }
+
+    /**
      * When timer of a frame is finished
      */
     onNextSprite (): void {
@@ -201,15 +221,24 @@ export class Sprite extends Module {
     }
 
     /**
-     * When "imagePath" attributes change
+     * When "imageId" attributes change
      */
-    onImagePathChange (): void {
-        Assets.get(this.props.imagePath, resource => {
+    onImageIdChange (): void {
+        Assets.get(this.props.imageId, resource => {
             const texture = resource.texture;
 
-            texture.frame           = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
             this.container.texture  = texture;
             this.image              = resource.data;
+
+            if (!this.props.spritesheet) {
+                this.addAnimation("idle", 1, [0]);
+                this.setProps({
+                    width: this.image.width,
+                    height: this.image.height
+                });
+            }
+
+            texture.frame = new PIXI.Rectangle(0, 0, this.props.width, this.props.height);
 
             this.animations.forEach(animation => animation.textureFrames = this._framesToRectangles(animation.frames));
 

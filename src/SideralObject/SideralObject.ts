@@ -107,7 +107,7 @@ export class SideralObject {
      * @returns {void}
      */
     update (tick: number): void {
-        this.children.forEach(child => child.update(tick));
+        this.children.forEach(child => !child.killed && child.update(tick));
         this.signals.update.dispatch(tick);
     }
 
@@ -124,7 +124,7 @@ export class SideralObject {
         Object.keys(this.props).forEach(key => {
             const prop = this.props[key];
 
-            if (prop !== this.last[key]) {
+            if (typeof prop !== "object" && prop !== this.last[key]) {
                 propChanged.push(key);
                 this.last[key] = this.props[key];
 
@@ -141,8 +141,8 @@ export class SideralObject {
      * Set new properties to the object. All attribute contained in "props" are public and can be edited by external source.
      * Properties can be observe via the "propChange" event. Update a property attribute via "setProps" will not fire the "propChange" event.
      * @access public
-     * @param {Object} props - properties to merge
-     * @returns {*} current instance
+     * @param props - Properties to merge
+     * @returns Current instance
      * @example
      *  this.setProps({
      *      test: 1
@@ -152,6 +152,18 @@ export class SideralObject {
      */
     setProps (props: any): this {
         Object.keys(props).forEach(key => this.last[key] = this.props[key] = props[key]);
+
+        return this;
+    }
+
+    /**
+     * Remove a property from the lifecycle of the object
+     * @param name - Name of the property to remove
+     * @returns Current instance
+     */
+    removeProp (name: string): this {
+        delete this.last[name];
+        delete this.props[name];
 
         return this;
     }
@@ -183,7 +195,7 @@ export class SideralObject {
      * Add multiple items
      * @param params - Parameters of the multiple add
      */
-    addMultiple (params: IAddMultiple[]): void {
+    addMultiple (params: Array<IAddMultiple>): this {
         params.forEach(param => {
             this.add(param.item, param.props);
 
@@ -195,6 +207,8 @@ export class SideralObject {
                 param.callback(param.item);
             }
         });
+
+        return this;
     }
 
     /**

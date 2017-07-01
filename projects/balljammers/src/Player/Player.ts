@@ -1,11 +1,15 @@
-import { Entity } from "src/Entity";
-import { Enum } from "src/Tool";
-import { IEntityProps } from "src/Interface";
+import { Entity } from "sideral/Entity";
+import { Enum, Assets } from "sideral/Tool";
+import { IEntityProps } from "sideral/Interface";
 
 import { Ball } from "./../Ball";
 import { PlayerAttackSkill } from "./PlayerAttack";
 import { PlayerDashSkill } from "./PlayerDash";
 import { PlayerDoubleJumpSkill } from "./PlayerDoubleJump";
+
+
+Assets.preloadSound("jump", "sounds/jump.mp3")
+    .preloadSound("swish", "sounds/swish.wav");
 
 
 export interface IPlayerProps extends IEntityProps {
@@ -213,6 +217,7 @@ export class Player extends Entity {
             }
 
             if (canJump) {
+                Assets.getSound().play("jump");
                 this.dashSide       = null;
                 this.fallPressed    = false;
             }
@@ -235,6 +240,7 @@ export class Player extends Entity {
      * When pressing the key attack
      */
     attack (): void {
+        Assets.getSound().play("swish");
         this.skills.run("attack", { follow: this });
     }
 

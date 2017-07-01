@@ -2,12 +2,16 @@
   "compileOnSave": false,
   "compilerOptions": {
     "allowJs": true,
-    "outDir": "./dist/out-tsc",
-    "baseUrl": ".",
-    "rootDir": ".",
-    "sourceMap": true,
-    "declaration": false,
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./dist",
     "moduleResolution": "node",
+    "baseUrl": "",
+    "rootDir": "",
+    "paths":{
+      "sideral/*": ["src/*"]
+    },
+    "sourceMap": false,
+    "declaration": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "target": "es5",
@@ -18,9 +22,5 @@
       "es2016",
       "dom"
     ]
-  },
-  "files": [
-      "src/typings.d.ts",
-      "projects/balljammers/src/main.ts"
-  ]
+  }
 }

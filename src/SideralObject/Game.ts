@@ -1,5 +1,5 @@
-import { SideralObject, Keyboard } from "./index";
-import { Scene } from "./../Module";
+import { SideralObject, Keyboard } from "./../SideralObject";
+import { Scene, SceneLoading, Shape } from "./../Module";
 import { Util, Assets } from "./../Tool";
 import { IGameProps } from "./../Interface";
 
@@ -25,9 +25,12 @@ export class Game extends SideralObject {
     props: IGameProps = {
         width       : 10,
         height      : 10,
-        background  : "#DDDDDD"
+        background  : "#000000"
     };
 
+    /**
+     * Dom container of the game
+     */
     container: HTMLElement = document.getElementById("sideral");
 
     /**
@@ -66,10 +69,30 @@ export class Game extends SideralObject {
     stopped: boolean = true;
 
     /**
+     * The scene used for loading
+     * @private
+     */
+    _loadingScene: Scene;
+
+    /**
      * The keyboard event manager (you must enable it before use it)
      * @readonly
      */
     keyboard: Keyboard;
+
+    /**
+     * Know if the game is loaded
+     * @readonly
+     */
+    loaded: boolean = false;
+
+    /**
+     * Object to add when Game is ready
+     * @private
+     */
+    _addQueue: Array<any> = [];
+
+    _swapScenes: Array<any> = [];
 
 
     /* LIFECYCLE */
@@ -80,8 +103,9 @@ export class Game extends SideralObject {
     constructor () {
         super();
 
-        this.renderer       = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false });
+        this.renderer       = PIXI.autoDetectRenderer(this.props.width, this.props.height, { autoResize: true, roundPixels: false, antialias: true });
         this.context.game   = this;
+        this.setLoadingScene(new SceneLoading());
 
         this.signals.propChange.bind(["width", "height"], this._resizeGame.bind(this));
         this.signals.propChange.bind("background", this._backgroundChange.bind(this));
@@ -101,7 +125,7 @@ export class Game extends SideralObject {
 
         // 100ms latency max
         this.currentUpdate  = performance;
-        this.latency        = Util.limit(performance - this.lastUpdate, 0, 100);
+        this.latency        = Util.limit(performance - this.lastUpdate, 8, 100);
         this.fps            = Math.floor(1000 / this.latency);
         this.tick           = 1000 / (this.fps * 1000);
         this.tick           = this.tick < 0 ? 0 : this.tick;
@@ -114,8 +138,66 @@ export class Game extends SideralObject {
         this.lastUpdate     = window.performance.now();
     }
 
+    nextCycle (): void {
+        super.nextCycle();
+
+        if (this.loaded) {
+            this._addQueue.forEach(queue => super.add(queue.item, queue.props));
+            this._swapScenes.forEach(swap => this._swapScene(swap));
+
+            this._addQueue      = [];
+            this._swapScenes    = [];
+
+            if (this._loadingScene) {
+                this._loadingScene.kill();
+            }
+        }
+    }
+
 
     /* METHODS */
+
+    /**
+     * @override 
+     */
+    add (item: SideralObject, props: any = {}): SideralObject {
+        this._addQueue.push({ item: item, props: props });
+
+        return item;
+    }
+
+    /**
+     * Set a scene used for loading screen
+     * @param loadingScene - Scene to run when the game is loading
+     * @return The LoadingScene
+     */
+    setLoadingScene (loadingScene: Scene): Scene {
+        this._loadingScene = <Scene> super.add(loadingScene);
+
+        return this._loadingScene;
+    }
+
+    /**
+     * Load assets
+     * @param env - The environment to load
+     * @param loadingScene - Scene to use for loading
+     */
+    loadAssets (env?: string, loadingScene?: Scene): void {
+        Assets.load(env, () => {
+            const done = () => {
+                this.loaded = true;
+            };
+
+            if (this._loadingScene) {
+                this._loadingScene.onAssetsLoaded(done);
+
+            } else {
+                done();
+
+            }
+
+        }, progress => this._loadingScene && this._loadingScene.signals.progress.dispatch(progress));
+    }
 
     /**
      * Start the game loop
@@ -138,9 +220,8 @@ export class Game extends SideralObject {
         this.stopped = false;
         this.attach(container);
         this._resizeGame();
-
-        // Load the global assets
-        Assets.load(() => this.update());
+        this.loadAssets();
+        this.update();
 
         return this;
     }
@@ -204,8 +285,46 @@ export class Game extends SideralObject {
         this.container.appendChild(this.renderer.view);
     }
 
+    /**
+     * Swap a scene to the next Scene
+     * @param currentScene - The current scene to swap
+     * @param nextScene - The next Scene to swap
+     * @returns The next scene
+     */
+    swapScene (currentScene: Scene, nextScene: Scene, color?: string, duration: number = 500, onComplete?: Function): Scene {
+        if (currentScene && nextScene) {
+            this._swapScenes.push({ currentScene, nextScene, color, duration, onComplete });
+        }
+
+        return nextScene;
+    }
+
 
     /* PRIVATE */
+
+    _swapScene ({ currentScene, nextScene, color, duration, onComplete }): void {
+        if (!color) {
+            currentScene.kill();
+            super.add(nextScene);
+
+            if (onComplete) {
+                onComplete(nextScene);
+            }
+
+        } else {
+
+            currentScene.fade("out", color, duration, () => {
+                currentScene.kill();
+                super.add(nextScene);
+
+                nextScene.fade("in", color, duration, () => {
+                    if (onComplete) {
+                        onComplete(nextScene);
+                    }
+                });
+            });
+        }
+    }
 
     /**
      * When width or height attributes change
@@ -215,6 +334,11 @@ export class Game extends SideralObject {
         if (!this.renderer) {
             return null;
         }
+
+        this.getScenes().filter(scene => scene.props.sizeAuto).forEach(scene => {
+            scene.props.width = this.props.width;
+            scene.props.height= this.props.height;
+        });
 
         this.renderer.resize(this.props.width, this.props.height);
     }

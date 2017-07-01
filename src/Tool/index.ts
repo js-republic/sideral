@@ -3,3 +3,4 @@ export * from "./SignalEvent";
 export * from "./Util";
 export * from "./Sound";
 export * from "./Assets";
+export * from "./Color";

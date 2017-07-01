@@ -1,9 +1,9 @@
 import { Material, World, ContactMaterial, Body } from "p2";
 
-import { Enum, Util, Assets } from "./../Tool";
+import { Enum, Util, Assets, Color, SignalEvent } from "./../Tool";
 import { Entity, Wall, Physic } from "./../Entity";
-import { Module, Tilemap } from "./index";
-import { ISceneProps, IContact } from "./../Interface";
+import { Module, Tilemap, Shape } from "./../Module";
+import { ISceneProps, ISceneSignals, IContact } from "./../Interface";
 
 
 /**
@@ -12,6 +12,11 @@ import { ISceneProps, IContact } from "./../Interface";
 export class Scene extends Module {
 
     /* ATTRIBUTES */
+
+    /**
+     * Signals of the scene
+     */
+    signals: ISceneSignals;
 
     /**
      * Properties of the scene
@@ -23,6 +28,12 @@ export class Scene extends Module {
      * @private
      */
     _entities: Array<Entity> = null;
+
+    /**
+     * Background graphics
+     * @private
+     */
+    _background: Shape;
 
     /**
      * The tilemap of the scene
@@ -55,8 +66,15 @@ export class Scene extends Module {
 
     /**
      * All physic in queue
+     * @private
      */
     _physicQueue: Array<Physic> = [];
+
+    /**
+     * Fade Shape
+     * @private
+     */
+    _fade: Shape;
 
 
     /* LIFECYCLE */
@@ -70,12 +88,18 @@ export class Scene extends Module {
         this.setProps({
             scale       : 1,
             motionFactor: 1,
-            gravity     : 0
+            backgroundColor: Color.black,
+            backgroundAlpha: 1,
+            gravity     : 0,
+            sizeAuto    : true
         });
 
-        this.context.scene  = this;
+        this.signals.progress   = new SignalEvent();
+        this.context.scene      = this;
 
         this.signals.propChange.bind("gravity", this.onGravityChange.bind(this));
+        this.signals.propChange.bind(["width", "height"], this._onSizeChange.bind(this));
+        this.signals.propChange.bind(["backgroundColor", "backgroundAlpha"], this.onBackgroundChange.bind(this));
     }
 
     /**
@@ -90,6 +114,8 @@ export class Scene extends Module {
             width   : this.context.game.props.width,
             height  : this.context.game.props.height
         });
+
+        this.onBackgroundChange();
     }
 
     /**
@@ -118,6 +144,39 @@ export class Scene extends Module {
 
 
     /* METHODS */
+
+    /**
+     * Create a fade effect
+     * @param fadeType - Type of fade ("in" or "out")
+     * @param color - The color of the fade effect
+     * @param duration - Duration of the effect
+     * @param onComplete - Function to be called on effect complete
+     * @returns The fade object
+     */
+    fade (fadeType: string, color: string, duration: number, onComplete?: Function): Shape {
+        if (!this._fade) {
+            this._fade = <Shape> this.add(new Shape(), {
+                width   : this.props.width,
+                height  : this.props.height,
+                fill    : color,
+                fillAlpha: fadeType === "in" ? 1 : 0
+            });
+
+        }
+
+        this.timers.addTimer("fade", duration, () => {
+                this._fade.props.fillAlpha = fadeType === "in" ? 0 : 1;
+                if (onComplete) {
+                    onComplete();
+                }
+
+            }, {
+                update: (tick, value, ratio) => this._fade.props.fillAlpha = fadeType === "in" ? 1 - ratio : ratio
+            }
+        );
+
+        return this._fade;
+    }
 
     /**
      * Enable world physics
@@ -264,7 +323,7 @@ export class Scene extends Module {
      * @returns Tilemap instance
      */
     setTilemap (data: any): Tilemap {
-        this.tilemap = <Tilemap> this.add(new Tilemap(), {}, 0);
+        this.tilemap = <Tilemap> this.add(new Tilemap(), {}, this._background ? 1 : 0);
 
         this.tilemap.setData(data);
 
@@ -343,6 +402,51 @@ export class Scene extends Module {
         }
     }
 
+    /**
+     * When backgrounds attributes has changed
+     */
+    onBackgroundChange (): void {
+        const { backgroundColor, backgroundAlpha } = this.props;
+
+        if (!this._background && backgroundColor) {
+            this._background = <Shape> this.add(new Shape(), {
+                stroke      : Color.transparent,
+                width       : this.props.width,
+                height      : this.props.height,
+                fill        : backgroundColor,
+                fillAlpha   : backgroundAlpha
+            }, 0);
+
+        } else if (this._background && !backgroundColor) {
+            this._background.kill();
+            this._background = null;
+
+        } else {
+            this._background.props.fill = backgroundColor;
+            this._background.props.fillAlpha = backgroundAlpha;
+
+        }
+    }
+
+    /**
+     * Event trigger by the game when all assets are loaded
+     * @param done - Function to call to end the loading
+     */
+    onAssetsLoaded (done: Function): void {
+        done();
+    }
+
+    /**
+     * When "height" or "width" attributes has changed
+     * @private
+     */
+    _onSizeChange (): void {
+        if (this._background) {
+            this._background.props.width = this.props.width;
+            this._background.props.height = this.props.height;
+        }
+    }
+
 
     /* PRIVATE */
 
@@ -381,17 +485,25 @@ export class Scene extends Module {
      * @private
      */
     _onBeginContact ({ bodyA, bodyB }): void {
-        const contact = this._resolveContact(bodyA, bodyB);
+        const contact = this._resolveContact(bodyA, bodyB),
+            { entityA, entityB } = contact;
 
-        if (contact.entityA && contact.contactA) {
-            contact.entityA.collides.push(contact.contactA);
+        if (entityA && contact.contactA) {
+            entityA.collides.push(contact.contactA);
         }
 
-        if (contact.entityB && contact.contactB) {
-            contact.entityB.collides.push(contact.contactB);
+        if (entityB && contact.contactB) {
+            entityB.collides.push(contact.contactB);
         }
 
-        if (contact.entityA && contact.entityB) {
+
+        if (entityA instanceof Wall) {
+            entityB.signals.wallCollision.dispatch();
+
+        } else if (entityB instanceof Wall) {
+            entityA.signals.wallCollision.dispatch();
+
+        } else if (entityA && entityB) {
             contact.entityA.signals.beginCollision.dispatch(contact.entityB.name, contact.entityB);
             contact.entityB.signals.beginCollision.dispatch(contact.entityA.name, contact.entityA);
         }
@@ -445,11 +557,11 @@ export class Scene extends Module {
         const isAbove = (xA, yA, widthA, xB, yB, widthB) => yB >= yA && (xA > xB - widthA) && (xA < xB + widthB);
 
         switch (true) {
-            case ownerB instanceof Wall:
+            case Boolean(ownerB instanceof Wall) && Boolean(ownerA):
                 contactA = { bodyId: bodyB.id, isAbove: isAbove(ownerA.props.x, ownerA.props.y, ownerA.props.height, ownerB.props.x, ownerB.props.y, ownerB.props.width) };
                 break;
 
-            case ownerA instanceof Wall:
+            case Boolean(ownerA instanceof Wall) && Boolean(ownerB):
                 contactB = { bodyId: bodyA.id, isAbove: isAbove(ownerB.props.x, ownerB.props.y, ownerB.props.height, ownerA.props.x, ownerA.props.y, ownerA.props.width) };
                 break;
 
